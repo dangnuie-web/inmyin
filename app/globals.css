@@ -7,7 +7,7 @@
   --color-gray-2: #f2f2f2;
   --color-gray-3: #d9d9d9;
   --color-gray-4: #777777;
-  --color-text: #000000;
+  --color-ink: #000000;
   --color-primary: #ff2d55;
   --color-point: #6155f5;
   --color-dropdown: #000000b2;
@@ -16,7 +16,7 @@
   --color-surface: var(--color-gray-1);
   --color-border: var(--color-gray-2);
   --color-disabled: var(--color-gray-3);
-  --color-text-muted: var(--color-gray-4);
+  --color-ink-muted: var(--color-gray-4);
 
   /* 모서리 */
   --radius-sm: 8px;
@@ -43,6 +43,6 @@
 
 body {
   background: var(--color-bg);
-  color: var(--color-text);
+  color: var(--color-ink);
   font-family: var(--font-sans);
 }

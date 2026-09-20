@@ -16,7 +16,7 @@ const PALETTE = [
   { name: "gray-2", className: "bg-gray-2" },
   { name: "gray-3", className: "bg-gray-3" },
   { name: "gray-4", className: "bg-gray-4" },
-  { name: "text", className: "bg-text" },
+  { name: "ink", className: "bg-ink" },
   { name: "primary", className: "bg-primary" },
   { name: "point", className: "bg-point" },
   { name: "dropdown", className: "bg-dropdown" },
@@ -26,7 +26,7 @@ const ROLES = [
   { name: "surface", className: "bg-surface" },
   { name: "border", className: "bg-border" },
   { name: "disabled", className: "bg-disabled" },
-  { name: "text-muted", className: "bg-text-muted" },
+  { name: "ink-muted", className: "bg-ink-muted" },
 ];
 
 const TEXTS = [
@@ -70,7 +70,7 @@ function Section({ title, note, children }: { title: string; note?: string; chil
     <section className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
         <h2 className="text-title font-bold">{title}</h2>
-        {note && <p className="text-caption text-text-muted">{note}</p>}
+        {note && <p className="text-caption text-ink-muted">{note}</p>}
       </div>
       {children}
     </section>
@@ -96,10 +96,10 @@ function ColorChip({ name, className, tokens }: { name: string; className: strin
       </div>
       <div className="flex flex-col">
         <span className="text-label font-semibold">{name}</span>
-        <span className="text-caption text-text-muted">
+        <span className="text-caption text-ink-muted">
           {alias ? `→ ${alias} · ${hex}` : hex}
         </span>
-        <code className="text-caption text-text-muted">{className}</code>
+        <code className="text-caption text-ink-muted">{className}</code>
       </div>
     </li>
   );
@@ -112,7 +112,7 @@ export default function DesignPage() {
     <main className="mx-auto flex w-full max-w-3xl flex-col gap-12 px-5 py-10">
       <header className="flex flex-col gap-1">
         <h1 className="text-title font-bold">INMYIN 디자인 토큰</h1>
-        <p className="text-label text-text-muted">
+        <p className="text-label text-ink-muted">
           app/globals.css 의 @theme 값을 그대로 읽어 보여주는 확인용 페이지
         </p>
       </header>
@@ -139,7 +139,7 @@ export default function DesignPage() {
             <li key={t.name} className="flex flex-col gap-2 p-4">
               <div className="flex items-baseline justify-between gap-3">
                 <span className="text-label font-semibold">{t.name}</span>
-                <code className="text-caption text-text-muted">
+                <code className="text-caption text-ink-muted">
                   {t.className} · {tokens[`text-${t.name}`]} / {tokens[`text-${t.name}--line-height`]}
                 </code>
               </div>
@@ -155,7 +155,7 @@ export default function DesignPage() {
           {WEIGHTS.map((w) => (
             <li key={w.name} className="flex flex-col gap-1 rounded-md border border-border p-4">
               <span className={`text-title ${w.className}`}>인벤토리 Aa</span>
-              <code className="text-caption text-text-muted">
+              <code className="text-caption text-ink-muted">
                 {w.className} · {w.name}
               </code>
             </li>
@@ -170,7 +170,7 @@ export default function DesignPage() {
               <div className={`h-20 border border-disabled bg-gray-2 ${r.className}`} />
               <div className="flex flex-col">
                 <span className="text-label font-semibold">{r.name}</span>
-                <code className="text-caption text-text-muted">
+                <code className="text-caption text-ink-muted">
                   {r.className} · {tokens[`radius-${r.name}`]}
                 </code>
               </div>
