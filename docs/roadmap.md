@@ -17,7 +17,7 @@
 - [✅] Next.js + TypeScript + Tailwind 프로젝트 생성
 - [✅] GitHub 리포지토리 연결 + 첫 커밋
 - [✅] Supabase 연결 (환경변수 설정)
-- [ ] `docs/data-model.md`의 테이블 생성 + RLS 정책
+- [✅] `docs/data-model.md`의 테이블 생성 + RLS 정책
 - [ ] `lib/plans.ts`, `lib/categories.ts` 상수 작성
 - [ ] 피그마에서 옮긴 색·타이포·여백을 Tailwind 토큰으로 등록
 - [ ] 빈 화면 하나 배포해서 Vercel 주소 확인
