@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 // className 은 Tailwind가 찾을 수 있게 글자 그대로 적어둔다.
 
 const PALETTE = [
-  { name: "bg", className: "bg-bg" },
+  { name: "white", className: "bg-white" },
   { name: "gray-1", className: "bg-gray-1" },
   { name: "gray-2", className: "bg-gray-2" },
   { name: "gray-3", className: "bg-gray-3" },
@@ -89,7 +89,7 @@ function ColorChip({ name, className, tokens }: { name: string; className: strin
         className="overflow-hidden rounded-md border border-border"
         style={{
           background:
-            "repeating-conic-gradient(var(--color-gray-3) 0% 25%, var(--color-bg) 0% 50%) 0 0 / 16px 16px",
+            "repeating-conic-gradient(var(--color-gray-3) 0% 25%, var(--color-white) 0% 50%) 0 0 / 16px 16px",
         }}
       >
         <div className={`h-20 ${className}`} />

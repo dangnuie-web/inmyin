@@ -2,7 +2,7 @@
 
 @theme {
   /* 팔레트 — 피그마 변수 그대로 */
-  --color-bg: #ffffff;
+  --color-white: #ffffff;
   --color-gray-1: #fbfbfb;
   --color-gray-2: #f2f2f2;
   --color-gray-3: #d9d9d9;
@@ -42,7 +42,7 @@
 }
 
 body {
-  background: var(--color-bg);
+  background: var(--color-white);
   color: var(--color-ink);
   font-family: var(--font-sans);
 }
