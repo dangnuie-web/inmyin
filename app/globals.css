@@ -12,6 +12,9 @@
   --color-point: #6155f5;
   --color-dropdown: #000000b2;
 
+  /* 외부 브랜드 색 — 카카오 로그인 버튼 가이드가 정해둔 값 */
+  --color-kakao: #fee500;
+
   /* 역할 이름 — 값은 같고 쓰임새만 드러냄 */
   --color-surface: var(--color-gray-1);
   --color-border: var(--color-gray-2);

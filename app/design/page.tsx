@@ -20,6 +20,7 @@ const PALETTE = [
   { name: "primary", className: "bg-primary" },
   { name: "point", className: "bg-point" },
   { name: "dropdown", className: "bg-dropdown" },
+  { name: "kakao", className: "bg-kakao" },
 ];
 
 const ROLES = [

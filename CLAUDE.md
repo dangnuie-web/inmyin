@@ -6,7 +6,7 @@
 
 1. `CLAUDE.md` (이 파일) — 프로젝트 규칙, 용어, 폴더 구조
 2. `docs/PRD.md` — 무엇을 왜 만드는가
-3. `docs/screens.md` — 화면 26개 상세 정의
+3. `docs/screens.md` — 화면 30개 상세 정의
 4. `docs/data-model.md` — DB 스키마와 불변 규칙
 5. `docs/roadmap.md` — 단계별 작업 목록
 
