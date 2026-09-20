@@ -28,7 +28,7 @@ User ──< Inventory ──< Item
 
 1. **부모는 항상 하나다.** `Item.inventoryId` 와 `Inventory.parentInventoryId` 모두 단일 값. 이동은 이 값을 바꾸는 것이고, 복사는 존재하지 않는다. 짐싸기는 `inventoryId` + `slotIndex` 한 줄 업데이트로 끝난다
 2. **한 칸에 하나.** `(inventoryId, slotIndex)` 에 unique 제약. 아이템과 중첩 인벤토리가 같은 칸을 쓴다
-3. **이미 부모가 있는 인벤토리는 다른 곳에 담을 수 없다.** `parentInventoryId IS NULL` 인 것만 담기 대상
+3. **이미 부모가 있는 인벤토리는 다른 곳에 담을 수 없다.** `parentInventoryId IS NULL` 인 것만 담기 대상. 한 줄로 이어지는 중첩은 **5겹까지**이고, 자기 자신이나 자기 안에 든 인벤토리 속으로 들어가는 순환은 DB 트리거가 막는다
 4. **`slotIndex < slotCount`.** `slotCount`는 플랜 상수에서 온다
 5. **삭제는 `deletedAt` 기록.** 물리 삭제 금지 — 과거 INMYIN 게시물이 아이템을 참조한다
 6. **`likeCount`는 캐시.** 정확한 순위 집계는 `Like.createdAt` 기준으로 따로 한다
