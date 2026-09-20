@@ -20,7 +20,7 @@
 - [✅] `docs/data-model.md`의 테이블 생성 + RLS 정책
 - [✅] `lib/plans.ts`, `lib/categories.ts` 상수 작성
 - [✅] 피그마에서 옮긴 색·타이포·여백을 Tailwind 토큰으로 등록
-- [ ] 빈 화면 하나 배포해서 Vercel 주소 확인
+- [✅] 빈 화면 하나 배포해서 Vercel 주소 확인 — https://inmyin.vercel.app
 
 마지막 항목까지 하면 인터넷 주소가 하나 생깁니다. 내용은 없어도 괜찮아요. **한 번 배포해두면 그 뒤로는 코드만 고치면 자동으로 갱신됩니다.**
 
