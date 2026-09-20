@@ -14,7 +14,7 @@
 
 **클로드 코드에게 시킬 것**
 
-- [ ] Next.js + TypeScript + Tailwind 프로젝트 생성
+- [✅] Next.js + TypeScript + Tailwind 프로젝트 생성
 - [ ] GitHub 리포지토리 연결 + 첫 커밋
 - [ ] Supabase 연결 (환경변수 설정)
 - [ ] `docs/data-model.md`의 테이블 생성 + RLS 정책
