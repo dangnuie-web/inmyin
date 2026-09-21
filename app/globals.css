@@ -12,6 +12,11 @@
   --color-point: #6155f5;
   --color-dropdown: #000000b2;
 
+  /* 어두운 화면(M-08 정보 입력) — 피그마에 변수 없이 값으로만 들어 있던 색 */
+  --color-surface-dark: #4d4a50;
+  --color-field-dark: #3c3640;
+  --color-placeholder-dark: #c1c1c1;
+
   /* 외부 브랜드 색 — 카카오 로그인 버튼 가이드가 정해둔 값 */
   --color-kakao: #fee500;
 
@@ -25,6 +30,7 @@
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 20px;
+  --radius-xl: 32px;
   --radius-full: 9999px;
 
   /* 글자 */

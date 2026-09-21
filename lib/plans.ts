@@ -5,3 +5,8 @@ export const PLANS = {
 } as const;
 
 export type Plan = keyof typeof PLANS;
+
+// DB의 users.plan 은 그냥 글자라서, 모르는 값이 오면 basic 으로 본다
+export function planLimits(plan: string) {
+  return plan in PLANS ? PLANS[plan as Plan] : PLANS.basic;
+}

@@ -145,37 +145,43 @@ export type Database = {
       }
       inventories: {
         Row: {
+          categories: string[]
           created_at: string
           deleted_at: string | null
           id: string
-          kind: string
+          image_url: string | null
           name: string
           parent_inventory_id: string | null
           parent_slot_index: number | null
+          raw_image_url: string | null
           slot_count: number
           sort_order: number
           user_id: string
         }
         Insert: {
+          categories?: string[]
           created_at?: string
           deleted_at?: string | null
           id?: string
-          kind: string
+          image_url?: string | null
           name: string
           parent_inventory_id?: string | null
           parent_slot_index?: number | null
+          raw_image_url?: string | null
           slot_count: number
           sort_order?: number
           user_id: string
         }
         Update: {
+          categories?: string[]
           created_at?: string
           deleted_at?: string | null
           id?: string
-          kind?: string
+          image_url?: string | null
           name?: string
           parent_inventory_id?: string | null
           parent_slot_index?: number | null
+          raw_image_url?: string | null
           slot_count?: number
           sort_order?: number
           user_id?: string
@@ -382,6 +388,10 @@ export type Database = {
     }
     Functions: {
       is_email_registered: { Args: { p_email: string }; Returns: boolean }
+      is_valid_categories: {
+        Args: { p_categories: string[] }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

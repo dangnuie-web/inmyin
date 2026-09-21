@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { signOut } from "@/app/(auth)/actions";
 import { Button } from "@/components/ui/Button";
 import { requireProfile } from "@/lib/auth/profile";
@@ -12,6 +13,9 @@ export default async function My() {
       <p className="text-body text-ink-muted">
         {profile.nickname} (@{profile.handle}) 님으로 로그인했습니다.
       </p>
+      <Link href="/my/inventories" className="mt-4 text-link font-semibold underline underline-offset-4">
+        내 인벤토리
+      </Link>
       {/* 임시 — 설정(M-02)을 만들면 그쪽으로 옮긴다 */}
       <form action={signOut} className="mt-4 w-40">
         <Button type="submit" variant="outline">

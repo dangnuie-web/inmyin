@@ -20,6 +20,9 @@ const PALETTE = [
   { name: "primary", className: "bg-primary" },
   { name: "point", className: "bg-point" },
   { name: "dropdown", className: "bg-dropdown" },
+  { name: "surface-dark", className: "bg-surface-dark" },
+  { name: "field-dark", className: "bg-field-dark" },
+  { name: "placeholder-dark", className: "bg-placeholder-dark" },
   { name: "kakao", className: "bg-kakao" },
 ];
 
@@ -49,6 +52,7 @@ const RADII = [
   { name: "sm", className: "rounded-sm" },
   { name: "md", className: "rounded-md" },
   { name: "lg", className: "rounded-lg" },
+  { name: "xl", className: "rounded-xl" },
   { name: "full", className: "rounded-full" },
 ];
 
