@@ -27,7 +27,7 @@ export function Input({ label, hint, trailing, action, id, required, className =
           <input
             id={inputId}
             required={required}
-            className={`h-12 w-full rounded-md border border-disabled bg-white px-4 text-body outline-none placeholder:text-disabled focus:border-ink disabled:bg-surface disabled:text-ink-muted ${trailing ? "pr-14" : ""} ${className}`}
+            className={`h-12 w-full rounded-md border border-disabled bg-white px-4 text-body outline-none placeholder:text-disabled focus:border-ink read-only:bg-surface read-only:text-ink-muted disabled:bg-surface disabled:text-ink-muted ${trailing ? "pr-14" : ""} ${className}`}
             {...props}
           />
           {trailing && (

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { sendSignupCode, signUpWithCode } from "@/app/(auth)/actions";
+import { sendSignupCode, signUp } from "@/app/(auth)/actions";
 import { Button } from "@/components/ui/Button";
 import { FormError } from "@/components/ui/FormError";
 import { PasswordInput } from "@/components/ui/PasswordInput";
@@ -11,15 +11,15 @@ import { TermsAgreement } from "./TermsAgreement";
 import { useFormSubmit } from "./useFormSubmit";
 
 export function SignupForm() {
-  const { state, pending, onSubmit } = useFormSubmit(signUpWithCode);
+  const { state, pending, onSubmit } = useFormSubmit(signUp);
   const emailCode = useEmailCode(sendSignupCode);
 
   const [password, setPassword] = useState("");
   const [termsDone, setTermsDone] = useState(false);
 
   // 인증번호를 보내기 전에는 인증번호 칸과 약관이 보이지 않는다 (가입1 → 가입2 프레임)
-  const { sent } = emailCode;
-  const canSubmit = emailCode.ready && password.length >= PASSWORD_MIN && termsDone && !pending;
+  const { sent, verified } = emailCode;
+  const canSubmit = verified && password.length >= PASSWORD_MIN && termsDone && !pending;
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-10">
@@ -35,6 +35,8 @@ export function SignupForm() {
           hint={`${PASSWORD_MIN}자 이상`}
           required
           minLength={PASSWORD_MIN}
+          // 인증번호를 확인한 뒤에 입력한다
+          disabled={!verified}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
@@ -45,7 +47,7 @@ export function SignupForm() {
       <div className="flex flex-col gap-3">
         <FormError message={state.error} />
         <Button type="submit" disabled={!canSubmit}>
-          {pending ? "가입하는 중…" : sent ? "인증하고 가입하기" : "가입하기"}
+          {pending ? "가입하는 중…" : "가입하기"}
         </Button>
       </div>
     </form>

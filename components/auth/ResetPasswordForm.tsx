@@ -15,7 +15,8 @@ export function ResetPasswordForm() {
 
   const [password, setPassword] = useState("");
 
-  const canSubmit = emailCode.ready && password.length >= PASSWORD_MIN && !pending;
+  const { verified } = emailCode;
+  const canSubmit = verified && password.length >= PASSWORD_MIN && !pending;
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-10">
@@ -30,6 +31,8 @@ export function ResetPasswordForm() {
           hint={`${PASSWORD_MIN}자 이상`}
           required
           minLength={PASSWORD_MIN}
+          // 인증번호를 확인한 뒤에 입력한다
+          disabled={!verified}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />

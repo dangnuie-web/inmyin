@@ -80,21 +80,34 @@ export async function sendSignupCode(email: string): Promise<FormState> {
   return {};
 }
 
-// A-02 · 인증번호 확인 + 비밀번호 저장
-export async function signUpWithCode(_prev: FormState, formData: FormData): Promise<FormState> {
+// A-02 · A-04 · 인증번호 확인. 맞으면 그 이메일로 로그인된 상태가 된다
+export async function verifyEmailCode(email: string, code: string): Promise<FormState> {
+  if (typeof email !== "string" || !isEmail(email.trim())) {
+    return { error: "이메일 주소를 확인해 주세요." };
+  }
+  if (typeof code !== "string" || !isOtp(code)) {
+    return { error: "메일로 받은 인증번호를 입력해 주세요." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.verifyOtp({ email: email.trim(), token: code, type: "email" });
+  if (error) return { error: authErrorMessage(error.code) };
+
+  return {};
+}
+
+// A-02 · 비밀번호 + 약관 동의 저장. 인증번호 확인을 마친 뒤에 부른다
+export async function signUp(_prev: FormState, formData: FormData): Promise<FormState> {
   const email = text(formData, "email");
-  const code = text(formData, "code");
   const password = String(formData.get("password") ?? "");
   const terms = readTerms(formData);
 
-  if (!isEmail(email)) return { error: "이메일 주소를 확인해 주세요." };
-  if (!isOtp(code)) return { error: "메일로 받은 인증번호를 입력해 주세요." };
   if (password.length < PASSWORD_MIN) {
     return { error: `비밀번호는 ${PASSWORD_MIN}자 이상으로 입력해 주세요.` };
   }
   if (!terms) return { error: "필수 약관에 동의해 주세요." };
 
-  const result = await verifyCodeAndSetPassword(email, code, password, terms);
+  const result = await setVerifiedPassword(email, password, terms);
   if (result.error) return result;
 
   redirect("/onboarding");
@@ -118,43 +131,37 @@ export async function sendResetCode(email: string): Promise<FormState> {
   return {};
 }
 
-// A-04 · 인증번호 확인 + 새 비밀번호 저장
+// A-04 · 새 비밀번호 저장. 인증번호 확인을 마친 뒤에 부른다
 export async function resetPassword(_prev: FormState, formData: FormData): Promise<FormState> {
   const email = text(formData, "email");
-  const code = text(formData, "code");
   const password = String(formData.get("password") ?? "");
 
-  if (!isEmail(email)) return { error: "이메일 주소를 확인해 주세요." };
-  if (!isOtp(code)) return { error: "메일로 받은 인증번호를 입력해 주세요." };
   if (password.length < PASSWORD_MIN) {
     return { error: `비밀번호는 ${PASSWORD_MIN}자 이상으로 입력해 주세요.` };
   }
 
-  const result = await verifyCodeAndSetPassword(email, code, password);
+  const result = await setVerifiedPassword(email, password);
   if (result.error) return result;
 
-  // 인증번호를 확인하면서 로그인도 된 상태다. 프로필이 없는 사람은 홈이 A-03 으로 보낸다
+  // 프로필이 없는 사람은 홈이 A-03 으로 보낸다
   redirect("/");
 }
 
-// 인증번호를 확인하고 비밀번호를 저장한다. 가입(A-02)과 비밀번호 재설정(A-04)이 같이 쓴다.
+// 인증번호 확인을 마친 사람의 비밀번호를 저장한다. 가입(A-02)과 비밀번호 재설정(A-04)이 같이 쓴다.
 // data 는 계정에 함께 적어둘 것 (약관 동의 시각 등)
-async function verifyCodeAndSetPassword(
+async function setVerifiedPassword(
   email: string,
-  code: string,
   password: string,
   data?: Record<string, unknown>,
 ): Promise<FormState> {
   const supabase = await createClient();
 
-  // 인증번호는 한 번 쓰면 사라진다. 인증은 됐는데 비밀번호 저장에서 실패해 다시 누른 경우를 위해
-  // 이미 같은 이메일로 로그인돼 있으면 인증 단계를 건너뛴다.
+  // 인증번호를 확인하면 그 이메일로 로그인된다. 로그인된 이메일이 다르면 확인을 건너뛴 것이다
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (user?.email?.toLowerCase() !== email.toLowerCase()) {
-    const { error } = await supabase.auth.verifyOtp({ email, token: code, type: "email" });
-    if (error) return { error: authErrorMessage(error.code) };
+  if (!user?.email || user.email.toLowerCase() !== email.toLowerCase()) {
+    return { error: "인증번호 확인을 먼저 해 주세요." };
   }
 
   // same_password = 예전과 같은 비밀번호. 그 비밀번호로 로그인할 수 있으니 성공으로 친다
