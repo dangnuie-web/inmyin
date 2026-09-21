@@ -1,9 +1,19 @@
 import Image from "next/image";
+import Link from "next/link";
 import type { ReactNode } from "react";
+import { slotEntryPath } from "@/lib/inventory/paths";
 import type { SlotEntry } from "@/lib/inventory/queries";
 
 // 인벤토리 상세(M-04)의 한 칸. 피그마 `아이템 슬롯` 컴포넌트.
 // 같은 내용을 그리드에서는 네모 칸(SlotCell)으로, 리스트에서는 한 줄(SlotRow)로 그린다.
+// 누르면 아이템은 상세(M-14)로, 안에 담긴 인벤토리는 그 인벤토리로 간다.
+
+// docs/screens.md "칸 수에 따른 격자". className 은 Tailwind가 찾을 수 있게 글자 그대로 적어둔다
+export function gridFor(slotCount: number) {
+  if (slotCount >= 100) return { columns: 5, className: "grid-cols-5" };
+  if (slotCount >= 50) return { columns: 4, className: "grid-cols-4" };
+  return { columns: 3, className: "grid-cols-3" };
+}
 
 // 개수 배지 "× n". 하나뿐이면 그리지 않는다
 function QuantityBadge({ quantity, className }: { quantity: number; className: string }) {
@@ -17,30 +27,41 @@ function SlotImage({ entry, sizes }: { entry: SlotEntry; sizes: string }) {
   return <Image src={entry.imageUrl} alt={entry.name} fill sizes={sizes} unoptimized className="object-cover" />;
 }
 
-// 채워진 칸도 + 칸도 바탕은 같은 옅은 회색이다. 배경을 지운 사진은 이 바탕 위에 물건만 놓인다
-const CELL_CLASS = "relative flex aspect-square items-center justify-center rounded-sm bg-gray-1";
+const CELL_CLASS = "relative flex aspect-square items-center justify-center rounded-sm";
 
 // 그리드의 + 칸. 메뉴가 칸 밖으로 펼쳐져야 해서 넘치는 부분을 자르지 않는다.
 // (빈 칸은 그리지 않는다 — 채워진 칸과 그 다음의 + 칸만 보인다)
 export function AddSlotCell({ children }: { children: ReactNode }) {
-  return <div className={CELL_CLASS}>{children}</div>;
+  // + 칸은 바탕이 희다 — 채워진 칸과 구분된다
+  return <div className={`${CELL_CLASS} bg-white`}>{children}</div>;
 }
 
-export function SlotCell({ entry }: { entry: SlotEntry }) {
+// current — 지금 보고 있는 아이템의 칸 (M-14 아래의 격자). 테두리를 두른다
+export function SlotCell({ entry, current = false }: { entry: SlotEntry; current?: boolean }) {
   return (
-    <div className={`${CELL_CLASS} overflow-hidden`}>
+    // 옅은 회색 바탕. 배경을 지운 사진은 이 위에 물건만 놓인다
+    <Link
+      href={slotEntryPath(entry)}
+      aria-label={entry.name}
+      aria-current={current ? "true" : undefined}
+      className={`${CELL_CLASS} overflow-hidden bg-gray-1 active:opacity-80 ${current ? "ring-2 ring-ink" : ""}`}
+    >
       <SlotImage entry={entry} sizes="(min-width: 448px) 130px, 30vw" />
       <QuantityBadge quantity={entry.quantity} className="absolute bottom-2 right-2 bg-white" />
-    </div>
+    </Link>
   );
 }
 
 export const SLOT_ROW_CLASS = "flex h-25 w-full items-center gap-8 border-b border-border pl-5.25 pr-4.5";
 
 // 리스트 줄 왼쪽의 네모 칸
-export function SlotRowThumb({ children }: { children?: ReactNode }) {
+export function SlotRowThumb({ filled = false, children }: { filled?: boolean; children?: ReactNode }) {
   return (
-    <div className="relative flex size-13.5 shrink-0 items-center justify-center overflow-hidden rounded-sm bg-gray-1">
+    <div
+      className={`relative flex size-13.5 shrink-0 items-center justify-center overflow-hidden rounded-sm ${
+        filled ? "bg-gray-1" : "bg-white"
+      }`}
+    >
       {children}
     </div>
   );
@@ -48,12 +69,12 @@ export function SlotRowThumb({ children }: { children?: ReactNode }) {
 
 export function SlotRow({ entry }: { entry: SlotEntry }) {
   return (
-    <div className={SLOT_ROW_CLASS}>
-      <SlotRowThumb>
+    <Link href={slotEntryPath(entry)} className={`${SLOT_ROW_CLASS} active:opacity-80`}>
+      <SlotRowThumb filled>
         <SlotImage entry={entry} sizes="54px" />
       </SlotRowThumb>
       <p className="min-w-0 flex-1 truncate text-body">{entry.name}</p>
       <QuantityBadge quantity={entry.quantity} className="bg-gray-1" />
-    </div>
+    </Link>
   );
 }

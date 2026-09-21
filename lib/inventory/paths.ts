@@ -19,6 +19,16 @@ export function inventoryPath(id: string, options: InventoryPathOptions = {}) {
   return `/my/inventories/${id}${query ? `?${query}` : ""}`;
 }
 
+// 아이템 상세(M-14)의 주소. 아이템은 짐싸기로 인벤토리를 옮겨 다니므로, 주소에 인벤토리를 넣지 않는다
+export function itemPath(itemId: string) {
+  return `/items/${itemId}`;
+}
+
+// 칸을 누르면 갈 곳. 아이템이면 상세(M-14), 안에 담긴 인벤토리면 그 인벤토리(M-04)
+export function slotEntryPath(entry: { kind: "item" | "inventory"; id: string }) {
+  return entry.kind === "item" ? itemPath(entry.id) : inventoryPath(entry.id);
+}
+
 // 아이템 정보 입력(M-08)의 주소
 export function newItemPath(inventoryId: string) {
   return `/my/inventories/${inventoryId}/items/new`;

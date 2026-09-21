@@ -43,13 +43,24 @@ const ICONS = {
       </>
     ),
   },
-  // 인벤토리 추가 칸의 +
+  // 아이템 상세(M-14) 헤더의 더 보기. 세로 점 세 개
+  more: {
+    size: 24,
+    body: (
+      <>
+        <circle cx="12" cy="4.5" r="2" fill="currentColor" />
+        <circle cx="12" cy="12" r="2" fill="currentColor" />
+        <circle cx="12" cy="19.5" r="2" fill="currentColor" />
+      </>
+    ),
+  },
+  // 인벤토리 추가 칸의 +. 피그마 그림보다 굵기를 반으로 줄였다
   plus: {
     size: 21,
     body: (
       <>
-        <rect x="7.57007" width="5.04673" height="20.1869" fill="currentColor" />
-        <rect y="7.57007" width="20.1869" height="5.04673" fill="currentColor" />
+        <rect x="8.83175" width="2.52337" height="20.1869" fill="currentColor" />
+        <rect y="8.83175" width="20.1869" height="2.52337" fill="currentColor" />
       </>
     ),
   },

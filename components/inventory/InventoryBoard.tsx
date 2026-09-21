@@ -8,14 +8,7 @@ import { Icon } from "@/components/ui/Icon";
 import { Toast } from "@/components/ui/Toast";
 import { itemCameraPath, type InventoryView } from "@/lib/inventory/paths";
 import type { SlotEntry } from "@/lib/inventory/queries";
-import { AddSlotCell, SLOT_ROW_CLASS, SlotCell, SlotRow, SlotRowThumb } from "./Slot";
-
-// docs/screens.md "칸 수에 따른 격자". className 은 Tailwind가 찾을 수 있게 글자 그대로 적어둔다
-function gridFor(slotCount: number) {
-  if (slotCount >= 100) return { columns: 5, className: "grid-cols-5" };
-  if (slotCount >= 50) return { columns: 4, className: "grid-cols-4" };
-  return { columns: 3, className: "grid-cols-3" };
-}
+import { AddSlotCell, gridFor, SLOT_ROW_CLASS, SlotCell, SlotRow, SlotRowThumb } from "./Slot";
 
 type MenuAnchor = "slot" | "floating" | null;
 
