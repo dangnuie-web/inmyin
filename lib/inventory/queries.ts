@@ -7,6 +7,8 @@ export type InventorySummary = {
   slotCount: number;
   // 찬 칸 수. 아이템과, 이 안에 담긴 인벤토리가 같은 칸을 쓴다
   usedSlots: number;
+  // 이 인벤토리를 담고 있는 인벤토리. 어디에도 안 담겨 있으면 null. 부모는 항상 하나다 (CLAUDE.md 규칙 2)
+  parentId: string | null;
 };
 
 // 인벤토리의 한 칸에 든 것. 아이템과, 이 안에 담긴 인벤토리가 같은 칸을 쓴다
@@ -122,6 +124,7 @@ export async function getMyInventories(userId: string): Promise<InventorySummary
     usedSlots:
       (inventory.items[0]?.count ?? 0) +
       data.filter((child) => child.parent_inventory_id === inventory.id).length,
+    parentId: inventory.parent_inventory_id,
   }));
 }
 

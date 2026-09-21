@@ -24,7 +24,7 @@ export function InventoryThumb({ filled = false, children }: { filled?: boolean;
 // 줄의 공통 틀 — 높이와 좌우 여백
 export const INVENTORY_ROW_CLASS = "flex h-21.25 w-full items-center gap-7 pl-6.25 pr-11";
 
-function InventoryPhoto({ inventory }: { inventory: InventorySummary }) {
+export function InventoryPhoto({ inventory }: { inventory: Pick<InventorySummary, "imageUrl"> }) {
   return (
     <InventoryThumb filled>
       {inventory.imageUrl && (

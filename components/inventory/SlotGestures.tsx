@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type MouseEvent, type PointerEvent, type ReactNode } from "react";
 import { Icon } from "@/components/ui/Icon";
 import type { SlotEntry } from "@/lib/inventory/queries";
-import { SlotCell } from "./Slot";
+import { SlotCell, SlotRow } from "./Slot";
 
 // 칸의 수정 · 삭제 동작. 리스트의 줄은 밀고(SwipeRow), 그리드의 작은 칸은 길게 누른다(LongPressSlotCell).
 // 손가락 · 마우스 · 펜을 한 가지로 다루는 포인터 이벤트로 만들었다 — 데스크톱에서도 똑같이 된다.
@@ -62,6 +62,11 @@ function useLongPress(onLongPress: () => void) {
 
 export function LongPressSlotCell({ entry, onLongPress }: { entry: SlotEntry; onLongPress: () => void }) {
   return <SlotCell entry={entry} {...useLongPress(onLongPress)} />;
+}
+
+// 리스트의 줄 가운데 안에 담긴 인벤토리. 아이템 줄은 밀지만(SwipeRow), 이 줄은 길게 눌러 "꺼내기"를 띄운다
+export function LongPressSlotRow({ entry, onLongPress }: { entry: SlotEntry; onLongPress: () => void }) {
+  return <SlotRow entry={entry} {...useLongPress(onLongPress)} />;
 }
 
 // 피그마: 줄 높이 100 에 너비 77 인 색 블록이 가장자리에서 줄을 덮으며 나온다. 줄의 내용은 움직이지 않는다

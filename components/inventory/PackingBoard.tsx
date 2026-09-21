@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { moveItem } from "@/app/(flow)/items/[itemId]/actions";
+import { moveInventory } from "@/app/(flow)/my/inventories/[id]/actions";
 import { Toast } from "@/components/ui/Toast";
 import type { PackingInventory, SlotEntry } from "@/lib/inventory/queries";
 import { withSubjectParticle } from "@/lib/korean";
@@ -61,7 +62,8 @@ export function PackingBoard({ inventories, startId }: PackingBoardProps) {
     clearTimeout(arrivalTimer.current);
     arrivalTimer.current = setTimeout(() => setArrivedId(null), ARRIVAL_MS);
 
-    moveItem(entry.id, to.id).then((result) => {
+    // 안에 담긴 인벤토리도 아이템처럼 옮긴다. 자기 안에 든 것 속으로 넣으려 하거나 5겹을 넘으면 DB가 막는다
+    (entry.kind === "item" ? moveItem : moveInventory)(entry.id, to.id).then((result) => {
       if (!result.error) return;
       // 못 옮겼다. 원래 있던 자리로 돌려놓는다
       setEntriesById((current) => ({
@@ -135,9 +137,9 @@ function PackingHalf({ inventories, inventory, entries, otherId, arrivedId, onOp
             <PackingSlotCell
               entry={entry}
               onPick={() => onPick(entry)}
-              // 안에 담긴 인벤토리는 아직 짐싸기로 옮기지 않는다 ("인벤토리 안에 인벤토리 담기"를 만들 때 같이 연다)
-              disabled={entry.kind === "inventory"}
-              dimmed={entry.kind === "inventory" && entry.id === otherId}
+              // 반대쪽에 열려 있는 인벤토리가 이 안에 담겨 있으면 어둡게 보이고 옮길 수 없다 — 자기 자신 안으로는 못 들어간다
+              disabled={entry.id === otherId}
+              dimmed={entry.id === otherId}
             />
           </li>
         ))}

@@ -129,3 +129,60 @@ export async function restoreInventory(inventoryId: string): Promise<FormState> 
   revalidateInventory(inventoryId);
   return {};
 }
+
+// 인벤토리의 부모를 바꾼다. 가져오기 · 꺼내기 · 짐싸기로 옮기기가 같이 쓴다.
+// 순환(자기 안에 든 것 속으로 들어가기) · 5겹 한도 · 받는 쪽이 꽉 찼는지는 DB 트리거가 막고, 한국어로 이유를 알려준다.
+// 새로 들어가는 자리는 항상 받는 쪽의 맨 뒤 칸이다 — 그것도 DB가 정한다 (CLAUDE.md 규칙 3)
+async function setParent(
+  inventoryId: string,
+  toParentId: string | null,
+  // 지금 어디에 있어야 하는지. 가져오기는 "아무 데도 안 담겨 있어야"(false), 꺼내기와 옮기기는 "어딘가에 담겨 있어야"(true) 한다
+  mustBeNested: boolean,
+): Promise<FormState> {
+  const profile = await requireProfile();
+  if (!UUID_PATTERN.test(inventoryId) || (toParentId !== null && !UUID_PATTERN.test(toParentId))) return BAD_REQUEST;
+  if (inventoryId === toParentId) return { error: "자기 자신 안에는 담을 수 없습니다." };
+
+  const supabase = await createClient();
+  const { data: inventory } = await supabase
+    .from("inventories")
+    .select("id, parent_inventory_id")
+    .eq("id", inventoryId)
+    .eq("user_id", profile.id)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (!inventory) return { error: "인벤토리를 찾을 수 없습니다." };
+  // 이미 그렇게 되어 있다 (같은 요청이 두 번 온 경우). 바라던 결과와 같으니 성공이다
+  if (inventory.parent_inventory_id === toParentId) return {};
+  // 인벤토리도 실제 물건이라 부모는 항상 하나다 (CLAUDE.md 규칙 2). 이미 어딘가에 든 것을 또 가져올 수는 없다
+  if (!mustBeNested && inventory.parent_inventory_id) return { error: "이미 다른 인벤토리 안에 들어 있어요. 먼저 꺼내 주세요." };
+  if (mustBeNested && !inventory.parent_inventory_id) return { error: "어디에도 담겨 있지 않은 인벤토리예요." };
+
+  const { error } = await supabase
+    .from("inventories")
+    // 꺼낼 때는 칸 번호도 같이 비운다 (둘은 같이 있거나 같이 없어야 한다). 담을 때의 번호는 DB가 정한다
+    .update(toParentId ? { parent_inventory_id: toParentId } : { parent_inventory_id: null, parent_slot_index: null })
+    .eq("id", inventory.id)
+    .eq("user_id", profile.id);
+  if (error) return { error: error.code === "P0001" ? error.message : "옮기지 못했습니다. 잠시 후 다시 시도해 주세요." };
+
+  revalidateInventory(inventory.id);
+  if (inventory.parent_inventory_id) revalidatePath(inventoryPath(inventory.parent_inventory_id));
+  if (toParentId) revalidatePath(inventoryPath(toParentId));
+  return {};
+}
+
+// 인벤토리 가져오기 (M-04 의 + 메뉴). 다른 인벤토리를 통째로 이 인벤토리의 칸에 담는다
+export async function bringInventory(inventoryId: string, intoInventoryId: string) {
+  return setParent(inventoryId, intoInventoryId, false);
+}
+
+// 꺼내기. 담겨 있던 인벤토리를 밖으로 꺼낸다 — 안에 든 것은 그대로다
+export async function takeOutInventory(inventoryId: string) {
+  return setParent(inventoryId, null, true);
+}
+
+// 짐싸기(M-05). 담겨 있던 인벤토리를 다른 인벤토리로 옮긴다
+export async function moveInventory(inventoryId: string, toInventoryId: string) {
+  return setParent(inventoryId, toInventoryId, true);
+}

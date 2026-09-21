@@ -75,6 +75,7 @@ export default async function InventoryDetailPage(props: PageProps<"/my/inventor
 
       <InventoryBoard
         inventoryId={inventory.id}
+        inventories={inventories}
         addedId={typeof searchParams.added === "string" ? searchParams.added : null}
         deletedId={deletedId}
         entries={entries}

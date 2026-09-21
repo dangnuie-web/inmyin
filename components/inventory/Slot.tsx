@@ -78,9 +78,10 @@ export function SlotRowThumb({ filled = false, children }: { filled?: boolean; c
   );
 }
 
-export function SlotRow({ entry }: { entry: SlotEntry }) {
+// 나머지 props 는 링크에 그대로 넘긴다 — 길게 누르기(SlotGestures)가 여기에 손잡이를 단다
+export function SlotRow({ entry, ...props }: Omit<ComponentProps<typeof Link>, "href" | "className"> & { entry: SlotEntry }) {
   return (
-    <Link href={slotEntryPath(entry)} draggable={false} className={`${SLOT_ROW_CLASS} ${NO_BROWSER_GESTURES} active:opacity-80`}>
+    <Link {...props} href={slotEntryPath(entry)} draggable={false} className={`${SLOT_ROW_CLASS} ${NO_BROWSER_GESTURES} active:opacity-80`}>
       <SlotRowThumb filled>
         <SlotImage entry={entry} sizes="54px" />
       </SlotRowThumb>

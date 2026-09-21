@@ -4,14 +4,16 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { deleteItem, restoreItem } from "@/app/(flow)/items/[itemId]/actions";
+import { bringInventory, takeOutInventory } from "@/app/(flow)/my/inventories/[id]/actions";
 import { DarkMenu } from "@/components/ui/DarkMenu";
 import { Icon } from "@/components/ui/Icon";
 import { Toast } from "@/components/ui/Toast";
 import { itemCameraPath, itemUpdatePath, type InventoryView } from "@/lib/inventory/paths";
 import type { FormState } from "@/lib/auth/rules";
-import type { SlotEntry } from "@/lib/inventory/queries";
-import { AddSlotCell, gridFor, SLOT_ROW_CLASS, SlotCell, SlotRow, SlotRowThumb, UndoSlotCell, UndoSlotRow } from "./Slot";
-import { LongPressSlotCell, SwipeRow, type SwipeSide } from "./SlotGestures";
+import type { InventorySummary, SlotEntry } from "@/lib/inventory/queries";
+import { InventoryPicker } from "./InventoryPicker";
+import { AddSlotCell, gridFor, SLOT_ROW_CLASS, SlotRow, SlotRowThumb, UndoSlotCell, UndoSlotRow } from "./Slot";
+import { LongPressSlotCell, LongPressSlotRow, SwipeRow, type SwipeSide } from "./SlotGestures";
 
 type MenuAnchor = "slot" | "floating" | null;
 
@@ -44,6 +46,8 @@ const UNDO_MS = 7000;
 
 type InventoryBoardProps = {
   inventoryId: string;
+  // 내 인벤토리 전부. "인벤토리 가져오기"에서 고를 목록이다
+  inventories: InventorySummary[];
   // 방금 등록한(또는 되살린) 아이템의 id. 그 칸으로 스크롤하고 잠깐 강조한다
   addedId: string | null;
   // 방금 지운 아이템의 id. entries 안에 deleted 로 표시되어 같이 온다 — 제자리에 "되돌리기" 칸으로 잠깐 남는다
@@ -57,7 +61,7 @@ type InventoryBoardProps = {
 };
 
 // M-04 의 격자 · 리스트와 + 버튼. + 칸은 항상 마지막 아이템의 다음 칸에 하나만 있다.
-export function InventoryBoard({ inventoryId, addedId, deletedId, entries, usedSlots, slotCount, view }: InventoryBoardProps) {
+export function InventoryBoard({ inventoryId, inventories, addedId, deletedId, entries, usedSlots, slotCount, view }: InventoryBoardProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -88,17 +92,28 @@ export function InventoryBoard({ inventoryId, addedId, deletedId, entries, usedS
   const [localGhost, setLocalGhost] = useState<(PlacedEntry & { deleting: Promise<FormState> }) | null>(null);
   // 되돌리기를 누른 것 (원래 칸으로 보인다)
   const [revived, setRevived] = useState<PlacedEntry | null>(null);
-  // 방금 되살아난 칸. 잠깐 강조한다
+  // 방금 되살아난(또는 가져온) 칸. "톡" 하고 나타난다
   const [restoredId, setRestoredId] = useState<string | null>(null);
+  // 방금 가져온 인벤토리 (맨 뒤 칸에 보인다) · 방금 꺼낸 인벤토리 (안 보인다). 이것들도 누른 즉시 화면부터 바꾼다
+  const [brought, setBrought] = useState<SlotEntry | null>(null);
+  const [takenOutId, setTakenOutId] = useState<string | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   // deletedId — 상세(M-14)에서 지우고 넘어온 것. 그쪽은 서버가 "되돌리기" 칸을 목록에 끼워서 보내 준다
   const ghostId = localGhost?.entry.id ?? (deletedId !== revived?.entry.id ? deletedId : null);
-  const shown = mergeLocal(entries, localGhost, ghostId, revived);
+  let shown = mergeLocal(entries, localGhost, ghostId, revived);
+  if (takenOutId) shown = shown.filter((entry) => entry.id !== takenOutId);
+  if (brought && !shown.some((entry) => entry.id === brought.id)) shown = [...shown, brought];
   const highlightedId = addedId ?? restoredId;
 
   // 서버가 센 개수에 화면에만 반영된 것을 더하고 뺀다
   const isLive = (id: string) => entries.some((entry) => entry.id === id && !entry.deleted);
-  const used = usedSlots - (ghostId && isLive(ghostId) ? 1 : 0) + (revived && !isLive(revived.entry.id) ? 1 : 0);
+  const used =
+    usedSlots -
+    (ghostId && isLive(ghostId) ? 1 : 0) +
+    (revived && !isLive(revived.entry.id) ? 1 : 0) +
+    (brought && !isLive(brought.id) ? 1 : 0) -
+    (takenOutId && isLive(takenOutId) ? 1 : 0);
   const isFull = used >= slotCount;
 
   // + 칸이 화면 밖으로 나가면 플로팅 + 를 띄운다
@@ -219,15 +234,49 @@ export function InventoryBoard({ inventoryId, addedId, deletedId, entries, usedS
       if (deletedId) clearDeleted();
       if (result.error) return setNotice(result.error);
 
-      setRestoredId(placed.entry.id);
-      setTimeout(() => setRestoredId(null), HIGHLIGHT_MS);
+      highlight(placed.entry.id);
     })();
   }
 
-  const itemActions = (itemId: string) => [
-    { label: "삭제하기", onSelect: () => removeItem(itemId) },
-    { label: "수정하기", onSelect: () => editItem(itemId) },
-  ];
+  // 방금 들어온 칸을 "톡" 하고 알린다
+  const highlightTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(highlightTimer.current), []);
+  function highlight(entryId: string) {
+    setRestoredId(entryId);
+    clearTimeout(highlightTimer.current);
+    highlightTimer.current = setTimeout(() => setRestoredId(null), HIGHLIGHT_MS);
+  }
+
+  // 인벤토리 가져오기. 고른 인벤토리가 통째로 맨 뒤 칸에 담긴다.
+  // 순환 · 5겹 한도는 목록에서 미리 걸러 보여주지만, 최종 판단은 DB가 한다 — 막히면 칸을 도로 빼고 이유를 띄운다
+  function bring(inventory: InventorySummary) {
+    setPickerOpen(false);
+    setBrought({ kind: "inventory", id: inventory.id, name: inventory.name, imageUrl: inventory.imageUrl, quantity: 1, category: null, deleted: false });
+    highlight(inventory.id);
+    bringInventory(inventory.id, inventoryId).then((result) => {
+      setBrought(null);
+      if (result.error) setNotice(result.error);
+    });
+  }
+
+  // 꺼내기. 담겨 있던 인벤토리를 밖으로 꺼낸다. 안에 든 것은 그대로고, 인벤토리 목록(M-03)에서 계속 보인다
+  function takeOut(childId: string) {
+    setTakenOutId(childId);
+    takeOutInventory(childId).then((result) => {
+      setTakenOutId(null);
+      if (result.error) setNotice(result.error);
+    });
+  }
+
+  // 길게 눌렀을 때의 메뉴. 아이템은 삭제 · 수정, 안에 담긴 인벤토리는 꺼내기
+  // (인벤토리 자체의 수정 · 삭제는 인벤토리 목록에서 한다)
+  const entryActions = (entry: SlotEntry) =>
+    entry.kind === "item"
+      ? [
+          { label: "삭제하기", onSelect: () => removeItem(entry.id) },
+          { label: "수정하기", onSelect: () => editItem(entry.id) },
+        ]
+      : [{ label: "꺼내기", onSelect: () => takeOut(entry.id) }];
 
   const menuItems = [
     {
@@ -239,7 +288,7 @@ export function InventoryBoard({ inventoryId, addedId, deletedId, entries, usedS
         router.push(itemCameraPath(inventoryId));
       },
     },
-    { label: "인벤토리 가져오기", onSelect: () => setNotice("인벤토리 가져오기는 곧 만들어요.") },
+    { label: "인벤토리 가져오기", onSelect: () => setPickerOpen(true) },
   ];
 
   const addButton = (size: "cell" | "row") => (
@@ -271,7 +320,7 @@ export function InventoryBoard({ inventoryId, addedId, deletedId, entries, usedS
           isFull={isFull}
           actionsFor={actionsFor}
           onActionsFor={setActionsFor}
-          itemActions={itemActions}
+          entryActions={entryActions}
           onUndo={undoDelete}
         >
           {(isLastColumn) => (
@@ -291,7 +340,7 @@ export function InventoryBoard({ inventoryId, addedId, deletedId, entries, usedS
       ) : (
         <ul className="mt-3 flex flex-col border-t border-border">
           {shown.map((entry) => (
-            <li key={entry.id} id={slotElementId(entry.id)}>
+            <li key={entry.id} id={slotElementId(entry.id)} className="relative">
               {entry.deleted ? (
                 <UndoSlotRow entry={entry} onUndo={undoDelete} />
               ) : entry.kind === "item" ? (
@@ -304,8 +353,13 @@ export function InventoryBoard({ inventoryId, addedId, deletedId, entries, usedS
                   <SlotRow entry={entry} />
                 </SwipeRow>
               ) : (
-                // 안에 담긴 인벤토리의 수정 · 삭제는 인벤토리 목록(M-03)에서 한다
-                <SlotRow entry={entry} />
+                // 안에 담긴 인벤토리. 밀지 않고 길게 눌러 "꺼내기"
+                <>
+                  <LongPressSlotRow entry={entry} onLongPress={() => setActionsFor(entry.id)} />
+                  {actionsFor === entry.id && (
+                    <DarkMenu items={entryActions(entry)} onClose={() => setActionsFor(null)} className="left-20 top-7" />
+                  )}
+                </>
               )}
             </li>
           ))}
@@ -347,6 +401,7 @@ export function InventoryBoard({ inventoryId, addedId, deletedId, entries, usedS
         )}
       </div>
 
+      {pickerOpen && <InventoryPicker inventories={inventories} intoId={inventoryId} onPick={bring} onClose={() => setPickerOpen(false)} />}
       <Toast message={notice} onDone={hideNotice} />
     </div>
   );
@@ -365,14 +420,14 @@ type GridProps = {
   // 길게 눌러 메뉴가 떠 있는 칸
   actionsFor: string | null;
   onActionsFor: (entryId: string | null) => void;
-  itemActions: (itemId: string) => { label: string; onSelect: () => void }[];
+  entryActions: (entry: SlotEntry) => { label: string; onSelect: () => void }[];
   onUndo: () => void;
   // + 칸의 내용. 그 칸이 오른쪽 끝 열인지 알려준다
   children: (isLastColumn: boolean) => React.ReactNode;
 };
 
 // 채워진 칸과 그 다음의 + 칸만 그린다. 빈 칸은 그리지 않는다 — 남은 용량은 아래의 16/25 가 알려준다
-function Grid({ entries, slotCount, isFull, actionsFor, onActionsFor, itemActions, onUndo, children }: GridProps) {
+function Grid({ entries, slotCount, isFull, actionsFor, onActionsFor, entryActions, onUndo, children }: GridProps) {
   const { columns, className } = gridFor(slotCount);
 
   return (
@@ -381,16 +436,13 @@ function Grid({ entries, slotCount, isFull, actionsFor, onActionsFor, itemAction
         <li key={entry.id} id={slotElementId(entry.id)} className="relative">
           {entry.deleted ? (
             <UndoSlotCell entry={entry} onUndo={onUndo} />
-          ) : entry.kind === "item" ? (
-            // 칸이 작아서 밀지 않고 길게 누른다
-            <LongPressSlotCell entry={entry} onLongPress={() => onActionsFor(entry.id)} />
           ) : (
-            // 안에 담긴 인벤토리의 수정 · 삭제는 인벤토리 목록(M-03)에서 한다
-            <SlotCell entry={entry} />
+            // 칸이 작아서 밀지 않고 길게 누른다. 아이템은 삭제 · 수정, 안에 담긴 인벤토리는 꺼내기
+            <LongPressSlotCell entry={entry} onLongPress={() => onActionsFor(entry.id)} />
           )}
           {actionsFor === entry.id && (
             <DarkMenu
-              items={itemActions(entry.id)}
+              items={entryActions(entry)}
               onClose={() => onActionsFor(null)}
               // 오른쪽 끝 칸에서는 메뉴가 화면 밖으로 나가지 않게 왼쪽으로 편다
               className={index % columns === columns - 1 ? "right-1/2 top-1/2" : "left-1/2 top-1/2"}
