@@ -55,9 +55,9 @@ export default async function MyProfilePage() {
       </section>
 
       <div className="mt-6 flex gap-1 px-6">
-        <SoonButton notice="프로필 관리는 곧 만들어요." className={ACTION_CLASS}>
+        <Link href="/my/edit" className={ACTION_CLASS}>
           프로필 관리
-        </SoonButton>
+        </Link>
         <SoonButton notice="프로필 공유는 곧 만들어요." className={ACTION_CLASS}>
           프로필 공유
         </SoonButton>
@@ -79,10 +79,11 @@ export default async function MyProfilePage() {
         {stats.recentItems.length > 0 ? (
           <ul className="flex gap-2.25 overflow-x-auto px-6 [scrollbar-width:none]">
             {stats.recentItems.map((item) => (
-              <li key={item.id} className="shrink-0">
-                <Link href={itemPath(item.id)} aria-label={item.name} className="relative block size-18 overflow-hidden rounded-md bg-gray-1 active:opacity-80">
+              // 한 화면에 딱 다섯 칸이 보인다. 칸 사이 간격 넷(9px × 4)을 뺀 너비를 다섯으로 나눈다
+              <li key={item.id} className="shrink-0 basis-[calc((100%-2.25rem)/5)]">
+                <Link href={itemPath(item.id)} aria-label={item.name} className="relative block aspect-square overflow-hidden rounded-md bg-gray-1 active:opacity-80">
                   {/* 올릴 때 이미 작게 줄여 둔 사진이라 Next 의 이미지 최적화를 거치지 않는다 */}
-                  <Image src={item.imageUrl} alt="" fill sizes="72px" unoptimized className="object-cover" />
+                  <Image src={item.imageUrl} alt="" fill sizes="64px" unoptimized className="object-cover" />
                 </Link>
               </li>
             ))}

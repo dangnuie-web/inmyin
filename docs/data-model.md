@@ -87,6 +87,7 @@ GROUP BY target_id ORDER BY score DESC;
 | 아이템 원본 | `items-raw` | 장변 1280px로 줄여 보관. 찍었으면 프레임 밖까지 담긴 전체 사진 |
 | 인벤토리 썸네일 | `inventories` | 목록과 부모 격자의 칸에 표시 |
 | 인벤토리 원본 | `inventories-raw` | 아이템 원본과 같은 방식 |
+| 프로필 사진 | `avatars` | 긴 변 320px. 원본은 따로 두지 않는다. 바꿀 때마다 새 파일 |
 | INMYIN 최종 이미지 | `posts` | 피드 노출용 |
 
 원본을 보관하는 이유는 배경제거 모델이 나아졌을 때 다시 따낼 수 있어야 하기 때문이다.

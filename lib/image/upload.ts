@@ -29,3 +29,17 @@ export async function uploadPhotoPair(
 
   return { imageExtension, rawImageExtension };
 }
+
+// 프로필 사진으로 쓰기에 넉넉한 크기. 화면에는 지름 98px 로 나온다 (3배 화면이면 294px)
+const AVATAR_MAX_SIDE = 320;
+
+// 프로필 사진을 줄여서 올리고, 올린 파일의 이름을 돌려준다 ("<무작위 id>.<확장자>").
+// 바꿀 때마다 새 이름으로 올린다 — 같은 이름으로 덮어쓰면 브라우저가 옛 사진을 계속 보여준다
+export async function uploadAvatar(photo: File, userId: string) {
+  const avatar = await resizeImage(photo, AVATAR_MAX_SIDE);
+  const fileName = `${crypto.randomUUID()}.${extensionOf(avatar)}`;
+
+  const { error } = await createClient().storage.from("avatars").upload(`${userId}/${fileName}`, avatar, { contentType: avatar.type });
+  if (error) throw error;
+  return fileName;
+}
