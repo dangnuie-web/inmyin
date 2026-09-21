@@ -191,10 +191,10 @@ export function InventoryForm({ userId }: { userId: string }) {
         />
 
         {tags.length > 0 && (
-          <ul className="flex flex-wrap gap-2.5">
+          <ul className="flex flex-wrap gap-2">
             {tags.map((tag) => (
               <li key={tag}>
-                <CategoryTag label={tag} onRemove={() => setTags(tags.filter((other) => other !== tag))} />
+                <CategoryTag size="sm" label={tag} onRemove={() => setTags(tags.filter((other) => other !== tag))} />
               </li>
             ))}
           </ul>
@@ -203,9 +203,12 @@ export function InventoryForm({ userId }: { userId: string }) {
         <FormError message={error} />
       </div>
 
-      <Button type="submit" size="pill" disabled={pending} className="mx-auto mt-auto">
-        {pending ? "저장 중…" : "저장하기"}
-      </Button>
+      {/* 남는 공간만큼 아래로 내리되, 태그가 늘어 화면이 꽉 차도 위와 붙지 않게 최소 간격을 둔다 */}
+      <div className="mt-auto flex justify-center pt-10">
+        <Button type="submit" size="pill" disabled={pending}>
+          {pending ? "저장 중…" : "저장하기"}
+        </Button>
+      </div>
     </form>
   );
 }

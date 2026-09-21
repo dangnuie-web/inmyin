@@ -120,12 +120,12 @@ export function ItemForm({ userId, inventoryId, categories }: ItemFormProps) {
             autoComplete="off"
           />
           {categories.length > 0 && (
-            <ul className="flex flex-wrap gap-2.5">
+            <ul className="flex flex-wrap gap-2">
               {categories.map((tag) => {
                 const selected = tag === category.trim();
                 return (
                   <li key={tag}>
-                    <CategoryTag label={tag} selected={selected} onClick={() => setCategory(selected ? "" : tag)} />
+                    <CategoryTag size="sm" label={tag} selected={selected} onClick={() => setCategory(selected ? "" : tag)} />
                   </li>
                 );
               })}
