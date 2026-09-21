@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { Icon } from "./Icon";
 
 const LABELS = { back: "뒤로", close: "닫기" };
@@ -11,16 +12,19 @@ type HeaderMiniProps = {
   title: string;
   // 어두운 화면 위에서는 dark
   tone?: "light" | "dark";
+  // 오른쪽 끝에 놓을 것 (M-04 의 짐싸기 버튼 등)
+  action?: ReactNode;
 };
 
 // 피그마 `헤더미니`. 아이콘 + 제목 한 줄
-export function HeaderMini({ icon, href, title, tone = "light" }: HeaderMiniProps) {
+export function HeaderMini({ icon, href, title, tone = "light", action }: HeaderMiniProps) {
   return (
     <header className={`flex items-center gap-2 ${tone === "dark" ? "text-white" : "text-ink"}`}>
       <Link href={href} aria-label={LABELS[icon]} className="active:opacity-60">
         <Icon name={icon} />
       </Link>
-      <h1 className="text-link font-bold">{title}</h1>
+      <h1 className="min-w-0 flex-1 truncate text-link font-bold">{title}</h1>
+      {action && <div className="pr-6.25">{action}</div>}
     </header>
   );
 }

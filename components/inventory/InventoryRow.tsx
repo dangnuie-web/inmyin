@@ -1,5 +1,7 @@
 import Image from "next/image";
+import Link from "next/link";
 import type { ReactNode } from "react";
+import { inventoryPath } from "@/lib/inventory/paths";
 import type { InventorySummary } from "@/lib/inventory/queries";
 
 // 인벤토리 목록(M-03)의 한 줄. 피그마 컴포넌트의 변형 세 가지 중
@@ -29,19 +31,22 @@ export function EmptyInventoryRow() {
   );
 }
 
+// 누르면 그 인벤토리의 상세(M-04)로 간다
 export function InventoryRow({ inventory }: { inventory: InventorySummary }) {
   return (
-    <li className={INVENTORY_ROW_CLASS}>
-      <InventoryThumb filled>
-        {inventory.imageUrl && (
-          // 올릴 때 이미 작게 줄여 둔 사진이라 Next 의 이미지 최적화를 거치지 않는다
-          <Image src={inventory.imageUrl} alt="" fill sizes="52px" unoptimized className="object-cover" />
-        )}
-      </InventoryThumb>
-      <p className="min-w-0 flex-1 truncate text-title font-bold">{inventory.name}</p>
-      <p className="text-caption">
-        {inventory.usedSlots}/{inventory.slotCount}
-      </p>
+    <li>
+      <Link href={inventoryPath(inventory.id)} className={`${INVENTORY_ROW_CLASS} active:opacity-60`}>
+        <InventoryThumb filled>
+          {inventory.imageUrl && (
+            // 올릴 때 이미 작게 줄여 둔 사진이라 Next 의 이미지 최적화를 거치지 않는다
+            <Image src={inventory.imageUrl} alt="" fill sizes="52px" unoptimized className="object-cover" />
+          )}
+        </InventoryThumb>
+        <p className="min-w-0 flex-1 truncate text-title font-bold">{inventory.name}</p>
+        <p className="text-caption">
+          {inventory.usedSlots}/{inventory.slotCount}
+        </p>
+      </Link>
     </li>
   );
 }

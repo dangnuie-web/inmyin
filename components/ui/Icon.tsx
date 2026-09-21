@@ -53,15 +53,60 @@ const ICONS = {
       </>
     ),
   },
+  // 피그마 `그리드-리스트 토글`의 그리드
+  grid: {
+    width: 20,
+    height: 13,
+    body: (
+      <>
+        {[0.612676, 7.35779, 14.1019].map((x) =>
+          [0.612737, 7.39319].map((y) => (
+            <rect key={`${x}-${y}`} x={x} y={y} width="4.39503" height="4.19897" rx="0.612676" stroke="currentColor" strokeWidth="1.22535" />
+          )),
+        )}
+      </>
+    ),
+  },
+  // 피그마 `그리드-리스트 토글`의 리스트
+  list: {
+    width: 21,
+    height: 17,
+    body: (
+      <>
+        <path d="M20.9998 8.00465V8.50667C20.8508 8.93883 20.4986 9.34174 19.9994 9.34174H5.8776C5.28461 9.34174 4.8562 8.80154 4.86437 8.23332C4.87254 7.67606 5.29628 7.1582 5.8776 7.1582H19.9994C20.499 7.1582 20.8508 7.56031 20.9998 8.00424V8.00465Z" fill="currentColor" />
+        <path d="M21.0001 1.14335V1.61409C20.8651 2.08321 20.4923 2.47881 19.9682 2.47881H5.91371C5.29543 2.47881 4.84212 1.94268 4.86352 1.34765C4.88531 0.738808 5.34796 0.289185 5.95496 0.289185L20.0094 0.29284C20.5137 0.29284 20.8581 0.714032 21.0001 1.14335Z" fill="currentColor" />
+        <path d="M20.9998 14.8855V15.3562C20.8577 15.7856 20.5138 16.2067 20.0091 16.2072L5.95463 16.2112C5.33479 16.2112 4.86514 15.736 4.8628 15.119C4.86047 14.4976 5.33401 14.02 5.95541 14.02L20.0095 14.0232C20.5169 14.0232 20.8686 14.4493 20.9998 14.8851V14.8855Z" fill="currentColor" />
+        <path d="M1.40837 2.93819C2.18565 2.93819 2.81576 2.28045 2.81576 1.46909C2.81576 0.657736 2.18565 0 1.40837 0C0.631088 0 0.000976562 0.657736 0.000976562 1.46909C0.000976562 2.28045 0.631088 2.93819 1.40837 2.93819Z" fill="currentColor" />
+        <path d="M1.40837 16.5C2.18565 16.5 2.81576 15.8423 2.81576 15.0309C2.81576 14.2196 2.18565 13.5618 1.40837 13.5618C0.631088 13.5618 0.000976562 14.2196 0.000976562 15.0309C0.000976562 15.8423 0.631088 16.5 1.40837 16.5Z" fill="currentColor" />
+        <path d="M1.40739 9.71907C2.18467 9.71907 2.81479 9.06134 2.81479 8.24998C2.81479 7.43862 2.18467 6.78088 1.40739 6.78088C0.630111 6.78088 0 7.43862 0 8.24998C0 9.06134 0.630111 9.71907 1.40739 9.71907Z" fill="currentColor" />
+      </>
+    ),
+  },
 };
 
 export type IconName = keyof typeof ICONS;
 
-export function Icon({ name, className }: { name: IconName; className?: string }) {
-  const { size, body } = ICONS[name];
+type IconProps = {
+  name: IconName;
+  // 그림은 그대로 두고 크기만 바꿀 때. 예: 격자 칸의 큰 +
+  scale?: number;
+  className?: string;
+};
+
+export function Icon({ name, scale = 1, className }: IconProps) {
+  const icon = ICONS[name];
+  const width = "size" in icon ? icon.size : icon.width;
+  const height = "size" in icon ? icon.size : icon.height;
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} fill="none" className={className} aria-hidden>
-      {body}
+    <svg
+      width={width * scale}
+      height={height * scale}
+      viewBox={`0 0 ${width} ${height}`}
+      fill="none"
+      className={className}
+      aria-hidden
+    >
+      {icon.body}
     </svg>
   );
 }
