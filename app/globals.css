@@ -60,8 +60,8 @@
     }
   }
 
-  /* 움직임 — "되돌리기" 칸 아래의 선이 5초 동안 줄어든다 (M-04). 길이는 InventoryBoard 의 UNDO_MS 와 맞춘다 */
-  --animate-undo-countdown: undo-countdown 5s linear forwards;
+  /* 움직임 — "되돌리기" 칸 아래의 선이 7초 동안 줄어든다 (M-04). 길이는 InventoryBoard 의 UNDO_MS 와 맞춘다 */
+  --animate-undo-countdown: undo-countdown 7s linear forwards;
 
   @keyframes undo-countdown {
     from {
@@ -69,6 +69,18 @@
     }
     to {
       transform: scaleX(0);
+    }
+  }
+
+  /* 그리드에서는 같은 시간 동안 칸의 테두리를 따라 한 바퀴 돌며 지워진다. 선의 전체 길이를 1 로 두고 (pathLength) 그만큼 밀어낸다 */
+  --animate-undo-around: undo-around 7s linear forwards;
+
+  @keyframes undo-around {
+    from {
+      stroke-dashoffset: 0;
+    }
+    to {
+      stroke-dashoffset: 1;
     }
   }
 

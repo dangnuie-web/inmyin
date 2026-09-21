@@ -17,7 +17,7 @@ type MenuAnchor = "slot" | "floating" | null;
 // 강조가 끝난 뒤 주소에서 added 를 지우기까지의 시간. globals.css 의 slot-highlight 길이와 맞춘다
 const HIGHLIGHT_MS = 1600;
 // 지운 자리에 "되돌리기" 칸이 남아 있는 시간. globals.css 의 undo-countdown 길이와 맞춘다
-const UNDO_MS = 5000;
+const UNDO_MS = 7000;
 
 type InventoryBoardProps = {
   inventoryId: string;
