@@ -1,21 +1,13 @@
-// 인벤토리 종류별 고정 카테고리. 유저는 카테고리를 만들지 않는다.
-// custom 인벤토리는 카테고리가 없고, 그 안의 아이템은 category 가 null 이다.
-export const CATEGORIES = {
-  closet: ["상의", "하의", "신발", "모자", "가방"],
-  fridge: ["고기", "야채", "반찬", "냉동", "조미료"],
-  home: ["거실", "침실", "화장실"],
-  supplies: ["청소", "세탁", "소모품"],
-  custom: [],
-} as const;
-
-export type InventoryKind = keyof typeof CATEGORIES;
-export type Category = (typeof CATEGORIES)[InventoryKind][number];
-
-// 새 인벤토리를 만들 때 먼저 보여주는 추천 4종.
-// Home · Like 탭 카테고리 필터의 상위 묶음이기도 하다.
+// 카테고리는 인벤토리마다 유저가 정하는 자유 태그다. inventories.categories 에 저장한다.
+// 여기에는 인벤토리를 만들 때 이름과 기본 태그를 채워주는 추천 4종만 둔다.
+// 지름길일 뿐이라, 저장된 뒤에는 직접 쓴 것과 구분하지 않는다.
 export const RECOMMENDED_INVENTORIES = [
-  { kind: "closet", name: "옷장" },
-  { kind: "fridge", name: "냉장고" },
-  { kind: "home", name: "집" },
-  { kind: "supplies", name: "생활용품" },
-] as const satisfies readonly { kind: InventoryKind; name: string }[];
+  { name: "옷장", categories: ["상의", "하의", "신발", "모자", "가방"] },
+  { name: "냉장고", categories: ["육류", "야채", "반찬", "냉동", "조미료"] },
+  { name: "집", categories: ["거실", "침실", "화장실"] },
+  { name: "생활용품", categories: ["청소", "세탁", "소모품"] },
+] as const;
+
+// 태그 한도. DB 제약(inventories_categories_check)과 같은 값이어야 한다.
+export const MAX_CATEGORIES = 10;
+export const MAX_CATEGORY_LENGTH = 10;
