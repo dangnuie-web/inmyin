@@ -13,12 +13,14 @@ import { inventoryPath, itemUpdatePath } from "@/lib/inventory/paths";
 export function ItemMenu({ itemId, inventoryId }: { itemId: string; inventoryId: string }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [, startTransition] = useTransition();
+  const [pending, startTransition] = useTransition();
   const [notice, setNotice] = useState<string | null>(null);
   const hideNotice = useCallback(() => setNotice(null), []);
 
-  // 지우고 나면 이 화면은 보여줄 것이 없다. 인벤토리로 돌아가고, "되돌리기"는 거기서 띄운다
+  // 지우고 나면 이 화면은 보여줄 것이 없다. 인벤토리로 돌아가고, "되돌리기"는 거기서 띄운다.
+  // 서버의 답을 기다렸다가 넘어가야 한다 — 먼저 넘어가면 되돌리기가 삭제보다 앞서 도착할 수 있다
   function remove() {
+    if (pending) return;
     startTransition(async () => {
       const result = await deleteItem(itemId);
       if (result.error) return setNotice(result.error);
@@ -41,6 +43,8 @@ export function ItemMenu({ itemId, inventoryId }: { itemId: string; inventoryId:
           ]}
         />
       )}
+      {/* 기다리는 동안 화면을 흐리게 덮는다 — 눌렸다는 것을 바로 알 수 있고, 다른 것을 누르지 못한다 */}
+      {pending && <div aria-hidden className="fixed inset-0 z-40 bg-white/60" />}
       <Toast message={notice} onDone={hideNotice} />
     </div>
   );

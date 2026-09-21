@@ -2,17 +2,40 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { deleteItem, restoreItem } from "@/app/(flow)/items/[itemId]/actions";
 import { DarkMenu } from "@/components/ui/DarkMenu";
 import { Icon } from "@/components/ui/Icon";
 import { Toast } from "@/components/ui/Toast";
 import { itemCameraPath, itemUpdatePath, type InventoryView } from "@/lib/inventory/paths";
+import type { FormState } from "@/lib/auth/rules";
 import type { SlotEntry } from "@/lib/inventory/queries";
 import { AddSlotCell, gridFor, SLOT_ROW_CLASS, SlotCell, SlotRow, SlotRowThumb, UndoSlotCell, UndoSlotRow } from "./Slot";
 import { LongPressSlotCell, SwipeRow, type SwipeSide } from "./SlotGestures";
 
 type MenuAnchor = "slot" | "floating" | null;
+
+// 화면에만 미리 반영해 둔 칸. 서버가 보낸 목록에는 없을 수 있어서, 끼워 넣을 자리와 함께 들고 있는다
+type PlacedEntry = { entry: SlotEntry; index: number };
+
+// 서버가 보낸 목록에, 화면에만 미리 반영해 둔 것(방금 지운 것 · 방금 되살린 것)을 입힌다
+function mergeLocal(entries: SlotEntry[], ghost: PlacedEntry | null, ghostId: string | null, revived: PlacedEntry | null) {
+  const list = entries.map((entry) => {
+    if (entry.id === revived?.entry.id) return { ...entry, deleted: false };
+    return entry.id === ghostId ? { ...entry, deleted: true } : entry;
+  });
+  // 서버가 이미 목록에서 뺐으면 (또는 아직 안 넣었으면) 원래 자리에 끼워 넣는다
+  for (const [placed, deleted] of [[ghost, true], [revived, false]] as const) {
+    if (!placed || list.some((entry) => entry.id === placed.entry.id)) continue;
+    // 살아 있는 칸을 placed.index 개 지나친 곳
+    let at = 0;
+    for (let live = 0; at < list.length && live < placed.index; at += 1) {
+      if (!list[at].deleted) live += 1;
+    }
+    list.splice(at, 0, { ...placed.entry, deleted });
+  }
+  return list;
+}
 
 // 강조가 끝난 뒤 주소에서 added 를 지우기까지의 시간. globals.css 의 slot-highlight 길이와 맞춘다
 const HIGHLIGHT_MS = 1600;
@@ -42,8 +65,6 @@ export function InventoryBoard({ inventoryId, addedId, deletedId, entries, usedS
   const [notice, setNotice] = useState<string | null>(null);
   const hideNotice = useCallback(() => setNotice(null), []);
 
-  const isFull = usedSlots >= slotCount;
-
   // 주소의 물음표 뒤를 고친다. 보기 방식과 고른 카테고리는 그대로 둔다
   const replaceParams = useCallback(
     (change: (params: URLSearchParams) => void) => {
@@ -54,6 +75,31 @@ export function InventoryBoard({ inventoryId, addedId, deletedId, entries, usedS
     },
     [pathname, router, searchParams],
   );
+
+  // 아이템 수정 · 삭제. 리스트는 밀어서, 그리드는 길게 눌러서 부른다 (M-14 의 ⋮ 메뉴와 같은 일)
+  // 길게 눌러 메뉴가 떠 있는 칸 (그리드)
+  const [actionsFor, setActionsFor] = useState<string | null>(null);
+  // 밀어서 블록이 나와 있는 줄 (리스트). 한 번에 한 줄만 연다
+  const [swiped, setSwiped] = useState<{ id: string; side: SwipeSide } | null>(null);
+
+  // 삭제와 되돌리기는 서버의 답을 기다리지 않고 누른 즉시 화면부터 바꾼다 — 답이 늦으면 멈춘 것처럼 보이고,
+  // 기다리다 여러 번 누르게 된다. 서버에 알리는 일은 뒤에서 한다.
+  // 방금 지운 것 ("되돌리기" 칸으로 보인다)
+  const [localGhost, setLocalGhost] = useState<(PlacedEntry & { deleting: Promise<FormState> }) | null>(null);
+  // 되돌리기를 누른 것 (원래 칸으로 보인다)
+  const [revived, setRevived] = useState<PlacedEntry | null>(null);
+  // 방금 되살아난 칸. 잠깐 강조한다
+  const [restoredId, setRestoredId] = useState<string | null>(null);
+
+  // deletedId — 상세(M-14)에서 지우고 넘어온 것. 그쪽은 서버가 "되돌리기" 칸을 목록에 끼워서 보내 준다
+  const ghostId = localGhost?.entry.id ?? (deletedId !== revived?.entry.id ? deletedId : null);
+  const shown = mergeLocal(entries, localGhost, ghostId, revived);
+  const highlightedId = addedId ?? restoredId;
+
+  // 서버가 센 개수에 화면에만 반영된 것을 더하고 뺀다
+  const isLive = (id: string) => entries.some((entry) => entry.id === id && !entry.deleted);
+  const used = usedSlots - (ghostId && isLive(ghostId) ? 1 : 0) + (revived && !isLive(revived.entry.id) ? 1 : 0);
+  const isFull = used >= slotCount;
 
   // + 칸이 화면 밖으로 나가면 플로팅 + 를 띄운다
   const addSlotRef = useRef<HTMLDivElement>(null);
@@ -74,53 +120,76 @@ export function InventoryBoard({ inventoryId, addedId, deletedId, entries, usedS
     return () => clearTimeout(timer);
   }, [addedId, replaceParams]);
 
-  // 아이템 수정 · 삭제. 리스트는 밀어서, 그리드는 길게 눌러서 부른다 (M-14 의 ⋮ 메뉴와 같은 일)
-  const [, startTransition] = useTransition();
-  // 길게 눌러 메뉴가 떠 있는 칸 (그리드)
-  const [actionsFor, setActionsFor] = useState<string | null>(null);
-  // 밀어서 블록이 나와 있는 줄 (리스트). 한 번에 한 줄만 연다
-  const [swiped, setSwiped] = useState<{ id: string; side: SwipeSide } | null>(null);
+  // 그 아이템과, 지워진 것을 뺀 목록에서의 자리
+  function placeOf(itemId: string): PlacedEntry | null {
+    const index = shown.findIndex((entry) => entry.id === itemId);
+    if (index < 0) return null;
+    return { entry: shown[index], index: shown.slice(0, index).filter((entry) => !entry.deleted).length };
+  }
 
   function editItem(itemId: string) {
     router.push(itemUpdatePath(itemId));
   }
 
+  const clearDeleted = useCallback(() => replaceParams((params) => params.delete("deleted")), [replaceParams]);
+
   // 확인 창 없이 바로 지운다. 지운 자리는 "되돌리기" 칸으로 잠깐 남는다 — 실제로 지우는 것이 아니라 되살릴 수 있다.
   // 그사이 다른 것을 또 지우면 앞의 것은 그대로 확정된다
   function removeItem(itemId: string) {
     setSwiped(null);
-    startTransition(async () => {
-      const result = await deleteItem(itemId);
-      if (result.error) return setNotice(result.error);
-      replaceParams((params) => params.set("deleted", itemId));
+    const placed = placeOf(itemId);
+    if (!placed) return;
+
+    const deleting = deleteItem(itemId);
+    setLocalGhost({ ...placed, deleting });
+    if (revived?.entry.id === itemId) setRevived(null);
+    if (deletedId) clearDeleted();
+
+    deleting.then((result) => {
+      if (!result.error) return;
+      // 못 지웠다. 칸을 원래대로 돌려놓는다
+      setLocalGhost((ghost) => (ghost?.entry.id === itemId ? null : ghost));
+      setNotice(result.error);
     });
   }
 
-  const clearDeleted = useCallback(() => replaceParams((params) => params.delete("deleted")), [replaceParams]);
-
-  // "되돌리기" 칸은 잠깐만 남는다. 시간이 지나면 주소에서 지우고, 그러면 뒤의 칸들이 당겨 붙는다.
-  // 상세(M-14)에서 지우고 넘어왔을 때는 그 칸이 화면 밖일 수 있어서 보이는 곳으로 데려온다
+  // "되돌리기" 칸은 잠깐만 남는다. 시간이 지나면 치우고, 그러면 뒤의 칸들이 당겨 붙는다.
+  // 시간은 칸이 뜬 순간부터 한 번만 잰다. 도중에 서버의 답이 오면 주소와 얽힌 값들이 새로 만들어지는데,
+  // 그것들을 직접 물고 있으면 타이머가 처음부터 다시 돈다 — 그래서 치우는 일은 ref 너머로 부른다
+  const expireGhost = useRef(() => {});
   useEffect(() => {
-    if (!deletedId) return;
-    document.getElementById(slotElementId(deletedId))?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-    const timer = setTimeout(clearDeleted, UNDO_MS);
+    expireGhost.current = () => {
+      setLocalGhost(null);
+      if (deletedId) clearDeleted();
+    };
+  });
+  useEffect(() => {
+    if (!ghostId) return;
+    // 상세(M-14)에서 지우고 넘어왔을 때는 그 칸이 화면 밖일 수 있어서 보이는 곳으로 데려온다
+    document.getElementById(slotElementId(ghostId))?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    const timer = setTimeout(() => expireGhost.current(), UNDO_MS);
     return () => clearTimeout(timer);
-  }, [deletedId, clearDeleted]);
+  }, [ghostId]);
 
   function undoDelete() {
-    if (!deletedId) return;
-    startTransition(async () => {
-      const result = await restoreItem(deletedId);
-      if (result.error) {
-        clearDeleted();
-        return setNotice(result.error);
-      }
-      // 되살아난 칸으로 스크롤하고 잠깐 강조한다
-      replaceParams((params) => {
-        params.delete("deleted");
-        params.set("added", deletedId);
-      });
-    });
+    const placed = ghostId && placeOf(ghostId);
+    if (!placed) return;
+    const deleting = localGhost?.deleting;
+    setLocalGhost(null);
+    setRevived(placed);
+
+    void (async () => {
+      // 지우는 일이 아직 안 끝났으면 끝난 뒤에 되살린다. 순서가 바뀌면 되살린 것이 다시 지워진다.
+      // 지우는 데 실패했다면 되살릴 것도 없다 (안내는 removeItem 이 띄운다)
+      const deleted = await deleting;
+      const result = deleted?.error ? {} : await restoreItem(placed.entry.id);
+      setRevived(null);
+      if (deletedId) clearDeleted();
+      if (result.error) return setNotice(result.error);
+
+      setRestoredId(placed.entry.id);
+      setTimeout(() => setRestoredId(null), HIGHLIGHT_MS);
+    })();
   }
 
   const itemActions = (itemId: string) => [
@@ -165,10 +234,10 @@ export function InventoryBoard({ inventoryId, addedId, deletedId, entries, usedS
     <div className="flex flex-1 flex-col">
       {view === "grid" ? (
         <Grid
-          entries={entries}
+          entries={shown}
           slotCount={slotCount}
           isFull={isFull}
-          addedId={addedId}
+          addedId={highlightedId}
           actionsFor={actionsFor}
           onActionsFor={setActionsFor}
           itemActions={itemActions}
@@ -190,8 +259,8 @@ export function InventoryBoard({ inventoryId, addedId, deletedId, entries, usedS
         </Grid>
       ) : (
         <ul className="mt-3 flex flex-col border-t border-border">
-          {entries.map((entry) => (
-            <li key={entry.id} id={slotElementId(entry.id)} className={entry.id === addedId ? HIGHLIGHT_CLASS : ""}>
+          {shown.map((entry) => (
+            <li key={entry.id} id={slotElementId(entry.id)} className={entry.id === highlightedId ? HIGHLIGHT_CLASS : ""}>
               {entry.deleted ? (
                 <UndoSlotRow entry={entry} onUndo={undoDelete} />
               ) : entry.kind === "item" ? (
@@ -230,7 +299,7 @@ export function InventoryBoard({ inventoryId, addedId, deletedId, entries, usedS
       {/* 화면 아래에 붙어 있는 줄 — 가운데 사용량, 오른쪽 플로팅 + */}
       <div className="pointer-events-none sticky bottom-0 mt-auto flex h-19 items-center justify-center pb-[env(safe-area-inset-bottom)]">
         <p className="pointer-events-auto rounded-full bg-white px-3 py-0.5 text-label font-bold">
-          {usedSlots}/{slotCount}
+          {used}/{slotCount}
         </p>
         {!isFull && !addSlotVisible && (
           <div className="pointer-events-auto absolute bottom-4 right-5.5">

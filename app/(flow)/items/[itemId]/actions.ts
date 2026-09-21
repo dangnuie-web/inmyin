@@ -19,6 +19,12 @@ function revalidateItem(itemId: string, inventoryId: string) {
   revalidatePath("/my/inventories");
 }
 
+// 지워졌든 아니든 내 아이템이 맞는지
+async function itemExists(supabase: Awaited<ReturnType<typeof createClient>>, userId: string, itemId: string) {
+  const { data } = await supabase.from("items").select("id").eq("id", itemId).eq("user_id", userId).maybeSingle();
+  return data !== null;
+}
+
 // 아이템 수정. 글자 정보만 고친다 — 사진과 들어 있는 인벤토리는 여기서 바꾸지 않는다
 export async function updateItem(itemId: string, input: ItemFieldsInput): Promise<FormState> {
   const profile = await requireProfile();
@@ -63,7 +69,9 @@ export async function deleteItem(itemId: string): Promise<FormState> {
     .is("deleted_at", null)
     .select("id, inventory_id")
     .maybeSingle();
-  if (error || !item) return { error: "삭제하지 못했습니다. 잠시 후 다시 시도해 주세요." };
+  if (error) return { error: "삭제하지 못했습니다. 잠시 후 다시 시도해 주세요." };
+  // 고친 줄이 없다 = 이미 지워져 있다 (같은 요청이 두 번 온 경우). 바라던 결과와 같으니 성공이다
+  if (!item) return (await itemExists(supabase, profile.id, itemId)) ? {} : { error: "아이템을 찾을 수 없습니다." };
 
   revalidateItem(item.id, item.inventory_id);
   return {};
@@ -83,10 +91,12 @@ export async function restoreItem(itemId: string): Promise<FormState> {
     .not("deleted_at", "is", null)
     .select("id, inventory_id")
     .maybeSingle();
-  if (error || !item) {
+  if (error) {
     // DB 트리거가 한국어로 이유를 알려준다 (예: 인벤토리가 꽉 찼습니다)
-    return { error: error?.code === "P0001" ? error.message : "되돌리지 못했습니다. 잠시 후 다시 시도해 주세요." };
+    return { error: error.code === "P0001" ? error.message : "되돌리지 못했습니다. 잠시 후 다시 시도해 주세요." };
   }
+  // 고친 줄이 없다 = 이미 살아 있다 (되돌리기를 여러 번 누른 경우). 바라던 결과와 같으니 성공이다
+  if (!item) return (await itemExists(supabase, profile.id, itemId)) ? {} : { error: "아이템을 찾을 수 없습니다." };
 
   revalidateItem(item.id, item.inventory_id);
   return {};
