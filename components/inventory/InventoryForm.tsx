@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition, type FormEvent, type KeyboardEvent } from "react";
+import Image from "next/image";
+import { updateInventory } from "@/app/(flow)/my/inventories/[id]/actions";
 import { createInventory } from "@/app/(flow)/my/inventories/new/actions";
 import { Button } from "@/components/ui/Button";
 import { CategoryTag } from "@/components/ui/CategoryTag";
@@ -15,12 +17,18 @@ import { categoryError, INVENTORY_NAME_MAX } from "@/lib/inventory/rules";
 
 type OpenDropdown = "name" | "category" | null;
 
-// 인벤토리 정보 입력. 사진 · 이름 · 카테고리 태그를 받아 저장한다.
-export function InventoryForm({ userId }: { userId: string }) {
+type InventoryFormProps = {
+  userId: string;
+  // 수정할 때만 준다. 그 값으로 채워서 열고, 사진은 보여주기만 한다 — 이름과 태그만 고친다
+  inventory?: { id: string; name: string; categories: string[]; imageUrl: string };
+};
+
+// 인벤토리 정보 입력. 사진 · 이름 · 카테고리 태그를 받아 저장한다. 인벤토리 수정도 같은 폼이다.
+export function InventoryForm({ userId, inventory }: InventoryFormProps) {
   // 목록에서 고르거나 촬영 화면에서 찍은 사진을 이어받는다. 사진은 필수다 — 새로고침해서 비어 있으면 여기서 다시 골라야 저장된다
   const [photo, setPhoto] = useState(getPendingPhoto);
-  const [name, setName] = useState("");
-  const [tags, setTags] = useState<string[]>([]);
+  const [name, setName] = useState(inventory?.name ?? "");
+  const [tags, setTags] = useState<string[]>(inventory?.categories ?? []);
   const [draft, setDraft] = useState("");
   // 마지막으로 고른 추천의 기본 태그. 지운 태그를 드롭다운에서 다시 달 수 있게 기억해 둔다
   const [recommendedTags, setRecommendedTags] = useState<readonly string[]>([]);
@@ -68,7 +76,7 @@ export function InventoryForm({ userId }: { userId: string }) {
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!photo) {
+    if (!inventory && !photo) {
       setError("사진을 추가해 주세요.");
       return;
     }
@@ -85,6 +93,14 @@ export function InventoryForm({ userId }: { userId: string }) {
 
     setError(undefined);
     startTransition(async () => {
+      // 성공하면 서버가 목록으로 보낸다. 돌아온 값이 있으면 오류다
+      if (inventory) {
+        const result = await updateInventory(inventory.id, { name, categories });
+        if (result?.error) setError(result.error);
+        return;
+      }
+
+      if (!photo) return;
       const id = crypto.randomUUID();
       let extensions: Awaited<ReturnType<typeof uploadPhotoPair>>;
       try {
@@ -94,7 +110,6 @@ export function InventoryForm({ userId }: { userId: string }) {
         return;
       }
 
-      // 성공하면 서버가 목록으로 보낸다. 돌아온 값이 있으면 오류다
       const result = await createInventory({ id, name, categories, ...extensions });
       if (result?.error) setError(result.error);
     });
@@ -105,10 +120,15 @@ export function InventoryForm({ userId }: { userId: string }) {
       <button
         type="button"
         onClick={() => photoRef.current?.click()}
-        aria-label={photo ? "사진 바꾸기" : "사진 추가"}
+        // 수정할 때는 사진을 보여주기만 한다 (사진 바꾸기는 나중에 할 일)
+        disabled={Boolean(inventory)}
+        aria-label={inventory ? "인벤토리 사진" : photo ? "사진 바꾸기" : "사진 추가"}
         className="relative mt-10.5 flex aspect-357/341 w-full items-center justify-center overflow-hidden rounded-xl bg-field-dark text-placeholder-dark"
       >
-        {photo ? (
+        {inventory ? (
+          // 올릴 때 이미 작게 줄여 둔 사진이라 Next 의 이미지 최적화를 거치지 않는다
+          <Image src={inventory.imageUrl} alt="" fill sizes="(min-width: 448px) 400px, 90vw" unoptimized className="object-cover" />
+        ) : photo ? (
           <PhotoPreview file={photo.photo} />
         ) : (
           <span className="flex flex-col items-center gap-3 text-caption">
@@ -207,7 +227,7 @@ export function InventoryForm({ userId }: { userId: string }) {
       {/* 남는 공간만큼 아래로 내리되, 태그가 늘어 화면이 꽉 차도 위와 붙지 않게 최소 간격을 둔다 */}
       <div className="mt-auto flex justify-center pt-10">
         <Button type="submit" size="pill" disabled={pending}>
-          {pending ? "저장 중…" : "저장하기"}
+          {inventory ? (pending ? "수정 중…" : "수정하기") : pending ? "저장 중…" : "저장하기"}
         </Button>
       </div>
     </form>

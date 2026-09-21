@@ -42,6 +42,11 @@ export function newItemPath(inventoryId: string) {
   return `/my/inventories/${inventoryId}/items/new`;
 }
 
+// 인벤토리 수정의 주소. 이름과 카테고리 태그를 고친다
+export function inventoryUpdatePath(inventoryId: string) {
+  return `/my/inventories/${inventoryId}/edit`;
+}
+
 // 인벤토리 정보 입력의 주소
 export const NEW_INVENTORY_PATH = "/my/inventories/new";
 

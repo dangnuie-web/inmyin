@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { AddInventoryRow } from "@/components/inventory/AddInventoryRow";
-import { InventoryRow } from "@/components/inventory/InventoryRow";
+import { InventoryList } from "@/components/inventory/InventoryList";
 import { HeaderMini } from "@/components/ui/HeaderMini";
 import { requireProfile } from "@/lib/auth/profile";
 import { getMyInventories } from "@/lib/inventory/queries";
@@ -10,7 +9,7 @@ import { planLimits } from "@/lib/plans";
 export const metadata: Metadata = { title: "인벤토리 · INMYIN" };
 
 // M-03 · My › 인벤토리 목록.
-// 있는 인벤토리와 그 다음의 + 줄 하나만 그린다. 빈 자리는 그리지 않는다
+// 있는 인벤토리와 그 다음의 + 줄 하나만 그린다. 빈 자리는 그리지 않는다. 줄을 밀면 수정 · 삭제 (InventoryList)
 export default async function InventoriesPage() {
   const profile = await requireProfile();
   const inventories = await getMyInventories(profile.id);
@@ -27,12 +26,7 @@ export default async function InventoriesPage() {
         TOTAL {usedTotal}/{maxInventories * slotCount}
       </p>
 
-      <ul className="mt-6 flex flex-col gap-4">
-        {inventories.map((inventory) => (
-          <InventoryRow key={inventory.id} inventory={inventory} />
-        ))}
-        {!isFull && <AddInventoryRow />}
-      </ul>
+      <InventoryList inventories={inventories} maxInventories={maxInventories} />
 
       {isFull && (
         <Link

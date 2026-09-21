@@ -27,7 +27,7 @@ export default async function ItemDetailPage(props: PageProps<"/items/[itemId]">
   if (!inventory) notFound();
 
   const facts = [
-    { label: "획득일자", value: item.acquiredNote },
+    { label: "획득날짜", value: item.acquiredNote },
     { label: "유통기한", value: item.expiresAt && `${formatShortDate(item.expiresAt)} 까지` },
   ].filter((fact) => fact.value);
 
