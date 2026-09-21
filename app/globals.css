@@ -60,6 +60,18 @@
     }
   }
 
+  /* 움직임 — "되돌리기" 칸 아래의 선이 5초 동안 줄어든다 (M-04). 길이는 InventoryBoard 의 UNDO_MS 와 맞춘다 */
+  --animate-undo-countdown: undo-countdown 5s linear forwards;
+
+  @keyframes undo-countdown {
+    from {
+      transform: scaleX(1);
+    }
+    to {
+      transform: scaleX(0);
+    }
+  }
+
   /* 폰트 */
   --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
                "Apple SD Gothic Neo", sans-serif;

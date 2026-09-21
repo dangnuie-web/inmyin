@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
+import { Icon } from "@/components/ui/Icon";
 import { slotEntryPath } from "@/lib/inventory/paths";
 import type { SlotEntry } from "@/lib/inventory/queries";
 
@@ -86,5 +87,49 @@ export function SlotRow({ entry }: { entry: SlotEntry }) {
       <p className="min-w-0 flex-1 truncate text-body">{entry.name}</p>
       <QuantityBadge quantity={entry.quantity} className="bg-gray-1" />
     </Link>
+  );
+}
+
+// 방금 지운 아이템의 자리. 5초 동안 "되돌리기" 칸으로 남았다가 사라진다 — 그때 뒤의 칸들이 당겨 붙는다.
+// 지운 바로 그 자리에 뜨기 때문에 눈도 손가락도 이미 여기에 있다. 아래의 선이 남은 시간을 알려준다
+const UNDO_COUNTDOWN_CLASS = "absolute inset-x-0 bottom-0 h-0.75 origin-left animate-undo-countdown bg-point";
+const UNDO_IMAGE_CLASS = "opacity-25 grayscale";
+
+export function UndoSlotCell({ entry, onUndo }: { entry: SlotEntry; onUndo: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onUndo}
+      aria-label={`${entry.name} 삭제 되돌리기`}
+      className={`${CELL_CLASS} w-full flex-col gap-1.5 overflow-hidden bg-gray-1 text-point active:opacity-80`}
+    >
+      <span className={`absolute inset-0 ${UNDO_IMAGE_CLASS}`}>
+        <SlotImage entry={entry} sizes="(min-width: 448px) 130px, 30vw" />
+      </span>
+      <Icon name="undo" scale={0.6} className="relative" />
+      <span className="relative text-caption font-bold">되돌리기</span>
+      <span className={UNDO_COUNTDOWN_CLASS} />
+    </button>
+  );
+}
+
+export function UndoSlotRow({ entry, onUndo }: { entry: SlotEntry; onUndo: () => void }) {
+  return (
+    <button type="button" onClick={onUndo} className={`${SLOT_ROW_CLASS} relative text-left active:opacity-80`}>
+      <span className={UNDO_IMAGE_CLASS}>
+        <SlotRowThumb filled>
+          <SlotImage entry={entry} sizes="54px" />
+        </SlotRowThumb>
+      </span>
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="truncate text-body text-disabled">{entry.name}</span>
+        <span className="text-caption text-ink-muted">삭제했어요</span>
+      </span>
+      <span className="flex shrink-0 items-center gap-2 text-label font-bold text-point">
+        <Icon name="undo" scale={0.45} />
+        되돌리기
+      </span>
+      <span className={UNDO_COUNTDOWN_CLASS} />
+    </button>
   );
 }

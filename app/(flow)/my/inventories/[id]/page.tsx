@@ -20,8 +20,12 @@ export default async function InventoryDetailPage(props: PageProps<"/my/inventor
   const searchParams = await props.searchParams;
   if (!UUID_PATTERN.test(id)) notFound();
 
+  // 방금 지운 아이템. 제자리에 "되돌리기" 칸으로 잠깐 남긴다
+  const deletedId =
+    typeof searchParams.deleted === "string" && UUID_PATTERN.test(searchParams.deleted) ? searchParams.deleted : null;
+
   const [inventory, inventories] = await Promise.all([
-    getMyInventoryDetail(profile.id, id),
+    getMyInventoryDetail(profile.id, id, deletedId),
     getMyInventories(profile.id),
   ]);
   if (!inventory) notFound();
@@ -73,9 +77,9 @@ export default async function InventoryDetailPage(props: PageProps<"/my/inventor
       <InventoryBoard
         inventoryId={inventory.id}
         addedId={typeof searchParams.added === "string" ? searchParams.added : null}
-        deletedId={typeof searchParams.deleted === "string" && UUID_PATTERN.test(searchParams.deleted) ? searchParams.deleted : null}
+        deletedId={deletedId}
         entries={entries}
-        usedSlots={inventory.entries.length}
+        usedSlots={inventory.entries.filter((entry) => !entry.deleted).length}
         slotCount={inventory.slotCount}
         view={view}
       />

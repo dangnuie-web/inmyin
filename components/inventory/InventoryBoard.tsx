@@ -9,19 +9,21 @@ import { Icon } from "@/components/ui/Icon";
 import { Toast } from "@/components/ui/Toast";
 import { itemCameraPath, itemUpdatePath, type InventoryView } from "@/lib/inventory/paths";
 import type { SlotEntry } from "@/lib/inventory/queries";
-import { AddSlotCell, gridFor, SLOT_ROW_CLASS, SlotCell, SlotRow, SlotRowThumb } from "./Slot";
+import { AddSlotCell, gridFor, SLOT_ROW_CLASS, SlotCell, SlotRow, SlotRowThumb, UndoSlotCell, UndoSlotRow } from "./Slot";
 import { LongPressSlotCell, SwipeRow, type SwipeSide } from "./SlotGestures";
 
 type MenuAnchor = "slot" | "floating" | null;
 
 // 강조가 끝난 뒤 주소에서 added 를 지우기까지의 시간. globals.css 의 slot-highlight 길이와 맞춘다
 const HIGHLIGHT_MS = 1600;
+// 지운 자리에 "되돌리기" 칸이 남아 있는 시간. globals.css 의 undo-countdown 길이와 맞춘다
+const UNDO_MS = 5000;
 
 type InventoryBoardProps = {
   inventoryId: string;
   // 방금 등록한(또는 되살린) 아이템의 id. 그 칸으로 스크롤하고 잠깐 강조한다
   addedId: string | null;
-  // 방금 지운 아이템의 id. "되돌리기"를 잠깐 띄운다
+  // 방금 지운 아이템의 id. entries 안에 deleted 로 표시되어 같이 온다 — 제자리에 "되돌리기" 칸으로 잠깐 남는다
   deletedId: string | null;
   // 보여줄 것. 카테고리를 골랐으면 걸러진 목록이 온다
   entries: SlotEntry[];
@@ -83,7 +85,8 @@ export function InventoryBoard({ inventoryId, addedId, deletedId, entries, usedS
     router.push(itemUpdatePath(itemId));
   }
 
-  // 확인 창 없이 바로 지우고 "되돌리기"를 띄운다. 실제로 지우는 것이 아니라 되살릴 수 있다
+  // 확인 창 없이 바로 지운다. 지운 자리는 "되돌리기" 칸으로 잠깐 남는다 — 실제로 지우는 것이 아니라 되살릴 수 있다.
+  // 그사이 다른 것을 또 지우면 앞의 것은 그대로 확정된다
   function removeItem(itemId: string) {
     setSwiped(null);
     startTransition(async () => {
@@ -94,6 +97,15 @@ export function InventoryBoard({ inventoryId, addedId, deletedId, entries, usedS
   }
 
   const clearDeleted = useCallback(() => replaceParams((params) => params.delete("deleted")), [replaceParams]);
+
+  // "되돌리기" 칸은 잠깐만 남는다. 시간이 지나면 주소에서 지우고, 그러면 뒤의 칸들이 당겨 붙는다.
+  // 상세(M-14)에서 지우고 넘어왔을 때는 그 칸이 화면 밖일 수 있어서 보이는 곳으로 데려온다
+  useEffect(() => {
+    if (!deletedId) return;
+    document.getElementById(slotElementId(deletedId))?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    const timer = setTimeout(clearDeleted, UNDO_MS);
+    return () => clearTimeout(timer);
+  }, [deletedId, clearDeleted]);
 
   function undoDelete() {
     if (!deletedId) return;
@@ -160,6 +172,7 @@ export function InventoryBoard({ inventoryId, addedId, deletedId, entries, usedS
           actionsFor={actionsFor}
           onActionsFor={setActionsFor}
           itemActions={itemActions}
+          onUndo={undoDelete}
         >
           {(isLastColumn) => (
             <div ref={addSlotRef} className="relative size-full">
@@ -179,7 +192,9 @@ export function InventoryBoard({ inventoryId, addedId, deletedId, entries, usedS
         <ul className="mt-3 flex flex-col border-t border-border">
           {entries.map((entry) => (
             <li key={entry.id} id={slotElementId(entry.id)} className={entry.id === addedId ? HIGHLIGHT_CLASS : ""}>
-              {entry.kind === "item" ? (
+              {entry.deleted ? (
+                <UndoSlotRow entry={entry} onUndo={undoDelete} />
+              ) : entry.kind === "item" ? (
                 <SwipeRow
                   open={swiped?.id === entry.id ? swiped.side : null}
                   onOpenChange={(side) => setSwiped(side && { id: entry.id, side })}
@@ -233,14 +248,6 @@ export function InventoryBoard({ inventoryId, addedId, deletedId, entries, usedS
       </div>
 
       <Toast message={notice} onDone={hideNotice} />
-      {!notice && (
-        <Toast
-          key={deletedId}
-          message={deletedId ? "아이템을 삭제했어요." : null}
-          onDone={clearDeleted}
-          action={{ label: "되돌리기", onClick: undoDelete }}
-        />
-      )}
     </div>
   );
 }
@@ -261,19 +268,22 @@ type GridProps = {
   actionsFor: string | null;
   onActionsFor: (entryId: string | null) => void;
   itemActions: (itemId: string) => { label: string; onSelect: () => void }[];
+  onUndo: () => void;
   // + 칸의 내용. 그 칸이 오른쪽 끝 열인지 알려준다
   children: (isLastColumn: boolean) => React.ReactNode;
 };
 
 // 채워진 칸과 그 다음의 + 칸만 그린다. 빈 칸은 그리지 않는다 — 남은 용량은 아래의 16/25 가 알려준다
-function Grid({ entries, slotCount, isFull, addedId, actionsFor, onActionsFor, itemActions, children }: GridProps) {
+function Grid({ entries, slotCount, isFull, addedId, actionsFor, onActionsFor, itemActions, onUndo, children }: GridProps) {
   const { columns, className } = gridFor(slotCount);
 
   return (
     <ul className={`mt-6 grid gap-3.5 px-6.5 ${className}`}>
       {entries.map((entry, index) => (
         <li key={entry.id} id={slotElementId(entry.id)} className={`relative ${entry.id === addedId ? HIGHLIGHT_CLASS : ""}`}>
-          {entry.kind === "item" ? (
+          {entry.deleted ? (
+            <UndoSlotCell entry={entry} onUndo={onUndo} />
+          ) : entry.kind === "item" ? (
             // 칸이 작아서 밀지 않고 길게 누른다
             <LongPressSlotCell entry={entry} onLongPress={() => onActionsFor(entry.id)} />
           ) : (

@@ -18,6 +18,8 @@ export type SlotEntry = {
   // 아이템만 가진다
   quantity: number;
   category: string | null;
+  // 방금 지운 아이템. 제자리에 "되돌리기" 칸으로 잠깐 남는다 (M-04). 찬 칸으로 세지 않는다
+  deleted: boolean;
 };
 
 export type InventoryDetail = {
@@ -29,10 +31,20 @@ export type InventoryDetail = {
   entries: SlotEntry[];
 };
 
-// 내 인벤토리 하나와 그 안에 든 것 (M-04). 없거나 남의 것이면 null
-export async function getMyInventoryDetail(userId: string, inventoryId: string): Promise<InventoryDetail | null> {
+// 내 인벤토리 하나와 그 안에 든 것 (M-04). 없거나 남의 것이면 null.
+// deletedItemId — 방금 지운 아이템. 주면 그것도 원래 순서에 끼워서 돌려준다 ("되돌리기" 칸). UUID 인지는 부르는 쪽이 확인한다
+export async function getMyInventoryDetail(
+  userId: string,
+  inventoryId: string,
+  deletedItemId: string | null = null,
+): Promise<InventoryDetail | null> {
   const supabase = await createClient();
-  const [inventory, items, children] = await Promise.all([
+  const items = supabase
+    .from("items")
+    .select("id, name, image_url, quantity, category, slot_index, deleted_at")
+    .eq("inventory_id", inventoryId)
+    .eq("user_id", userId);
+  const [inventory, itemRows, children] = await Promise.all([
     supabase
       .from("inventories")
       .select("id, name, categories, slot_count")
@@ -40,12 +52,7 @@ export async function getMyInventoryDetail(userId: string, inventoryId: string):
       .eq("user_id", userId)
       .is("deleted_at", null)
       .maybeSingle(),
-    supabase
-      .from("items")
-      .select("id, name, image_url, quantity, category, slot_index")
-      .eq("inventory_id", inventoryId)
-      .eq("user_id", userId)
-      .is("deleted_at", null),
+    deletedItemId ? items.or(`deleted_at.is.null,id.eq.${deletedItemId}`) : items.is("deleted_at", null),
     supabase
       .from("inventories")
       .select("id, name, image_url, parent_slot_index")
@@ -53,12 +60,12 @@ export async function getMyInventoryDetail(userId: string, inventoryId: string):
       .eq("user_id", userId)
       .is("deleted_at", null),
   ]);
-  const error = inventory.error ?? items.error ?? children.error;
+  const error = inventory.error ?? itemRows.error ?? children.error;
   if (error) throw error;
   if (!inventory.data) return null;
 
   const entries = [
-    ...items.data!.map((item) => ({
+    ...itemRows.data!.map((item) => ({
       order: item.slot_index,
       entry: {
         kind: "item" as const,
@@ -67,6 +74,7 @@ export async function getMyInventoryDetail(userId: string, inventoryId: string):
         imageUrl: item.image_url,
         quantity: item.quantity,
         category: item.category,
+        deleted: item.deleted_at !== null,
       },
     })),
     ...children.data!.map((child) => ({
@@ -78,6 +86,7 @@ export async function getMyInventoryDetail(userId: string, inventoryId: string):
         imageUrl: child.image_url,
         quantity: 1,
         category: null,
+        deleted: false,
       },
     })),
   ];
