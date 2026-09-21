@@ -61,7 +61,7 @@ export async function removeBackground(file: File): Promise<Blob>
 
 - UI와 코드 모두 **INMYIN** (영문 대문자). "인마인"으로 쓰지 않는다
 - 저장 / 북마크(Bookmark)라는 개념은 없다. 좋아요 하나뿐이다
-- 하단 탭은 **Home · My · Like** 세 개
+- 하단 탭은 **Like · Home · My** 세 개. 화면에서도 이 순서다 — Home이 가운데
 
 ---
 
