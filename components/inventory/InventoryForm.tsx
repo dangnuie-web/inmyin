@@ -8,7 +8,7 @@ import { DarkDropdown, DarkDropdownOption, DarkInput } from "@/components/ui/Dar
 import { FormError } from "@/components/ui/FormError";
 import { Icon } from "@/components/ui/Icon";
 import { MAX_CATEGORY_LENGTH, RECOMMENDED_INVENTORIES } from "@/lib/categories";
-import { getPendingPhoto, setPendingPhoto } from "@/lib/image/pending-photo";
+import { getPendingPhoto, pickedPhoto, setPendingPhoto } from "@/lib/image/pending-photo";
 import { uploadPhotoPair } from "@/lib/image/upload";
 import { categoryError, INVENTORY_NAME_MAX } from "@/lib/inventory/rules";
 
@@ -16,8 +16,8 @@ type OpenDropdown = "name" | "category" | null;
 
 // 인벤토리 정보 입력. 사진 · 이름 · 카테고리 태그를 받아 저장한다.
 export function InventoryForm({ userId }: { userId: string }) {
-  // 목록에서 고른 사진을 이어받는다. 사진은 필수다 — 새로고침해서 비어 있으면 여기서 다시 골라야 저장된다
-  const [photo, setPhoto] = useState<File | null>(getPendingPhoto);
+  // 목록에서 고르거나 촬영 화면에서 찍은 사진을 이어받는다. 사진은 필수다 — 새로고침해서 비어 있으면 여기서 다시 골라야 저장된다
+  const [photo, setPhoto] = useState(getPendingPhoto);
   const [name, setName] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [draft, setDraft] = useState("");
@@ -108,7 +108,7 @@ export function InventoryForm({ userId }: { userId: string }) {
         className="relative mt-10.5 flex aspect-357/341 w-full items-center justify-center overflow-hidden rounded-xl bg-field-dark text-placeholder-dark"
       >
         {photo ? (
-          <PhotoPreview file={photo} />
+          <PhotoPreview file={photo.photo} />
         ) : (
           <span className="flex flex-col items-center gap-3 text-caption">
             <Icon name="plus" />
@@ -123,7 +123,7 @@ export function InventoryForm({ userId }: { userId: string }) {
         hidden
         onChange={(event) => {
           const file = event.target.files?.[0];
-          if (file) setPhoto(file);
+          if (file) setPhoto(pickedPhoto(file));
         }}
       />
 

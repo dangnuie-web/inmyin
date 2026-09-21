@@ -4,18 +4,16 @@ import { useRef, useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import { DarkMenu } from "@/components/ui/DarkMenu";
 import { Icon } from "@/components/ui/Icon";
-import { setPendingPhoto } from "@/lib/image/pending-photo";
+import { pickedPhoto, setPendingPhoto } from "@/lib/image/pending-photo";
+import { NEW_INVENTORY_CAMERA_PATH, NEW_INVENTORY_PATH } from "@/lib/inventory/paths";
 import { INVENTORY_ROW_CLASS, InventoryThumb } from "./InventoryRow";
 
-const NEW_INVENTORY_PATH = "/my/inventories/new";
-
 // 인벤토리 목록의 + 줄. 누르면 "사진 업로드 / 사진 찍기" 메뉴가 뜬다.
-// 사진을 고르면 그 사진을 들고 정보 입력 화면으로 간다.
+// 사진을 고르면 그 사진을 들고 정보 입력 화면으로 가고, 찍겠다고 하면 촬영 화면(M-06)으로 간다.
 export function AddInventoryRow() {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const uploadRef = useRef<HTMLInputElement>(null);
-  const cameraRef = useRef<HTMLInputElement>(null);
 
   function onAddClick() {
     // 손가락으로 쓰는 기기(폰·태블릿)에서만 메뉴를 띄운다.
@@ -27,7 +25,7 @@ export function AddInventoryRow() {
   function onPhotoChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
-    setPendingPhoto(file);
+    setPendingPhoto(pickedPhoto(file));
     router.push(NEW_INVENTORY_PATH);
   }
 
@@ -46,15 +44,12 @@ export function AddInventoryRow() {
           onClose={() => setMenuOpen(false)}
           items={[
             { label: "사진 업로드", onSelect: () => uploadRef.current?.click() },
-            // capture 가 붙은 입력칸은 갤러리 대신 휴대폰 카메라를 바로 연다.
-            // 촬영 화면(M-06)을 만들면 그쪽으로 바꾼다
-            { label: "사진 찍기", onSelect: () => cameraRef.current?.click() },
+            { label: "사진 찍기", onSelect: () => router.push(NEW_INVENTORY_CAMERA_PATH) },
           ]}
         />
       )}
 
       <input ref={uploadRef} type="file" accept="image/*" hidden onChange={onPhotoChange} />
-      <input ref={cameraRef} type="file" accept="image/*" capture="environment" hidden onChange={onPhotoChange} />
     </li>
   );
 }

@@ -2,12 +2,11 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState, type ChangeEvent } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { DarkMenu } from "@/components/ui/DarkMenu";
 import { Icon } from "@/components/ui/Icon";
 import { Toast } from "@/components/ui/Toast";
-import { setPendingPhoto } from "@/lib/image/pending-photo";
-import { newItemPath, type InventoryView } from "@/lib/inventory/paths";
+import { itemCameraPath, type InventoryView } from "@/lib/inventory/paths";
 import type { SlotEntry } from "@/lib/inventory/queries";
 import { AddSlotCell, SLOT_ROW_CLASS, SlotCell, SlotRow, SlotRowThumb } from "./Slot";
 
@@ -70,23 +69,14 @@ export function InventoryBoard({ inventoryId, addedId, entries, usedSlots, slotC
     return () => clearTimeout(timer);
   }, [addedId, pathname, router, searchParams]);
 
-  // 사진을 고르면 그 사진을 들고 아이템 정보 입력(M-08)으로 간다
-  const photoRef = useRef<HTMLInputElement>(null);
-  function onPhotoChange(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    setPendingPhoto(file);
-    router.push(newItemPath(inventoryId));
-  }
-
   const menuItems = [
     {
       label: "새 아이템 등록",
       onSelect: () => {
         // 아이템 등록(촬영)은 모바일 전용이다 (CLAUDE.md 규칙 5)
         if (!window.matchMedia("(pointer: coarse)").matches) return setNotice("휴대폰에서 등록해 주세요.");
-        // 촬영 화면(M-06)을 만들기 전까지는 휴대폰의 사진 고르기를 연다. 거기서 찍을 수도 있다
-        photoRef.current?.click();
+        // 촬영 화면(M-06)으로 간다. 갤러리에서 고르는 것도 거기서 한다
+        router.push(itemCameraPath(inventoryId));
       },
     },
     { label: "인벤토리 가져오기", onSelect: () => setNotice("인벤토리 가져오기는 곧 만들어요.") },
@@ -175,7 +165,6 @@ export function InventoryBoard({ inventoryId, addedId, entries, usedSlots, slotC
         )}
       </div>
 
-      <input ref={photoRef} type="file" accept="image/*" hidden onChange={onPhotoChange} />
       <Toast message={notice} onDone={hideNotice} />
     </div>
   );

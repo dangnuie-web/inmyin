@@ -31,7 +31,7 @@ type ItemFormProps = {
 // M-08 · 아이템 정보 입력. 사진은 앞 단계에서 이미 골랐고, 여기서는 글자 정보만 받는다.
 export function ItemForm({ userId, inventoryId, categories }: ItemFormProps) {
   const router = useRouter();
-  const [photo] = useState<File | null>(getPendingPhoto);
+  const [photo] = useState(getPendingPhoto);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");

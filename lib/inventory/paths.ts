@@ -23,3 +23,12 @@ export function inventoryPath(id: string, options: InventoryPathOptions = {}) {
 export function newItemPath(inventoryId: string) {
   return `/my/inventories/${inventoryId}/items/new`;
 }
+
+// 인벤토리 정보 입력의 주소
+export const NEW_INVENTORY_PATH = "/my/inventories/new";
+
+// 촬영 화면(M-06)의 주소. 아이템용과 인벤토리용이 따로 있다 — 찍은 뒤에 갈 곳이 다르다
+export function itemCameraPath(inventoryId: string) {
+  return `/my/inventories/${inventoryId}/items/camera`;
+}
+export const NEW_INVENTORY_CAMERA_PATH = `${NEW_INVENTORY_PATH}/camera`;
