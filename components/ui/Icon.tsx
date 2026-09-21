@@ -88,6 +88,18 @@ const ICONS = {
       </>
     ),
   },
+  // 편집 화면(M-07)의 배경제거. 반짝이.
+  // 임시로 그린 그림이다 — 피그마의 SVG 를 받으면 body 만 갈아 끼운다
+  sparkle: {
+    size: 28,
+    body: (
+      <>
+        <path d="M11 4L13.2 10.8L20 13L13.2 15.2L11 22L8.8 15.2L2 13L8.8 10.8L11 4Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+        <path d="M21.5 3L22.6 6.4L26 7.5L22.6 8.6L21.5 12L20.4 8.6L17 7.5L20.4 6.4L21.5 3Z" fill="currentColor" />
+        <path d="M21 18L21.9 20.6L24.5 21.5L21.9 22.4L21 25L20.1 22.4L17.5 21.5L20.1 20.6L21 18Z" fill="currentColor" />
+      </>
+    ),
+  },
   // 피그마 `그리드-리스트 토글`의 그리드
   grid: {
     width: 20,

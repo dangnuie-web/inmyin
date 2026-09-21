@@ -7,6 +7,7 @@ import { CategoryTag } from "@/components/ui/CategoryTag";
 import { DarkDropdown, DarkDropdownOption, DarkInput } from "@/components/ui/DarkInput";
 import { FormError } from "@/components/ui/FormError";
 import { Icon } from "@/components/ui/Icon";
+import { PhotoPreview } from "@/components/ui/PhotoPreview";
 import { MAX_CATEGORY_LENGTH, RECOMMENDED_INVENTORIES } from "@/lib/categories";
 import { getPendingPhoto, pickedPhoto, setPendingPhoto } from "@/lib/image/pending-photo";
 import { uploadPhotoPair } from "@/lib/image/upload";
@@ -85,16 +86,16 @@ export function InventoryForm({ userId }: { userId: string }) {
     setError(undefined);
     startTransition(async () => {
       const id = crypto.randomUUID();
-      let imageExtension: string;
+      let extensions: Awaited<ReturnType<typeof uploadPhotoPair>>;
       try {
-        imageExtension = await uploadPhotoPair("inventories", photo, userId, id);
+        extensions = await uploadPhotoPair("inventories", photo, userId, id);
       } catch {
         setError("사진을 올리지 못했습니다. 잠시 후 다시 시도해 주세요.");
         return;
       }
 
       // 성공하면 서버가 목록으로 보낸다. 돌아온 값이 있으면 오류다
-      const result = await createInventory({ id, name, categories, imageExtension });
+      const result = await createInventory({ id, name, categories, ...extensions });
       if (result?.error) setError(result.error);
     });
   }
@@ -211,22 +212,6 @@ export function InventoryForm({ userId }: { userId: string }) {
       </div>
     </form>
   );
-}
-
-// 방금 고른 파일을 브라우저 안에서 바로 보여준다.
-// 파일에 임시 주소를 붙여 img 에 꽂고, 다 쓰면 주소를 돌려준다 — 안 돌려주면 메모리가 샌다
-function PhotoPreview({ file }: { file: File }) {
-  const imageRef = useRef<HTMLImageElement>(null);
-
-  useEffect(() => {
-    const url = URL.createObjectURL(file);
-    if (imageRef.current) imageRef.current.src = url;
-    return () => URL.revokeObjectURL(url);
-  }, [file]);
-
-  // 서버를 거치지 않는 임시 주소라 Next 의 Image 를 쓸 수 없다
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img ref={imageRef} alt="" className="absolute inset-0 size-full object-cover" />;
 }
 
 function DropdownToggle({ label, isOpen, onClick }: { label: string; isOpen: boolean; onClick: () => void }) {

@@ -5,11 +5,11 @@ import { useRouter } from "next/navigation";
 import { DarkMenu } from "@/components/ui/DarkMenu";
 import { Icon } from "@/components/ui/Icon";
 import { pickedPhoto, setPendingPhoto } from "@/lib/image/pending-photo";
-import { NEW_INVENTORY_CAMERA_PATH, NEW_INVENTORY_PATH } from "@/lib/inventory/paths";
+import { NEW_INVENTORY_CAMERA_PATH, NEW_INVENTORY_EDIT_PATH } from "@/lib/inventory/paths";
 import { INVENTORY_ROW_CLASS, InventoryThumb } from "./InventoryRow";
 
 // 인벤토리 목록의 + 줄. 누르면 "사진 업로드 / 사진 찍기" 메뉴가 뜬다.
-// 사진을 고르면 그 사진을 들고 정보 입력 화면으로 가고, 찍겠다고 하면 촬영 화면(M-06)으로 간다.
+// 사진을 고르면 그 사진을 들고 편집 화면(M-07)으로 가고, 찍겠다고 하면 촬영 화면(M-06)으로 간다.
 export function AddInventoryRow() {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -26,7 +26,7 @@ export function AddInventoryRow() {
     const file = event.target.files?.[0];
     if (!file) return;
     setPendingPhoto(pickedPhoto(file));
-    router.push(NEW_INVENTORY_PATH);
+    router.push(NEW_INVENTORY_EDIT_PATH);
   }
 
   return (

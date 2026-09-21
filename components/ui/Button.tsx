@@ -5,6 +5,8 @@ const VARIANTS = {
   point: "bg-point text-white",
   outline: "border border-disabled bg-white text-ink",
   kakao: "bg-kakao text-ink",
+  // 검은 화면 위의 버튼 (M-07 저장하기)
+  dark: "bg-surface-dark text-white",
 };
 
 const SIZES = {

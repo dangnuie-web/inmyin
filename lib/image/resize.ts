@@ -22,14 +22,16 @@ export async function resizeImage(file: File, maxSide: number): Promise<Blob> {
   bitmap.close();
 
   // webp 가 가장 가볍다. 사파리처럼 webp 로 못 만드는 브라우저는 말없이 png 를 돌려주는데,
-  // png 는 사진에 너무 무거워서 그때는 jpeg 로 다시 만든다
+  // png 는 사진에 너무 무거워서 그때는 jpeg 로 다시 만든다.
+  // 단, png 로 들어온 사진(배경을 지운 것)은 png 그대로 둔다 — jpeg 에는 투명이 없어서 지운 자리가 검게 칠해진다
   let blob = await toBlob(canvas, "image/webp");
-  if (blob?.type !== "image/webp") blob = await toBlob(canvas, "image/jpeg");
+  if (blob?.type !== "image/webp" && file.type !== "image/png") blob = await toBlob(canvas, "image/jpeg");
   if (!blob) throw new Error("사진을 읽지 못했습니다.");
   return blob;
 }
 
-// image/webp → webp, image/jpeg → jpg
+// image/webp → webp, image/png → png, image/jpeg → jpg
 export function extensionOf(blob: Blob) {
-  return blob.type === "image/webp" ? "webp" : "jpg";
+  if (blob.type === "image/webp") return "webp";
+  return blob.type === "image/png" ? "png" : "jpg";
 }

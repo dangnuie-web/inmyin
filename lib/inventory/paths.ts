@@ -32,3 +32,9 @@ export function itemCameraPath(inventoryId: string) {
   return `/my/inventories/${inventoryId}/items/camera`;
 }
 export const NEW_INVENTORY_CAMERA_PATH = `${NEW_INVENTORY_PATH}/camera`;
+
+// 사진 편집(M-07)의 주소. 촬영 화면과 같은 이유로 둘이다
+export function itemEditPath(inventoryId: string) {
+  return `/my/inventories/${inventoryId}/items/edit`;
+}
+export const NEW_INVENTORY_EDIT_PATH = `${NEW_INVENTORY_PATH}/edit`;

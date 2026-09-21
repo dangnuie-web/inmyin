@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { CameraScreen } from "@/components/item/CameraScreen";
 import { requireProfile } from "@/lib/auth/profile";
-import { NEW_INVENTORY_PATH } from "@/lib/inventory/paths";
+import { NEW_INVENTORY_EDIT_PATH } from "@/lib/inventory/paths";
 import { getMyInventories } from "@/lib/inventory/queries";
 import { planLimits } from "@/lib/plans";
 
@@ -16,5 +16,5 @@ export default async function NewInventoryCameraPage() {
   const inventories = await getMyInventories(profile.id);
   if (inventories.length >= planLimits(profile.plan).maxInventories) redirect("/my/inventories");
 
-  return <CameraScreen closeHref="/my/inventories" nextHref={NEW_INVENTORY_PATH} />;
+  return <CameraScreen closeHref="/my/inventories" nextHref={NEW_INVENTORY_EDIT_PATH} />;
 }

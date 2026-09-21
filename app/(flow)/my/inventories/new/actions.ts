@@ -9,7 +9,8 @@ import { planLimits } from "@/lib/plans";
 import { createClient } from "@/lib/supabase/server";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
-const IMAGE_EXTENSIONS = ["webp", "jpg"];
+// png 는 배경을 지운 썸네일 (webp 로 못 만드는 사파리에서)
+const IMAGE_EXTENSIONS = ["webp", "jpg", "png"];
 
 export type NewInventoryInput = {
   // 브라우저가 미리 정한 id. 사진을 먼저 올려야 해서 파일 이름에 이 id 를 쓴다
@@ -18,6 +19,8 @@ export type NewInventoryInput = {
   categories: string[];
   // 올린 사진의 확장자. 사진은 필수다 — + 가 항상 사진 고르기로 시작한다
   imageExtension: string;
+  // 원본의 확장자. 썸네일과 다를 수 있다
+  rawImageExtension: string;
 };
 
 // M-03 · 인벤토리 만들기. 사진은 브라우저가 저장소에 먼저 올려 두고, 여기서는 DB에 한 줄을 적는다.
@@ -33,7 +36,7 @@ export async function createInventory(input: NewInventoryInput): Promise<FormSta
   const categories = cleanCategories(input.categories);
   if (!categories) return { error: "카테고리를 다시 확인해 주세요." };
 
-  if (!UUID_PATTERN.test(input.id) || !IMAGE_EXTENSIONS.includes(input.imageExtension)) {
+  if (!UUID_PATTERN.test(input.id) || !IMAGE_EXTENSIONS.includes(input.imageExtension) || !IMAGE_EXTENSIONS.includes(input.rawImageExtension)) {
     return { error: "잘못된 요청입니다. 처음부터 다시 시도해 주세요." };
   }
 
@@ -53,6 +56,7 @@ export async function createInventory(input: NewInventoryInput): Promise<FormSta
 
   // 주소는 브라우저가 보낸 값을 믿지 않고 여기서 만든다 — 항상 내 폴더 안의 파일만 가리킨다
   const path = `${profile.id}/${input.id}.${input.imageExtension}`;
+  const rawPath = `${profile.id}/${input.id}.${input.rawImageExtension}`;
   const { error } = await supabase.from("inventories").insert({
     id: input.id,
     user_id: profile.id,
@@ -62,7 +66,7 @@ export async function createInventory(input: NewInventoryInput): Promise<FormSta
     sort_order: count ?? 0,
     image_url: supabase.storage.from("inventories").getPublicUrl(path).data.publicUrl,
     // 원본은 비공개 저장소라 주소 대신 경로를 적어 둔다
-    raw_image_url: path,
+    raw_image_url: rawPath,
   });
   if (error) return { error: "저장하지 못했습니다. 잠시 후 다시 시도해 주세요." };
 

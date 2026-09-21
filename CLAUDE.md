@@ -43,6 +43,8 @@ export async function removeBackground(file: File): Promise<Blob>
 
 나중에 외부 API로 갈아탈 수 있어야 한다. 이 함수 밖에서 배경제거 라이브러리를 직접 부르지 말 것.
 
+`@imgly/background-removal`은 **AGPL-3.0** 이다. 남에게 서비스를 공개하기 전(2단계)에 어떻게 할지 정해야 한다 — `docs/roadmap.md`의 "나중에 할 일".
+
 ---
 
 ## 용어 (코드에서 이 이름을 그대로 쓴다)

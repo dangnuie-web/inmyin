@@ -64,9 +64,9 @@ export function ItemForm({ userId, inventoryId, categories }: ItemFormProps) {
     setError(undefined);
     startTransition(async () => {
       const id = crypto.randomUUID();
-      let imageExtension: string;
+      let extensions: Awaited<ReturnType<typeof uploadPhotoPair>>;
       try {
-        imageExtension = await uploadPhotoPair("items", photo, userId, id);
+        extensions = await uploadPhotoPair("items", photo, userId, id);
       } catch {
         setError("사진을 올리지 못했습니다. 잠시 후 다시 시도해 주세요.");
         return;
@@ -83,7 +83,7 @@ export function ItemForm({ userId, inventoryId, categories }: ItemFormProps) {
         acquiredNote,
         expiresAt,
         isPublic,
-        imageExtension,
+        ...extensions,
       });
       if (result?.error) setError(result.error);
     });

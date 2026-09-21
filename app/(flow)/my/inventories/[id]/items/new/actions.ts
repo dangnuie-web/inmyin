@@ -16,7 +16,8 @@ import {
 import { createClient } from "@/lib/supabase/server";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
-const IMAGE_EXTENSIONS = ["webp", "jpg"];
+// png 는 배경을 지운 썸네일 (webp 로 못 만드는 사파리에서)
+const IMAGE_EXTENSIONS = ["webp", "jpg", "png"];
 
 export type NewItemInput = {
   // 브라우저가 미리 정한 id. 사진을 먼저 올려야 해서 파일 이름에 이 id 를 쓴다
@@ -33,6 +34,8 @@ export type NewItemInput = {
   expiresAt: string;
   isPublic: boolean;
   imageExtension: string;
+  // 원본의 확장자. 썸네일과 다를 수 있다
+  rawImageExtension: string;
 };
 
 // M-08 · 아이템 등록. 사진은 브라우저가 저장소에 먼저 올려 두고, 여기서는 DB에 한 줄을 적는다.
@@ -60,7 +63,8 @@ export async function createItem(input: NewItemInput): Promise<FormState> {
   if (
     !UUID_PATTERN.test(input.id) ||
     !UUID_PATTERN.test(input.inventoryId) ||
-    !IMAGE_EXTENSIONS.includes(input.imageExtension)
+    !IMAGE_EXTENSIONS.includes(input.imageExtension) ||
+    !IMAGE_EXTENSIONS.includes(input.rawImageExtension)
   ) {
     return { error: "잘못된 요청입니다. 처음부터 다시 시도해 주세요." };
   }
@@ -90,6 +94,7 @@ export async function createItem(input: NewItemInput): Promise<FormState> {
 
   // 주소는 브라우저가 보낸 값을 믿지 않고 여기서 만든다 — 항상 내 폴더 안의 파일만 가리킨다
   const path = `${profile.id}/${input.id}.${input.imageExtension}`;
+  const rawPath = `${profile.id}/${input.id}.${input.rawImageExtension}`;
   const { error } = await supabase.from("items").insert({
     id: input.id,
     user_id: profile.id,
@@ -103,7 +108,7 @@ export async function createItem(input: NewItemInput): Promise<FormState> {
     is_public: input.isPublic === true,
     image_url: supabase.storage.from("items").getPublicUrl(path).data.publicUrl,
     // 원본은 비공개 저장소라 주소 대신 경로를 적어 둔다
-    raw_image_url: path,
+    raw_image_url: rawPath,
   });
   if (error) {
     // DB 트리거가 한국어로 이유를 알려준다 (예: 인벤토리가 꽉 찼습니다)

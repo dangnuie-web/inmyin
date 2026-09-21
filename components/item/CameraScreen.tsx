@@ -21,7 +21,7 @@ type CameraStatus = "starting" | "ready" | "blocked";
 type CameraScreenProps = {
   // × 를 누르면 돌아갈 곳
   closeHref: string;
-  // 사진이 정해지면 갈 곳 (정보 입력 화면)
+  // 사진이 정해지면 갈 곳 (편집 화면)
   nextHref: string;
 };
 
@@ -83,10 +83,10 @@ export function CameraScreen({ closeHref, nextHref }: CameraScreenProps) {
     };
   }, []);
 
-  // 사진을 들고 정보 입력으로 간다. 거기서 뒤로 가면 촬영 화면이 아니라 인벤토리가 나오도록 주소를 갈아 끼운다
+  // 사진을 들고 편집(M-07)으로 간다. 거기서 뒤로 오면 다시 찍을 수 있다
   function next(photo: PendingPhoto) {
     setPendingPhoto(photo);
-    router.replace(nextHref);
+    router.push(nextHref);
   }
 
   async function onShutter() {
