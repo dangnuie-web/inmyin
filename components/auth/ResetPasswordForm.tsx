@@ -1,36 +1,31 @@
 "use client";
 
 import { useState } from "react";
-import { sendSignupCode, signUpWithCode } from "@/app/(auth)/actions";
+import { resetPassword, sendResetCode } from "@/app/(auth)/actions";
 import { Button } from "@/components/ui/Button";
 import { FormError } from "@/components/ui/FormError";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { PASSWORD_MIN } from "@/lib/auth/rules";
 import { EmailCodeFields, useEmailCode } from "./EmailCodeFields";
-import { TermsAgreement } from "./TermsAgreement";
 import { useFormSubmit } from "./useFormSubmit";
 
-export function SignupForm() {
-  const { state, pending, onSubmit } = useFormSubmit(signUpWithCode);
-  const emailCode = useEmailCode(sendSignupCode);
+export function ResetPasswordForm() {
+  const { state, pending, onSubmit } = useFormSubmit(resetPassword);
+  const emailCode = useEmailCode(sendResetCode);
 
   const [password, setPassword] = useState("");
-  const [termsDone, setTermsDone] = useState(false);
 
-  // 인증번호를 보내기 전에는 인증번호 칸과 약관이 보이지 않는다 (가입1 → 가입2 프레임)
-  const { sent } = emailCode;
-  const canSubmit = emailCode.ready && password.length >= PASSWORD_MIN && termsDone && !pending;
+  const canSubmit = emailCode.ready && password.length >= PASSWORD_MIN && !pending;
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-10">
       <div className="flex flex-col gap-4">
-        {/* 이메일을 고치면 약관 칸이 사라졌다 새로 그려지므로 동의 여부도 되돌린다 */}
-        <EmailCodeFields state={emailCode} onEmailChange={() => setTermsDone(false)} />
+        <EmailCodeFields state={emailCode} />
 
         <PasswordInput
           name="password"
-          label="비밀번호"
-          placeholder="비밀번호를 입력해주세요."
+          label="새 비밀번호"
+          placeholder="새 비밀번호를 입력해주세요."
           autoComplete="new-password"
           hint={`${PASSWORD_MIN}자 이상`}
           required
@@ -40,12 +35,10 @@ export function SignupForm() {
         />
       </div>
 
-      {sent && <TermsAgreement onChange={setTermsDone} />}
-
       <div className="flex flex-col gap-3">
         <FormError message={state.error} />
         <Button type="submit" disabled={!canSubmit}>
-          {pending ? "가입하는 중…" : sent ? "인증하고 가입하기" : "가입하기"}
+          {pending ? "변경하는 중…" : "비밀번호 변경하기"}
         </Button>
       </div>
     </form>

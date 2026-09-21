@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { signInWithEmail } from "@/app/(auth)/actions";
 import { Button } from "@/components/ui/Button";
 import { FormError } from "@/components/ui/FormError";
@@ -25,6 +26,9 @@ export function LoginForm() {
         placeholder="비밀번호를 입력해주세요."
         autoComplete="current-password"
       />
+      <Link href="/reset-password" className="self-start text-label text-ink-muted">
+        비밀번호를 잊으셨나요?
+      </Link>
       <FormError message={state.error} />
       <Button type="submit" disabled={pending} className="mt-2">
         {pending ? "로그인 중…" : "로그인"}

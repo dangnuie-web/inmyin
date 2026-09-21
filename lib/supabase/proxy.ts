@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "./database.types";
 
 // 로그인 없이 볼 수 있는 주소. 2단계에서 피드와 타유저 프로필을 공개할 때 늘린다.
-const PUBLIC_PATHS = ["/login", "/signup", "/auth", "/design"];
+const PUBLIC_PATHS = ["/login", "/signup", "/reset-password", "/auth", "/design"];
 // 로그인한 사람에게는 필요 없는 주소
 const GUEST_ONLY_PATHS = ["/login", "/signup"];
 

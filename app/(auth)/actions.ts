@@ -94,6 +94,57 @@ export async function signUpWithCode(_prev: FormState, formData: FormData): Prom
   }
   if (!terms) return { error: "필수 약관에 동의해 주세요." };
 
+  const result = await verifyCodeAndSetPassword(email, code, password, terms);
+  if (result.error) return result;
+
+  redirect("/onboarding");
+}
+
+// A-04 · 인증번호 메일 보내기. 가입과 달리 계정을 새로 만들지 않는다
+export async function sendResetCode(email: string): Promise<FormState> {
+  if (typeof email !== "string" || !isEmail(email.trim())) {
+    return { error: "이메일 주소를 확인해 주세요." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithOtp({
+    email: email.trim(),
+    options: { shouldCreateUser: false },
+  });
+  // otp_disabled = 계정을 만들 수 없는데 그 이메일의 계정도 없다
+  if (error?.code === "otp_disabled") return { error: "가입하지 않은 이메일입니다." };
+  if (error) return { error: authErrorMessage(error.code) };
+
+  return {};
+}
+
+// A-04 · 인증번호 확인 + 새 비밀번호 저장
+export async function resetPassword(_prev: FormState, formData: FormData): Promise<FormState> {
+  const email = text(formData, "email");
+  const code = text(formData, "code");
+  const password = String(formData.get("password") ?? "");
+
+  if (!isEmail(email)) return { error: "이메일 주소를 확인해 주세요." };
+  if (!isOtp(code)) return { error: "메일로 받은 인증번호를 입력해 주세요." };
+  if (password.length < PASSWORD_MIN) {
+    return { error: `비밀번호는 ${PASSWORD_MIN}자 이상으로 입력해 주세요.` };
+  }
+
+  const result = await verifyCodeAndSetPassword(email, code, password);
+  if (result.error) return result;
+
+  // 인증번호를 확인하면서 로그인도 된 상태다. 프로필이 없는 사람은 홈이 A-03 으로 보낸다
+  redirect("/");
+}
+
+// 인증번호를 확인하고 비밀번호를 저장한다. 가입(A-02)과 비밀번호 재설정(A-04)이 같이 쓴다.
+// data 는 계정에 함께 적어둘 것 (약관 동의 시각 등)
+async function verifyCodeAndSetPassword(
+  email: string,
+  code: string,
+  password: string,
+  data?: Record<string, unknown>,
+): Promise<FormState> {
   const supabase = await createClient();
 
   // 인증번호는 한 번 쓰면 사라진다. 인증은 됐는데 비밀번호 저장에서 실패해 다시 누른 경우를 위해
@@ -106,10 +157,11 @@ export async function signUpWithCode(_prev: FormState, formData: FormData): Prom
     if (error) return { error: authErrorMessage(error.code) };
   }
 
-  const { error } = await supabase.auth.updateUser({ password, data: terms });
+  // same_password = 예전과 같은 비밀번호. 그 비밀번호로 로그인할 수 있으니 성공으로 친다
+  const { error } = await supabase.auth.updateUser({ password, data });
   if (error && error.code !== "same_password") return { error: authErrorMessage(error.code) };
 
-  redirect("/onboarding");
+  return {};
 }
 
 // A-03 · 프로필(users 행) 만들기

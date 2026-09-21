@@ -3,10 +3,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { SocialButtons } from "@/components/auth/SocialButtons";
 import { FormError } from "@/components/ui/FormError";
+import { CONTACT_EMAIL } from "@/lib/contact";
 
 export const metadata: Metadata = { title: "로그인 · INMYIN" };
-
-const CONTACT_EMAIL = "dangnuie@gmail.com";
 
 // A-01 · 로그인
 export default async function LoginPage({
