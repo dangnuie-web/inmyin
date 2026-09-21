@@ -3,16 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { moveItem } from "@/app/(flow)/items/[itemId]/actions";
-import { CategoryTag } from "@/components/ui/CategoryTag";
 import { Toast } from "@/components/ui/Toast";
-import type { InventoryView } from "@/lib/inventory/paths";
 import type { PackingInventory, SlotEntry } from "@/lib/inventory/queries";
 import { withSubjectParticle } from "@/lib/korean";
 import { InventoryStrip } from "./InventoryStrip";
-import { gridFor, PackingSlotCell, PackingSlotRow } from "./Slot";
-import { ViewToggle } from "./ViewToggle";
+import { gridFor, PackingSlotCell } from "./Slot";
 
-// 넘어온 칸이 "톡" 하고 나타나는 동안. globals.css 의 slot-pop · row-flash 보다 길어야 한다
+// 넘어온 칸이 "톡" 하고 나타나는 동안. globals.css 의 slot-pop 보다 길어야 한다
 const ARRIVAL_MS = 1600;
 
 type Side = "top" | "bottom";
@@ -110,15 +107,10 @@ type PackingHalfProps = {
   className: string;
 };
 
-// 화면의 절반. 위에서부터: 인벤토리 띠 → 토글 + 카테고리 칩 → 칸들(이 안에서만 스크롤) → 1/25
+// 화면의 절반. 인벤토리 띠 아래는 전부 칸이다 (이 안에서만 스크롤). 1/25 는 칸 위에 떠 있다.
+// 절반은 좁다. 그래서 M-04 에 있는 그리드/리스트 토글과 카테고리 칩을 여기서는 뺐다 —
+// 짐싸기는 찾아보는 화면이 아니라 옮기는 화면이고, 같은 면적이면 그리드가 가장 많이 보여준다
 function PackingHalf({ inventories, inventory, entries, otherId, arrivedId, onOpen, onPick, className }: PackingHalfProps) {
-  const [view, setView] = useState<InventoryView>("grid");
-  // 고른 카테고리와, 그것을 고른 인벤토리. 띠에서 다른 인벤토리로 갈아타면 "전체"로 돌아간다 — 태그는 인벤토리마다 다르다
-  const [picked, setPicked] = useState<{ inventoryId: string; category: string } | null>(null);
-  const category = picked && picked.inventoryId === inventory?.id ? picked.category : null;
-  // 태그가 없는 아이템은 전체에서만 보인다 (CLAUDE.md 규칙 4)
-  const shown = category ? entries.filter((entry) => entry.category === category) : entries;
-
   if (!inventory) {
     return (
       <section className={`flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-6 text-center ${className}`}>
@@ -130,49 +122,28 @@ function PackingHalf({ inventories, inventory, entries, otherId, arrivedId, onOp
     );
   }
 
-  const slotProps = (entry: SlotEntry) => ({
-    entry,
-    onPick: () => onPick(entry),
-    // 안에 담긴 인벤토리는 아직 짐싸기로 옮기지 않는다 ("인벤토리 안에 인벤토리 담기"를 만들 때 같이 연다)
-    disabled: entry.kind === "inventory",
-    dimmed: entry.kind === "inventory" && entry.id === otherId,
-  });
-
   return (
-    <section aria-label={inventory.name} className={`flex min-h-0 flex-1 flex-col ${className}`}>
+    <section aria-label={inventory.name} className={`relative flex min-h-0 flex-1 flex-col ${className}`}>
       <div className="mt-2">
         <InventoryStrip inventories={inventories} currentId={inventory.id} dimmedId={otherId} onSelect={onOpen} />
       </div>
 
-      <div className="mt-3 flex shrink-0 items-center gap-2.5 overflow-x-auto px-7 [scrollbar-width:none]">
-        <ViewToggle current={view} onSelect={setView} />
-        <CategoryTag label="전체" selected={!category} onClick={() => setPicked(null)} />
-        {inventory.categories.map((tag) => (
-          <CategoryTag key={tag} label={tag} selected={tag === category} onClick={() => setPicked({ inventoryId: inventory.id, category: tag })} />
+      {/* 아래 여백 — 맨 아랫줄이 떠 있는 1/25 에 가리지 않게 */}
+      <ul className={`mt-3 grid min-h-0 flex-1 content-start gap-3.5 overflow-y-auto px-6.5 pb-10 ${gridFor(inventory.slotCount).className}`}>
+        {entries.map((entry) => (
+          <li key={entry.id} id={`packing-${entry.id}`} className={entry.id === arrivedId ? "animate-slot-pop" : ""}>
+            <PackingSlotCell
+              entry={entry}
+              onPick={() => onPick(entry)}
+              // 안에 담긴 인벤토리는 아직 짐싸기로 옮기지 않는다 ("인벤토리 안에 인벤토리 담기"를 만들 때 같이 연다)
+              disabled={entry.kind === "inventory"}
+              dimmed={entry.kind === "inventory" && entry.id === otherId}
+            />
+          </li>
         ))}
-      </div>
+      </ul>
 
-      <div className="mt-3 min-h-0 flex-1 overflow-y-auto">
-        {view === "grid" ? (
-          <ul className={`grid gap-3.5 px-6.5 pb-2 ${gridFor(inventory.slotCount).className}`}>
-            {shown.map((entry) => (
-              <li key={entry.id} id={`packing-${entry.id}`} className={entry.id === arrivedId ? "animate-slot-pop" : ""}>
-                <PackingSlotCell {...slotProps(entry)} />
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <ul className="flex flex-col border-t border-border">
-            {shown.map((entry) => (
-              <li key={entry.id} id={`packing-${entry.id}`} className={entry.id === arrivedId ? "animate-row-flash" : ""}>
-                <PackingSlotRow {...slotProps(entry)} />
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      <p className="shrink-0 py-2 text-center text-label font-bold">
+      <p className="pointer-events-none absolute inset-x-0 bottom-2 mx-auto w-fit rounded-full bg-white px-3 py-0.5 text-label font-bold">
         {entries.length}/{inventory.slotCount}
       </p>
     </section>

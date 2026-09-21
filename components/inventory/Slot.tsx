@@ -167,16 +167,3 @@ export function PackingSlotCell({ entry, onPick, disabled = false, dimmed = fals
     </button>
   );
 }
-
-export function PackingSlotRow({ entry, onPick, disabled = false, dimmed = false }: PackingSlotProps) {
-  return (
-    <button type="button" onClick={onPick} disabled={disabled} className={`${SLOT_ROW_CLASS} text-left active:opacity-80`}>
-      <SlotRowThumb filled>
-        <SlotImage entry={entry} sizes="54px" />
-        {dimmed && <span className={DIMMED_CLASS} />}
-      </SlotRowThumb>
-      <span className="min-w-0 flex-1 truncate text-body">{entry.name}</span>
-      <QuantityBadge quantity={entry.quantity} className="bg-gray-1" />
-    </button>
-  );
-}
