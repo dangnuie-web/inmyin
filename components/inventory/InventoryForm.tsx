@@ -8,10 +8,9 @@ import { DarkDropdown, DarkDropdownOption, DarkInput } from "@/components/ui/Dar
 import { FormError } from "@/components/ui/FormError";
 import { Icon } from "@/components/ui/Icon";
 import { MAX_CATEGORY_LENGTH, RECOMMENDED_INVENTORIES } from "@/lib/categories";
-import { extensionOf, RAW_MAX_SIDE, resizeImage, THUMBNAIL_MAX_SIDE } from "@/lib/image/resize";
-import { getPendingPhoto, setPendingPhoto } from "@/lib/inventory/pending-photo";
+import { getPendingPhoto, setPendingPhoto } from "@/lib/image/pending-photo";
+import { uploadPhotoPair } from "@/lib/image/upload";
 import { categoryError, INVENTORY_NAME_MAX } from "@/lib/inventory/rules";
-import { createClient } from "@/lib/supabase/client";
 
 type OpenDropdown = "name" | "category" | null;
 
@@ -88,7 +87,7 @@ export function InventoryForm({ userId }: { userId: string }) {
       const id = crypto.randomUUID();
       let imageExtension: string;
       try {
-        imageExtension = await uploadPhoto(photo, userId, id);
+        imageExtension = await uploadPhotoPair("inventories", photo, userId, id);
       } catch {
         setError("사진을 올리지 못했습니다. 잠시 후 다시 시도해 주세요.");
         return;
@@ -233,25 +232,4 @@ function DropdownToggle({ label, isOpen, onClick }: { label: string; isOpen: boo
       <Icon name="dropdown" className={isOpen ? "rotate-180" : ""} />
     </button>
   );
-}
-
-// 원본과 썸네일을 둘 다 올린다 (CLAUDE.md 규칙 7). 편집(M-07)이 생기기 전이라 썸네일도 배경이 그대로다.
-// 올린 파일의 확장자를 돌려준다
-async function uploadPhoto(photo: File, userId: string, inventoryId: string) {
-  const [thumbnail, raw] = await Promise.all([
-    resizeImage(photo, THUMBNAIL_MAX_SIDE),
-    resizeImage(photo, RAW_MAX_SIDE),
-  ]);
-  const extension = extensionOf(thumbnail);
-  const path = `${userId}/${inventoryId}.${extension}`;
-
-  const storage = createClient().storage;
-  const results = await Promise.all([
-    storage.from("inventories").upload(path, thumbnail, { contentType: thumbnail.type }),
-    storage.from("inventories-raw").upload(path, raw, { contentType: raw.type }),
-  ]);
-  const failed = results.find((result) => result.error);
-  if (failed?.error) throw failed.error;
-
-  return extension;
 }

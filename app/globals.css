@@ -7,6 +7,8 @@
   --color-gray-2: #f2f2f2;
   --color-gray-3: #d9d9d9;
   --color-gray-4: #777777;
+  /* 피그마에 변수 없이 값으로만 들어 있던 회색. 아이콘 · 꺼진 토글 · 어두운 화면의 안내 글자 */
+  --color-gray-mid: #c1c1c1;
   --color-ink: #000000;
   --color-primary: #ff2d55;
   --color-point: #6155f5;
@@ -15,7 +17,7 @@
   /* 어두운 화면(M-08 정보 입력) — 피그마에 변수 없이 값으로만 들어 있던 색 */
   --color-surface-dark: #4d4a50;
   --color-field-dark: #3c3640;
-  --color-placeholder-dark: #c1c1c1;
+  --color-placeholder-dark: var(--color-gray-mid);
 
   /* 외부 브랜드 색 — 카카오 로그인 버튼 가이드가 정해둔 값 */
   --color-kakao: #fee500;
@@ -44,6 +46,19 @@
   --text-label--line-height: 1.4;
   --text-caption: 13px;
   --text-caption--line-height: 1.5;
+
+  /* 움직임 — 새로 들어간 칸을 1초쯤 보라색 테두리로 강조했다가 서서히 지운다 (M-04) */
+  --animate-slot-highlight: slot-highlight 1.6s ease-out forwards;
+
+  @keyframes slot-highlight {
+    0%,
+    60% {
+      box-shadow: 0 0 0 3px var(--color-point);
+    }
+    100% {
+      box-shadow: 0 0 0 3px transparent;
+    }
+  }
 
   /* 폰트 */
   --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,

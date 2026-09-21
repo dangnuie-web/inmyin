@@ -4,7 +4,7 @@ import { useRef, useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import { DarkMenu } from "@/components/ui/DarkMenu";
 import { Icon } from "@/components/ui/Icon";
-import { setPendingPhoto } from "@/lib/inventory/pending-photo";
+import { setPendingPhoto } from "@/lib/image/pending-photo";
 import { INVENTORY_ROW_CLASS, InventoryThumb } from "./InventoryRow";
 
 const NEW_INVENTORY_PATH = "/my/inventories/new";

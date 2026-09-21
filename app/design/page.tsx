@@ -16,6 +16,7 @@ const PALETTE = [
   { name: "gray-2", className: "bg-gray-2" },
   { name: "gray-3", className: "bg-gray-3" },
   { name: "gray-4", className: "bg-gray-4" },
+  { name: "gray-mid", className: "bg-gray-mid" },
   { name: "ink", className: "bg-ink" },
   { name: "primary", className: "bg-primary" },
   { name: "point", className: "bg-point" },

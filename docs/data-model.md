@@ -17,7 +17,7 @@ User ──< Inventory ──< Item
 | --- | --- | --- |
 | `User` | id, handle, nickname, avatarUrl, bio, plan, provider, createdAt, deletedAt | plan = `basic` \| `premium` |
 | `Inventory` | id, userId, name, categories, imageUrl, rawImageUrl, slotCount, parentInventoryId, parentSlotIndex, order, createdAt, deletedAt | categories = 유저가 정한 태그 목록. 사진은 필수다 — 만들기가 항상 사진 고르기로 시작한다 |
-| `Item` | id, userId, inventoryId, slotIndex, category, imageUrl, rawImageUrl, name, description, quantity, isPublic, acquiredAt, expiresAt, likeCount, createdAt, deletedAt | rawImageUrl = 배경제거 전 원본 |
+| `Item` | id, userId, inventoryId, slotIndex, category, imageUrl, rawImageUrl, name, description, quantity, isPublic, acquiredNote, expiresAt, likeCount, createdAt, deletedAt | rawImageUrl = 배경제거 전 원본. acquiredNote = 획득날짜 칸. 날짜가 아니라 글자다 ("20살 생일", "26.09.22") |
 | `InmyinPost` | id, userId, imageUrl, canvasJson, likeCount, createdAt, deletedAt | |
 | `PostItem` | postId, itemId, x, y, w, h | 게시물 ↔ 아이템 탭 영역 |
 | `Like` | userId, targetType, targetId, createdAt | targetType = `item` \| `post` |

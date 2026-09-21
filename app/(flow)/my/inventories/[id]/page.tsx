@@ -71,6 +71,8 @@ export default async function InventoryDetailPage(props: PageProps<"/my/inventor
       </div>
 
       <InventoryBoard
+        inventoryId={inventory.id}
+        addedId={typeof searchParams.added === "string" ? searchParams.added : null}
         entries={entries}
         usedSlots={inventory.entries.length}
         slotCount={inventory.slotCount}

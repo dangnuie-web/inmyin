@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useRef, useState, type ChangeEvent } from "react";
 import { DarkMenu } from "@/components/ui/DarkMenu";
 import { Icon } from "@/components/ui/Icon";
 import { Toast } from "@/components/ui/Toast";
-import type { InventoryView } from "@/lib/inventory/paths";
+import { setPendingPhoto } from "@/lib/image/pending-photo";
+import { newItemPath, type InventoryView } from "@/lib/inventory/paths";
 import type { SlotEntry } from "@/lib/inventory/queries";
 import { AddSlotCell, SLOT_ROW_CLASS, SlotCell, SlotRow, SlotRowThumb } from "./Slot";
 
@@ -18,7 +20,13 @@ function gridFor(slotCount: number) {
 
 type MenuAnchor = "slot" | "floating" | null;
 
+// 강조가 끝난 뒤 주소에서 added 를 지우기까지의 시간. globals.css 의 slot-highlight 길이와 맞춘다
+const HIGHLIGHT_MS = 1600;
+
 type InventoryBoardProps = {
+  inventoryId: string;
+  // 방금 등록한 아이템의 id. 그 칸으로 스크롤하고 잠깐 강조한다
+  addedId: string | null;
   // 보여줄 것. 카테고리를 골랐으면 걸러진 목록이 온다
   entries: SlotEntry[];
   // 걸러지기 전의 전체 개수. 16/25 와 꽉 찼는지는 이 숫자로 본다
@@ -28,7 +36,10 @@ type InventoryBoardProps = {
 };
 
 // M-04 의 격자 · 리스트와 + 버튼. + 칸은 항상 마지막 아이템의 다음 칸에 하나만 있다.
-export function InventoryBoard({ entries, usedSlots, slotCount, view }: InventoryBoardProps) {
+export function InventoryBoard({ inventoryId, addedId, entries, usedSlots, slotCount, view }: InventoryBoardProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [menu, setMenu] = useState<MenuAnchor>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const hideNotice = useCallback(() => setNotice(null), []);
@@ -46,16 +57,37 @@ export function InventoryBoard({ entries, usedSlots, slotCount, view }: Inventor
     return () => observer.disconnect();
   }, [view, isFull]);
 
+  // 방금 등록한 칸으로 스크롤한다. 강조가 끝나면 주소에서 added 를 지워서 새로고침해도 다시 번쩍이지 않게 한다
+  useEffect(() => {
+    if (!addedId) return;
+    document.getElementById(slotElementId(addedId))?.scrollIntoView({ block: "center", behavior: "smooth" });
+    const timer = setTimeout(() => {
+      const params = new URLSearchParams(searchParams);
+      params.delete("added");
+      const query = params.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    }, HIGHLIGHT_MS);
+    return () => clearTimeout(timer);
+  }, [addedId, pathname, router, searchParams]);
+
+  // 사진을 고르면 그 사진을 들고 아이템 정보 입력(M-08)으로 간다
+  const photoRef = useRef<HTMLInputElement>(null);
+  function onPhotoChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setPendingPhoto(file);
+    router.push(newItemPath(inventoryId));
+  }
+
   const menuItems = [
     {
       label: "새 아이템 등록",
-      onSelect: () =>
-        setNotice(
-          // 아이템 등록(촬영)은 모바일 전용이다 (CLAUDE.md 규칙 5)
-          window.matchMedia("(pointer: coarse)").matches
-            ? "아이템 등록은 곧 만들어요."
-            : "휴대폰에서 등록해 주세요.",
-        ),
+      onSelect: () => {
+        // 아이템 등록(촬영)은 모바일 전용이다 (CLAUDE.md 규칙 5)
+        if (!window.matchMedia("(pointer: coarse)").matches) return setNotice("휴대폰에서 등록해 주세요.");
+        // 촬영 화면(M-06)을 만들기 전까지는 휴대폰의 사진 고르기를 연다. 거기서 찍을 수도 있다
+        photoRef.current?.click();
+      },
     },
     { label: "인벤토리 가져오기", onSelect: () => setNotice("인벤토리 가져오기는 곧 만들어요.") },
   ];
@@ -83,7 +115,7 @@ export function InventoryBoard({ entries, usedSlots, slotCount, view }: Inventor
   return (
     <div className="flex flex-1 flex-col">
       {view === "grid" ? (
-        <Grid entries={entries} slotCount={slotCount} isFull={isFull}>
+        <Grid entries={entries} slotCount={slotCount} isFull={isFull} addedId={addedId}>
           {(isLastColumn) => (
             <div ref={addSlotRef} className="relative size-full">
               {addButton("cell")}
@@ -101,7 +133,7 @@ export function InventoryBoard({ entries, usedSlots, slotCount, view }: Inventor
       ) : (
         <ul className="mt-3 flex flex-col border-t border-border">
           {entries.map((entry) => (
-            <li key={entry.id}>
+            <li key={entry.id} id={slotElementId(entry.id)} className={entry.id === addedId ? HIGHLIGHT_CLASS : ""}>
               <SlotRow entry={entry} />
             </li>
           ))}
@@ -143,27 +175,36 @@ export function InventoryBoard({ entries, usedSlots, slotCount, view }: Inventor
         )}
       </div>
 
+      <input ref={photoRef} type="file" accept="image/*" hidden onChange={onPhotoChange} />
       <Toast message={notice} onDone={hideNotice} />
     </div>
   );
 }
 
+// 스크롤할 칸을 찾기 위한 이름표
+function slotElementId(entryId: string) {
+  return `slot-${entryId}`;
+}
+
+const HIGHLIGHT_CLASS = "rounded-sm animate-slot-highlight";
+
 type GridProps = {
   entries: SlotEntry[];
   slotCount: number;
   isFull: boolean;
+  addedId: string | null;
   // + 칸의 내용. 그 칸이 오른쪽 끝 열인지 알려준다
   children: (isLastColumn: boolean) => React.ReactNode;
 };
 
 // 채워진 칸과 그 다음의 + 칸만 그린다. 빈 칸은 그리지 않는다 — 남은 용량은 아래의 16/25 가 알려준다
-function Grid({ entries, slotCount, isFull, children }: GridProps) {
+function Grid({ entries, slotCount, isFull, addedId, children }: GridProps) {
   const { columns, className } = gridFor(slotCount);
 
   return (
     <ul className={`mt-6 grid gap-3.5 px-6.5 ${className}`}>
       {entries.map((entry) => (
-        <li key={entry.id}>
+        <li key={entry.id} id={slotElementId(entry.id)} className={entry.id === addedId ? HIGHLIGHT_CLASS : ""}>
           <SlotCell entry={entry} />
         </li>
       ))}

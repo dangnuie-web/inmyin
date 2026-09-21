@@ -149,11 +149,11 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           id: string
-          image_url: string | null
+          image_url: string
           name: string
           parent_inventory_id: string | null
           parent_slot_index: number | null
-          raw_image_url: string | null
+          raw_image_url: string
           slot_count: number
           sort_order: number
           user_id: string
@@ -163,11 +163,11 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           id?: string
-          image_url?: string | null
+          image_url: string
           name: string
           parent_inventory_id?: string | null
           parent_slot_index?: number | null
-          raw_image_url?: string | null
+          raw_image_url: string
           slot_count: number
           sort_order?: number
           user_id: string
@@ -177,11 +177,11 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           id?: string
-          image_url?: string | null
+          image_url?: string
           name?: string
           parent_inventory_id?: string | null
           parent_slot_index?: number | null
-          raw_image_url?: string | null
+          raw_image_url?: string
           slot_count?: number
           sort_order?: number
           user_id?: string
@@ -205,7 +205,7 @@ export type Database = {
       }
       items: {
         Row: {
-          acquired_at: string | null
+          acquired_note: string | null
           category: string | null
           created_at: string
           deleted_at: string | null
@@ -223,7 +223,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          acquired_at?: string | null
+          acquired_note?: string | null
           category?: string | null
           created_at?: string
           deleted_at?: string | null
@@ -237,11 +237,11 @@ export type Database = {
           name: string
           quantity?: number
           raw_image_url: string
-          slot_index: number
+          slot_index?: number
           user_id: string
         }
         Update: {
-          acquired_at?: string | null
+          acquired_note?: string | null
           category?: string | null
           created_at?: string
           deleted_at?: string | null
@@ -392,6 +392,8 @@ export type Database = {
         Args: { p_categories: string[] }
         Returns: boolean
       }
+      next_slot_index: { Args: { p_inventory_id: string }; Returns: number }
+      used_slot_count: { Args: { p_inventory_id: string }; Returns: number }
     }
     Enums: {
       [_ in never]: never
