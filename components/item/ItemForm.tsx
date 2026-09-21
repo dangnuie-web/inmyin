@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition, type FormEvent } from "react";
+import { useEffect, useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { updateItem } from "@/app/(flow)/items/[itemId]/actions";
 import { createItem } from "@/app/(flow)/my/inventories/[id]/items/new/actions";
@@ -153,14 +153,15 @@ export function ItemForm({ userId, inventoryId, categories, item }: ItemFormProp
           }
         />
 
-        {/* 날짜를 골라도 되고 "20살 생일"처럼 써도 된다. 달력으로 고르면 26.09.22 꼴로 채워진다 */}
+        {/* 날짜를 골라도 되고 "20살 생일"처럼 써도 된다. 달력으로 고르면 26.09.22 꼴로 채워진다.
+            안내 글자에 예시("20살 생일")를 쓰면 이미 적힌 값처럼 보여서, 다른 칸들처럼 "입력해 주세요"로 적는다 */}
         <DarkInput
           label="획득날짜"
           layout="inline"
           value={acquiredNote}
           onChange={(event) => setAcquiredNote(event.target.value)}
           maxLength={ACQUIRED_NOTE_MAX}
-          placeholder="20살 생일"
+          placeholder="획득날짜를 입력해 주세요."
           autoComplete="off"
           trailing={<DatePickerButton label="획득날짜를 달력에서 고르기" onPick={(date) => setAcquiredNote(formatShortDate(date))} />}
         />
@@ -170,14 +171,17 @@ export function ItemForm({ userId, inventoryId, categories, item }: ItemFormProp
           layout="inline"
           value={expiresAt ? formatShortDate(expiresAt) : ""}
           readOnly
-          placeholder="없음"
+          placeholder="날짜를 골라 주세요."
           trailing={
             <>
               <span className="text-caption font-bold text-white">까지</span>
-              <DatePickerButton label="유통기한을 달력에서 고르기" value={expiresAt} onPick={setExpiresAt} />
+              <DatePickerButton label="유통기한을 달력에서 고르기" value={expiresAt} onPick={setExpiresAt} cover="field" />
             </>
           }
         />
+
+        {/* 아이템 상세(M-14)는 적힌 것만 보여준다. 비워 둬도 된다는 것을 알려준다 */}
+        <p className="text-caption text-placeholder-dark">획득날짜와 유통기한은 비워 두면 아이템 상세에 나오지 않아요.</p>
 
         <div className="mt-2 flex items-center justify-between">
           <div className="flex flex-col gap-1">
@@ -203,32 +207,31 @@ type DatePickerButtonProps = {
   value?: string;
   // 고르면 "2026-09-22" 꼴로 알려준다. 지우면 빈 글자
   onPick: (date: string) => void;
+  // 어디를 눌러야 달력이 열리는지. icon = 달력 아이콘만, field = 입력칸 전체 (날짜만 받는 칸)
+  cover?: "icon" | "field";
 };
 
-// 달력 아이콘. 누르면 휴대폰 · 브라우저가 가진 기본 달력이 열린다
-function DatePickerButton({ label, value = "", onPick }: DatePickerButtonProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
-
+// 달력 아이콘. 누르면 휴대폰 · 브라우저가 가진 기본 달력이 열린다.
+// 아이폰은 손가락이 날짜 칸을 **직접** 눌러야만 달력을 띄운다 — 다른 버튼이 코드로 대신 열어 줄 수 없다.
+// 그래서 투명한 날짜 칸을 아이콘(또는 입력칸 전체) 위에 올려 두고, 손가락이 그것을 누르게 한다
+function DatePickerButton({ label, value = "", onPick, cover = "icon" }: DatePickerButtonProps) {
   return (
-    <span className="relative flex shrink-0">
-      <button
-        type="button"
-        aria-label={label}
-        // showPicker 가 없는 오래된 브라우저에서는 입력칸을 직접 눌러 준다
-        onClick={() => (inputRef.current?.showPicker ? inputRef.current.showPicker() : inputRef.current?.click())}
-        className="text-gray-mid active:opacity-60"
-      >
-        <Icon name="calendar" />
-      </button>
-      {/* 달력을 띄우려면 화면에 그려져 있어야 해서, 숨기지 않고 투명하게 아이콘 밑에 깔아 둔다 */}
+    // field 일 때는 자리를 잡지 않는다(relative 가 아니다) — 그러면 날짜 칸이 바깥의 입력칸 전체를 덮는다
+    <span className={`flex shrink-0 text-gray-mid ${cover === "icon" ? "relative" : ""}`}>
+      <Icon name="calendar" />
       <input
-        ref={inputRef}
         type="date"
+        aria-label={label}
         value={value}
         onChange={(event) => onPick(event.target.value)}
-        tabIndex={-1}
-        aria-hidden
-        className="pointer-events-none absolute inset-0 size-full opacity-0"
+        // 데스크톱 브라우저는 날짜 칸을 눌러도 달력이 바로 열리지 않아서 직접 열어 준다. 아이폰에서는 필요 없고, 막혀 있으면 조용히 넘어간다
+        onClick={(event) => {
+          try {
+            event.currentTarget.showPicker();
+          } catch {}
+        }}
+        // 아이콘은 작아서(26 × 22) 누르는 자리를 사방으로 넓힌다
+        className={`absolute cursor-pointer opacity-0 ${cover === "icon" ? "-inset-3" : "inset-0 size-full"}`}
       />
     </span>
   );

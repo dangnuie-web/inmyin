@@ -47,16 +47,45 @@
   --text-caption: 13px;
   --text-caption--line-height: 1.5;
 
-  /* 움직임 — 새로 들어간 칸을 1초쯤 보라색 테두리로 강조했다가 서서히 지운다 (M-04) */
-  --animate-slot-highlight: slot-highlight 1.6s ease-out forwards;
+  /* 움직임 — 새로 들어온(또는 되살아난) 칸을 알려준다 (M-04).
+     그리드의 칸은 작게 시작해 살짝 넘치게 커졌다가 제 크기로 돌아온다 — 홈 화면에 앱이 깔릴 때 같은 "톡".
+     리스트의 줄은 옅은 보라색이 깔렸다가 서서히 빠진다 — 목록에서 "방금 바뀐 줄"을 알릴 때 흔히 쓰는 방식 */
+  --animate-slot-pop: slot-pop 0.5s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+  /* 스크롤로 데려온 칸은 이미 눈에 보이고 있어서, 사라졌다 나타나지 않고 제자리에서 한 번 부푼다 */
+  --animate-slot-pulse: slot-pulse 0.5s ease-out both;
+  --animate-row-flash: row-flash 1.4s ease-out both;
 
-  @keyframes slot-highlight {
+  @keyframes slot-pulse {
     0%,
+    100% {
+      transform: scale(1);
+    }
+    45% {
+      transform: scale(1.1);
+    }
+  }
+
+  @keyframes slot-pop {
+    0% {
+      opacity: 0;
+      transform: scale(0.7);
+    }
     60% {
-      box-shadow: 0 0 0 3px var(--color-point);
+      opacity: 1;
+      transform: scale(1.06);
     }
     100% {
-      box-shadow: 0 0 0 3px transparent;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes row-flash {
+    0%,
+    25% {
+      background-color: color-mix(in srgb, var(--color-point) 14%, transparent);
+    }
+    100% {
+      background-color: transparent;
     }
   }
 

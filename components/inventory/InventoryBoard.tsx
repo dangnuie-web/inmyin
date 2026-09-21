@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { deleteItem, restoreItem } from "@/app/(flow)/items/[itemId]/actions";
 import { DarkMenu } from "@/components/ui/DarkMenu";
 import { Icon } from "@/components/ui/Icon";
@@ -37,8 +37,8 @@ function mergeLocal(entries: SlotEntry[], ghost: PlacedEntry | null, ghostId: st
   return list;
 }
 
-// 강조가 끝난 뒤 주소에서 added 를 지우기까지의 시간. globals.css 의 slot-highlight 길이와 맞춘다
-const HIGHLIGHT_MS = 1600;
+// 새 칸을 알린 뒤 주소에서 added 를 지우기까지의 시간. 스크롤로 데려오는 시간 + globals.css 의 모션 길이보다 길어야 한다
+const HIGHLIGHT_MS = 2500;
 // 지운 자리에 "되돌리기" 칸이 남아 있는 시간. globals.css 의 undo-countdown 길이와 맞춘다
 const UNDO_MS = 7000;
 
@@ -112,10 +112,42 @@ export function InventoryBoard({ inventoryId, addedId, deletedId, entries, usedS
     return () => observer.disconnect();
   }, [view, isFull]);
 
-  // 방금 등록한 칸으로 스크롤한다. 강조가 끝나면 주소에서 added 를 지워서 새로고침해도 다시 번쩍이지 않게 한다
+  // 방금 등록한(또는 되살린) 칸을 알려준다. 그리드의 칸은 "톡" 하고 나타나고, 리스트의 줄은 옅은 보라색이 스친다.
+  // 화면 안에 있으면 그려지기 전에 바로 시작하고, 밖에 있으면 스크롤로 데려와서 **도착한 순간** 시작한다 —
+  // 그냥 바로 시작하면 도착하기도 전에 끝나 버린다
+  useLayoutEffect(() => {
+    if (!highlightedId) return;
+    const element = document.getElementById(slotElementId(highlightedId));
+    if (!element) return;
+
+    const rect = element.getBoundingClientRect();
+    const inView = rect.top >= 0 && rect.bottom <= window.innerHeight;
+    // 이미 눈에 보이던 칸을 사라졌다 나타나게 하면 깜빡인다. 그때는 제자리에서 한 번 부풀린다
+    const motion = view === "list" ? "animate-row-flash" : inView ? "animate-slot-pop" : "animate-slot-pulse";
+    if (inView) {
+      element.classList.add(motion);
+      return () => element.classList.remove(motion);
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        element.classList.add(motion);
+        observer.disconnect();
+      },
+      { threshold: 0.6 },
+    );
+    observer.observe(element);
+    element.scrollIntoView({ block: "center", behavior: "smooth" });
+    return () => {
+      observer.disconnect();
+      element.classList.remove(motion);
+    };
+  }, [highlightedId, view]);
+
+  // 알린 뒤에는 주소에서 added 를 지워서 새로고침해도 다시 움직이지 않게 한다
   useEffect(() => {
     if (!addedId) return;
-    document.getElementById(slotElementId(addedId))?.scrollIntoView({ block: "center", behavior: "smooth" });
     const timer = setTimeout(() => replaceParams((params) => params.delete("added")), HIGHLIGHT_MS);
     return () => clearTimeout(timer);
   }, [addedId, replaceParams]);
@@ -237,7 +269,6 @@ export function InventoryBoard({ inventoryId, addedId, deletedId, entries, usedS
           entries={shown}
           slotCount={slotCount}
           isFull={isFull}
-          addedId={highlightedId}
           actionsFor={actionsFor}
           onActionsFor={setActionsFor}
           itemActions={itemActions}
@@ -260,7 +291,7 @@ export function InventoryBoard({ inventoryId, addedId, deletedId, entries, usedS
       ) : (
         <ul className="mt-3 flex flex-col border-t border-border">
           {shown.map((entry) => (
-            <li key={entry.id} id={slotElementId(entry.id)} className={entry.id === highlightedId ? HIGHLIGHT_CLASS : ""}>
+            <li key={entry.id} id={slotElementId(entry.id)}>
               {entry.deleted ? (
                 <UndoSlotRow entry={entry} onUndo={undoDelete} />
               ) : entry.kind === "item" ? (
@@ -326,13 +357,11 @@ function slotElementId(entryId: string) {
   return `slot-${entryId}`;
 }
 
-const HIGHLIGHT_CLASS = "rounded-sm animate-slot-highlight";
 
 type GridProps = {
   entries: SlotEntry[];
   slotCount: number;
   isFull: boolean;
-  addedId: string | null;
   // 길게 눌러 메뉴가 떠 있는 칸
   actionsFor: string | null;
   onActionsFor: (entryId: string | null) => void;
@@ -343,13 +372,13 @@ type GridProps = {
 };
 
 // 채워진 칸과 그 다음의 + 칸만 그린다. 빈 칸은 그리지 않는다 — 남은 용량은 아래의 16/25 가 알려준다
-function Grid({ entries, slotCount, isFull, addedId, actionsFor, onActionsFor, itemActions, onUndo, children }: GridProps) {
+function Grid({ entries, slotCount, isFull, actionsFor, onActionsFor, itemActions, onUndo, children }: GridProps) {
   const { columns, className } = gridFor(slotCount);
 
   return (
     <ul className={`mt-6 grid gap-3.5 px-6.5 ${className}`}>
       {entries.map((entry, index) => (
-        <li key={entry.id} id={slotElementId(entry.id)} className={`relative ${entry.id === addedId ? HIGHLIGHT_CLASS : ""}`}>
+        <li key={entry.id} id={slotElementId(entry.id)} className="relative">
           {entry.deleted ? (
             <UndoSlotCell entry={entry} onUndo={onUndo} />
           ) : entry.kind === "item" ? (
