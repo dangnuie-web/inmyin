@@ -101,3 +101,33 @@ export async function restoreItem(itemId: string): Promise<FormState> {
   revalidateItem(item.id, item.inventory_id);
   return {};
 }
+
+// 짐싸기(M-05). 아이템을 다른 인벤토리로 옮긴다 — 복사가 아니라 부모를 바꾸는 것이다 (CLAUDE.md 규칙 1).
+// 받는 쪽의 맨 뒤 칸에 들어가고, 꽉 찼으면 DB 트리거가 막는다 (규칙 3).
+// 아이템의 카테고리는 그대로 둔다: 받는 쪽에 그 태그가 없으면 거기서는 "전체"에서만 보이고, 다시 돌려보내면 원래대로다
+export async function moveItem(itemId: string, toInventoryId: string): Promise<FormState> {
+  const profile = await requireProfile();
+  if (!UUID_PATTERN.test(itemId) || !UUID_PATTERN.test(toInventoryId)) return BAD_REQUEST;
+
+  const supabase = await createClient();
+  const { data: item } = await supabase
+    .from("items")
+    .select("id, inventory_id")
+    .eq("id", itemId)
+    .eq("user_id", profile.id)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (!item) return { error: "아이템을 찾을 수 없습니다." };
+  // 이미 거기 있다 (같은 요청이 두 번 온 경우). 바라던 결과와 같으니 성공이다
+  if (item.inventory_id === toInventoryId) return {};
+
+  const { error } = await supabase.from("items").update({ inventory_id: toInventoryId }).eq("id", item.id).eq("user_id", profile.id);
+  if (error) {
+    // DB 트리거가 한국어로 이유를 알려준다 (예: 인벤토리가 꽉 찼습니다)
+    return { error: error.code === "P0001" ? error.message : "옮기지 못했습니다. 잠시 후 다시 시도해 주세요." };
+  }
+
+  revalidateItem(item.id, item.inventory_id);
+  revalidatePath(inventoryPath(toInventoryId));
+  return {};
+}

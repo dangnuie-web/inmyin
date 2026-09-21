@@ -37,6 +37,11 @@ export function slotEntryPath(entry: { kind: "item" | "inventory"; id: string })
   return entry.kind === "item" ? itemPath(entry.id) : inventoryPath(entry.id);
 }
 
+// 짐싸기(M-05)의 주소. 그 인벤토리가 위쪽에 열린다
+export function packingPath(inventoryId: string) {
+  return `/my/inventories/${inventoryId}/packing`;
+}
+
 // 아이템 정보 입력(M-08)의 주소
 export function newItemPath(inventoryId: string) {
   return `/my/inventories/${inventoryId}/items/new`;

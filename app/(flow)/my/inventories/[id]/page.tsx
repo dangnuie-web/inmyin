@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { InventoryBoard } from "@/components/inventory/InventoryBoard";
 import { InventoryStrip } from "@/components/inventory/InventoryStrip";
@@ -6,7 +7,7 @@ import { ViewToggle } from "@/components/inventory/ViewToggle";
 import { CategoryTag } from "@/components/ui/CategoryTag";
 import { HeaderMini } from "@/components/ui/HeaderMini";
 import { requireProfile } from "@/lib/auth/profile";
-import { inventoryPath, type InventoryView } from "@/lib/inventory/paths";
+import { inventoryPath, packingPath, type InventoryView } from "@/lib/inventory/paths";
 import { getMyInventories, getMyInventoryDetail } from "@/lib/inventory/queries";
 
 export const metadata: Metadata = { title: "인벤토리 · INMYIN" };
@@ -46,19 +47,17 @@ export default async function InventoryDetailPage(props: PageProps<"/my/inventor
         href="/my/inventories"
         title="INVENTORY"
         action={
-          // 임시 — 짐싸기(M-05)를 만들면 연결한다
-          <button
-            type="button"
-            disabled
-            className="rounded-sm border border-border bg-white px-3 py-0.5 text-body font-bold disabled:text-disabled"
+          <Link
+            href={packingPath(inventory.id)}
+            className="rounded-sm border border-border bg-white px-3 py-0.5 text-body font-bold active:opacity-60"
           >
             짐싸기
-          </button>
+          </Link>
         }
       />
 
       <div className="mt-5">
-        <InventoryStrip inventories={inventories} currentId={inventory.id} view={view} />
+        <InventoryStrip inventories={inventories} currentId={inventory.id} hrefFor={(inventoryId) => inventoryPath(inventoryId, { view })} />
       </div>
 
       <div className="mt-9 flex items-center gap-2.5 overflow-x-auto px-7 [scrollbar-width:none]">

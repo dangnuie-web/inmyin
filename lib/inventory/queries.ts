@@ -124,3 +124,78 @@ export async function getMyInventories(userId: string): Promise<InventorySummary
       data.filter((child) => child.parent_inventory_id === inventory.id).length,
   }));
 }
+
+// 짐싸기(M-05)가 쓰는 인벤토리 하나. 목록의 한 줄(사진 · 이름)과 상세의 내용(태그 · 칸)을 같이 가진다
+export type PackingInventory = {
+  id: string;
+  name: string;
+  imageUrl: string | null;
+  categories: string[];
+  slotCount: number;
+  entries: SlotEntry[];
+};
+
+// 내 인벤토리 전부와 그 안에 든 것 (M-05). 하나씩 따로 읽지 않고 한 번에 읽는다 —
+// 짐싸기는 띠에서 인벤토리를 계속 갈아타는 화면이라, 갈아탈 때마다 서버를 기다리면 답답하다
+export async function getMyPackingInventories(userId: string): Promise<PackingInventory[]> {
+  const supabase = await createClient();
+  const [inventories, items] = await Promise.all([
+    supabase
+      .from("inventories")
+      .select("id, name, image_url, categories, slot_count, parent_inventory_id, parent_slot_index")
+      .eq("user_id", userId)
+      .is("deleted_at", null)
+      .order("sort_order")
+      .order("created_at"),
+    supabase
+      .from("items")
+      .select("id, inventory_id, name, image_url, quantity, category, slot_index")
+      .eq("user_id", userId)
+      .is("deleted_at", null),
+  ]);
+  const error = inventories.error ?? items.error;
+  if (error) throw error;
+
+  return inventories.data!.map((inventory) => {
+    const entries = [
+      ...items
+        .data!.filter((item) => item.inventory_id === inventory.id)
+        .map((item) => ({
+          order: item.slot_index,
+          entry: {
+            kind: "item" as const,
+            id: item.id,
+            name: item.name,
+            imageUrl: item.image_url,
+            quantity: item.quantity,
+            category: item.category,
+            deleted: false,
+          },
+        })),
+      ...inventories
+        .data!.filter((child) => child.parent_inventory_id === inventory.id)
+        .map((child) => ({
+          order: child.parent_slot_index ?? 0,
+          entry: {
+            kind: "inventory" as const,
+            id: child.id,
+            name: child.name,
+            imageUrl: child.image_url,
+            quantity: 1,
+            category: null,
+            deleted: false,
+          },
+        })),
+    ];
+    entries.sort((a, b) => a.order - b.order);
+
+    return {
+      id: inventory.id,
+      name: inventory.name,
+      imageUrl: inventory.image_url,
+      categories: inventory.categories,
+      slotCount: inventory.slot_count,
+      entries: entries.map(({ entry }) => entry),
+    };
+  });
+}

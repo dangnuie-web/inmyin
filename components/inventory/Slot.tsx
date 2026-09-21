@@ -145,3 +145,38 @@ export function UndoSlotRow({ entry, onUndo }: { entry: SlotEntry; onUndo: () =>
     </button>
   );
 }
+
+// 짐싸기(M-05)의 칸. 누르면 상세로 가지 않고 반대쪽 인벤토리로 넘어간다.
+// dimmed — 반대쪽에 열려 있는 인벤토리가 이 안에 담겨 있을 때. 어둡게 보인다
+type PackingSlotProps = { entry: SlotEntry; onPick: () => void; disabled?: boolean; dimmed?: boolean };
+
+const DIMMED_CLASS = "absolute inset-0 bg-ink/60";
+
+export function PackingSlotCell({ entry, onPick, disabled = false, dimmed = false }: PackingSlotProps) {
+  return (
+    <button
+      type="button"
+      onClick={onPick}
+      disabled={disabled}
+      aria-label={`${entry.name} 옮기기`}
+      className={`${CELL_CLASS} w-full overflow-hidden bg-gray-1 active:opacity-80`}
+    >
+      <SlotImage entry={entry} sizes="(min-width: 448px) 130px, 30vw" />
+      <QuantityBadge quantity={entry.quantity} className="absolute bottom-2 right-2 bg-white" />
+      {dimmed && <span className={DIMMED_CLASS} />}
+    </button>
+  );
+}
+
+export function PackingSlotRow({ entry, onPick, disabled = false, dimmed = false }: PackingSlotProps) {
+  return (
+    <button type="button" onClick={onPick} disabled={disabled} className={`${SLOT_ROW_CLASS} text-left active:opacity-80`}>
+      <SlotRowThumb filled>
+        <SlotImage entry={entry} sizes="54px" />
+        {dimmed && <span className={DIMMED_CLASS} />}
+      </SlotRowThumb>
+      <span className="min-w-0 flex-1 truncate text-body">{entry.name}</span>
+      <QuantityBadge quantity={entry.quantity} className="bg-gray-1" />
+    </button>
+  );
+}
