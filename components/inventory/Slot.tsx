@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { slotEntryPath } from "@/lib/inventory/paths";
 import type { SlotEntry } from "@/lib/inventory/queries";
 
@@ -24,10 +24,12 @@ function QuantityBadge({ quantity, className }: { quantity: number; className: s
 function SlotImage({ entry, sizes }: { entry: SlotEntry; sizes: string }) {
   if (!entry.imageUrl) return null;
   // 올릴 때 이미 작게 줄여 둔 사진이라 Next 의 이미지 최적화를 거치지 않는다
-  return <Image src={entry.imageUrl} alt={entry.name} fill sizes={sizes} unoptimized className="object-cover" />;
+  return <Image src={entry.imageUrl} alt={entry.name} fill sizes={sizes} unoptimized draggable={false} className="object-cover" />;
 }
 
 const CELL_CLASS = "relative flex aspect-square items-center justify-center rounded-sm";
+// 길게 누르거나 밀 때 브라우저가 끼어들지 않게 한다 — 아이폰의 링크 미리보기, 글자 선택, 링크 끌어가기
+const NO_BROWSER_GESTURES = "select-none [-webkit-touch-callout:none]";
 
 // 그리드의 + 칸. 메뉴가 칸 밖으로 펼쳐져야 해서 넘치는 부분을 자르지 않는다.
 // (빈 칸은 그리지 않는다 — 채워진 칸과 그 다음의 + 칸만 보인다)
@@ -36,15 +38,23 @@ export function AddSlotCell({ children }: { children: ReactNode }) {
   return <div className={`${CELL_CLASS} bg-white`}>{children}</div>;
 }
 
-// current — 지금 보고 있는 아이템의 칸 (M-14 아래의 격자). 테두리를 두른다
-export function SlotCell({ entry, current = false }: { entry: SlotEntry; current?: boolean }) {
+type SlotCellProps = Omit<ComponentProps<typeof Link>, "href" | "className"> & {
+  entry: SlotEntry;
+  // 지금 보고 있는 아이템의 칸 (M-14 아래의 격자). 테두리를 두른다
+  current?: boolean;
+};
+
+// 나머지 props 는 링크에 그대로 넘긴다 — 길게 누르기(SlotGestures)가 여기에 손잡이를 단다
+export function SlotCell({ entry, current = false, ...props }: SlotCellProps) {
   return (
     // 옅은 회색 바탕. 배경을 지운 사진은 이 위에 물건만 놓인다
     <Link
+      {...props}
       href={slotEntryPath(entry)}
       aria-label={entry.name}
       aria-current={current ? "true" : undefined}
-      className={`${CELL_CLASS} overflow-hidden bg-gray-1 active:opacity-80 ${current ? "ring-2 ring-ink" : ""}`}
+      draggable={false}
+      className={`${CELL_CLASS} ${NO_BROWSER_GESTURES} overflow-hidden bg-gray-1 active:opacity-80 ${current ? "ring-2 ring-ink" : ""}`}
     >
       <SlotImage entry={entry} sizes="(min-width: 448px) 130px, 30vw" />
       <QuantityBadge quantity={entry.quantity} className="absolute bottom-2 right-2 bg-white" />
@@ -69,7 +79,7 @@ export function SlotRowThumb({ filled = false, children }: { filled?: boolean; c
 
 export function SlotRow({ entry }: { entry: SlotEntry }) {
   return (
-    <Link href={slotEntryPath(entry)} className={`${SLOT_ROW_CLASS} active:opacity-80`}>
+    <Link href={slotEntryPath(entry)} draggable={false} className={`${SLOT_ROW_CLASS} ${NO_BROWSER_GESTURES} active:opacity-80`}>
       <SlotRowThumb filled>
         <SlotImage entry={entry} sizes="54px" />
       </SlotRowThumb>

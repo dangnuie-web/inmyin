@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { updateItem } from "@/app/(flow)/items/[itemId]/actions";
 import { createItem } from "@/app/(flow)/my/inventories/[id]/items/new/actions";
 import { Button } from "@/components/ui/Button";
 import { CategoryTag } from "@/components/ui/CategoryTag";
@@ -13,6 +14,7 @@ import { MAX_CATEGORY_LENGTH } from "@/lib/categories";
 import { getPendingPhoto, setPendingPhoto } from "@/lib/image/pending-photo";
 import { uploadPhotoPair } from "@/lib/image/upload";
 import { inventoryPath } from "@/lib/inventory/paths";
+import type { ItemDetail } from "@/lib/item/queries";
 import {
   ACQUIRED_NOTE_MAX,
   formatShortDate,
@@ -26,26 +28,29 @@ type ItemFormProps = {
   inventoryId: string;
   // 이 인벤토리에 달린 태그. 칩으로 보여주고 하나를 고른다
   categories: string[];
+  // 수정할 때만 준다. 그 값으로 채워서 열고, 사진은 받지 않는다 — 글자 정보만 고친다
+  item?: ItemDetail;
 };
 
 // M-08 · 아이템 정보 입력. 사진은 앞 단계에서 이미 골랐고, 여기서는 글자 정보만 받는다.
-export function ItemForm({ userId, inventoryId, categories }: ItemFormProps) {
+// 아이템 수정도 같은 폼이다.
+export function ItemForm({ userId, inventoryId, categories, item }: ItemFormProps) {
   const router = useRouter();
   const [photo] = useState(getPendingPhoto);
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("");
-  const [quantity, setQuantity] = useState(1);
-  const [acquiredNote, setAcquiredNote] = useState("");
-  const [expiresAt, setExpiresAt] = useState("");
-  const [isPublic, setIsPublic] = useState(true);
+  const [name, setName] = useState(item?.name ?? "");
+  const [description, setDescription] = useState(item?.description ?? "");
+  const [category, setCategory] = useState(item?.category ?? "");
+  const [quantity, setQuantity] = useState(item?.quantity ?? 1);
+  const [acquiredNote, setAcquiredNote] = useState(item?.acquiredNote ?? "");
+  const [expiresAt, setExpiresAt] = useState(item?.expiresAt ?? "");
+  const [isPublic, setIsPublic] = useState(item?.isPublic ?? true);
   const [error, setError] = useState<string>();
   const [pending, startTransition] = useTransition();
 
   // 사진 없이는 등록할 수 없다. 새로고침으로 사진을 잃었으면 인벤토리로 돌아가 + 부터 다시 한다
   useEffect(() => {
-    if (!photo) router.replace(inventoryPath(inventoryId));
-  }, [photo, router, inventoryId]);
+    if (!item && !photo) router.replace(inventoryPath(inventoryId));
+  }, [item, photo, router, inventoryId]);
 
   // 화면을 떠나면 보관함을 비운다. 사진은 이미 위의 photo 가 들고 있다
   useEffect(() => () => setPendingPhoto(null), []);
@@ -57,12 +62,20 @@ export function ItemForm({ userId, inventoryId, categories }: ItemFormProps) {
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!photo) return;
     if (!name.trim()) return setError("아이템 이름을 입력해 주세요.");
     if (!description.trim()) return setError("설명을 입력해 주세요.");
+    const fields = { name, description, category: category.trim() || null, quantity, acquiredNote, expiresAt, isPublic };
 
     setError(undefined);
     startTransition(async () => {
+      // 성공하면 서버가 다음 화면으로 보낸다. 돌아온 값이 있으면 오류다
+      if (item) {
+        const result = await updateItem(item.id, fields);
+        if (result?.error) setError(result.error);
+        return;
+      }
+
+      if (!photo) return;
       const id = crypto.randomUUID();
       let extensions: Awaited<ReturnType<typeof uploadPhotoPair>>;
       try {
@@ -72,19 +85,7 @@ export function ItemForm({ userId, inventoryId, categories }: ItemFormProps) {
         return;
       }
 
-      // 성공하면 서버가 인벤토리로 보낸다. 돌아온 값이 있으면 오류다
-      const result = await createItem({
-        id,
-        inventoryId,
-        name,
-        description,
-        category: category.trim() || null,
-        quantity,
-        acquiredNote,
-        expiresAt,
-        isPublic,
-        ...extensions,
-      });
+      const result = await createItem({ id, inventoryId, ...fields, ...extensions });
       if (result?.error) setError(result.error);
     });
   }
@@ -189,7 +190,7 @@ export function ItemForm({ userId, inventoryId, categories }: ItemFormProps) {
         <FormError message={error} />
       </div>
 
-      <Button type="submit" size="pill" disabled={pending || !photo} className="mx-auto mt-10">
+      <Button type="submit" size="pill" disabled={pending || (!item && !photo)} className="mx-auto mt-10">
         {pending ? "저장 중…" : "저장하기"}
       </Button>
     </form>

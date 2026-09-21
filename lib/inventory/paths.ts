@@ -3,8 +3,10 @@ export type InventoryView = "grid" | "list";
 type InventoryPathOptions = {
   view?: InventoryView;
   category?: string | null;
-  // 방금 등록한 아이템의 id. 상세 화면이 그 칸으로 스크롤하고 잠깐 강조한 뒤 주소에서 지운다
+  // 방금 등록한(또는 되살린) 아이템의 id. 상세 화면이 그 칸으로 스크롤하고 잠깐 강조한 뒤 주소에서 지운다
   added?: string;
+  // 방금 지운 아이템의 id. 상세 화면이 "되돌리기"를 잠깐 띄운 뒤 주소에서 지운다
+  deleted?: string;
 };
 
 // 인벤토리 상세(M-04)의 주소. 보기 방식과 고른 카테고리를 주소에 실어 둔다 —
@@ -15,6 +17,7 @@ export function inventoryPath(id: string, options: InventoryPathOptions = {}) {
   if (options.view === "list") params.set("view", "list");
   if (options.category) params.set("category", options.category);
   if (options.added) params.set("added", options.added);
+  if (options.deleted) params.set("deleted", options.deleted);
   const query = params.toString();
   return `/my/inventories/${id}${query ? `?${query}` : ""}`;
 }
@@ -22,6 +25,11 @@ export function inventoryPath(id: string, options: InventoryPathOptions = {}) {
 // 아이템 상세(M-14)의 주소. 아이템은 짐싸기로 인벤토리를 옮겨 다니므로, 주소에 인벤토리를 넣지 않는다
 export function itemPath(itemId: string) {
   return `/items/${itemId}`;
+}
+
+// 아이템 수정의 주소. 글자 정보를 고친다 (사진을 다듬는 M-07 의 itemEditPath 와 다른 화면이다)
+export function itemUpdatePath(itemId: string) {
+  return `/items/${itemId}/edit`;
 }
 
 // 칸을 누르면 갈 곳. 아이템이면 상세(M-14), 안에 담긴 인벤토리면 그 인벤토리(M-04)

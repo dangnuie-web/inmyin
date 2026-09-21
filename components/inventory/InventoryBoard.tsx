@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { deleteItem, restoreItem } from "@/app/(flow)/items/[itemId]/actions";
 import { DarkMenu } from "@/components/ui/DarkMenu";
 import { Icon } from "@/components/ui/Icon";
 import { Toast } from "@/components/ui/Toast";
-import { itemCameraPath, type InventoryView } from "@/lib/inventory/paths";
+import { itemCameraPath, itemUpdatePath, type InventoryView } from "@/lib/inventory/paths";
 import type { SlotEntry } from "@/lib/inventory/queries";
 import { AddSlotCell, gridFor, SLOT_ROW_CLASS, SlotCell, SlotRow, SlotRowThumb } from "./Slot";
+import { LongPressSlotCell, SwipeRow, type SwipeSide } from "./SlotGestures";
 
 type MenuAnchor = "slot" | "floating" | null;
 
@@ -17,8 +19,10 @@ const HIGHLIGHT_MS = 1600;
 
 type InventoryBoardProps = {
   inventoryId: string;
-  // 방금 등록한 아이템의 id. 그 칸으로 스크롤하고 잠깐 강조한다
+  // 방금 등록한(또는 되살린) 아이템의 id. 그 칸으로 스크롤하고 잠깐 강조한다
   addedId: string | null;
+  // 방금 지운 아이템의 id. "되돌리기"를 잠깐 띄운다
+  deletedId: string | null;
   // 보여줄 것. 카테고리를 골랐으면 걸러진 목록이 온다
   entries: SlotEntry[];
   // 걸러지기 전의 전체 개수. 16/25 와 꽉 찼는지는 이 숫자로 본다
@@ -28,7 +32,7 @@ type InventoryBoardProps = {
 };
 
 // M-04 의 격자 · 리스트와 + 버튼. + 칸은 항상 마지막 아이템의 다음 칸에 하나만 있다.
-export function InventoryBoard({ inventoryId, addedId, entries, usedSlots, slotCount, view }: InventoryBoardProps) {
+export function InventoryBoard({ inventoryId, addedId, deletedId, entries, usedSlots, slotCount, view }: InventoryBoardProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -37,6 +41,17 @@ export function InventoryBoard({ inventoryId, addedId, entries, usedSlots, slotC
   const hideNotice = useCallback(() => setNotice(null), []);
 
   const isFull = usedSlots >= slotCount;
+
+  // 주소의 물음표 뒤를 고친다. 보기 방식과 고른 카테고리는 그대로 둔다
+  const replaceParams = useCallback(
+    (change: (params: URLSearchParams) => void) => {
+      const params = new URLSearchParams(searchParams);
+      change(params);
+      const query = params.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    },
+    [pathname, router, searchParams],
+  );
 
   // + 칸이 화면 밖으로 나가면 플로팅 + 를 띄운다
   const addSlotRef = useRef<HTMLDivElement>(null);
@@ -53,14 +68,53 @@ export function InventoryBoard({ inventoryId, addedId, entries, usedSlots, slotC
   useEffect(() => {
     if (!addedId) return;
     document.getElementById(slotElementId(addedId))?.scrollIntoView({ block: "center", behavior: "smooth" });
-    const timer = setTimeout(() => {
-      const params = new URLSearchParams(searchParams);
-      params.delete("added");
-      const query = params.toString();
-      router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
-    }, HIGHLIGHT_MS);
+    const timer = setTimeout(() => replaceParams((params) => params.delete("added")), HIGHLIGHT_MS);
     return () => clearTimeout(timer);
-  }, [addedId, pathname, router, searchParams]);
+  }, [addedId, replaceParams]);
+
+  // 아이템 수정 · 삭제. 리스트는 밀어서, 그리드는 길게 눌러서 부른다 (M-14 의 ⋮ 메뉴와 같은 일)
+  const [, startTransition] = useTransition();
+  // 길게 눌러 메뉴가 떠 있는 칸 (그리드)
+  const [actionsFor, setActionsFor] = useState<string | null>(null);
+  // 밀어서 블록이 나와 있는 줄 (리스트). 한 번에 한 줄만 연다
+  const [swiped, setSwiped] = useState<{ id: string; side: SwipeSide } | null>(null);
+
+  function editItem(itemId: string) {
+    router.push(itemUpdatePath(itemId));
+  }
+
+  // 확인 창 없이 바로 지우고 "되돌리기"를 띄운다. 실제로 지우는 것이 아니라 되살릴 수 있다
+  function removeItem(itemId: string) {
+    setSwiped(null);
+    startTransition(async () => {
+      const result = await deleteItem(itemId);
+      if (result.error) return setNotice(result.error);
+      replaceParams((params) => params.set("deleted", itemId));
+    });
+  }
+
+  const clearDeleted = useCallback(() => replaceParams((params) => params.delete("deleted")), [replaceParams]);
+
+  function undoDelete() {
+    if (!deletedId) return;
+    startTransition(async () => {
+      const result = await restoreItem(deletedId);
+      if (result.error) {
+        clearDeleted();
+        return setNotice(result.error);
+      }
+      // 되살아난 칸으로 스크롤하고 잠깐 강조한다
+      replaceParams((params) => {
+        params.delete("deleted");
+        params.set("added", deletedId);
+      });
+    });
+  }
+
+  const itemActions = (itemId: string) => [
+    { label: "삭제하기", onSelect: () => removeItem(itemId) },
+    { label: "수정하기", onSelect: () => editItem(itemId) },
+  ];
 
   const menuItems = [
     {
@@ -98,7 +152,15 @@ export function InventoryBoard({ inventoryId, addedId, entries, usedSlots, slotC
   return (
     <div className="flex flex-1 flex-col">
       {view === "grid" ? (
-        <Grid entries={entries} slotCount={slotCount} isFull={isFull} addedId={addedId}>
+        <Grid
+          entries={entries}
+          slotCount={slotCount}
+          isFull={isFull}
+          addedId={addedId}
+          actionsFor={actionsFor}
+          onActionsFor={setActionsFor}
+          itemActions={itemActions}
+        >
           {(isLastColumn) => (
             <div ref={addSlotRef} className="relative size-full">
               {addButton("cell")}
@@ -117,7 +179,19 @@ export function InventoryBoard({ inventoryId, addedId, entries, usedSlots, slotC
         <ul className="mt-3 flex flex-col border-t border-border">
           {entries.map((entry) => (
             <li key={entry.id} id={slotElementId(entry.id)} className={entry.id === addedId ? HIGHLIGHT_CLASS : ""}>
-              <SlotRow entry={entry} />
+              {entry.kind === "item" ? (
+                <SwipeRow
+                  open={swiped?.id === entry.id ? swiped.side : null}
+                  onOpenChange={(side) => setSwiped(side && { id: entry.id, side })}
+                  onEdit={() => editItem(entry.id)}
+                  onDelete={() => removeItem(entry.id)}
+                >
+                  <SlotRow entry={entry} />
+                </SwipeRow>
+              ) : (
+                // 안에 담긴 인벤토리의 수정 · 삭제는 인벤토리 목록(M-03)에서 한다
+                <SlotRow entry={entry} />
+              )}
             </li>
           ))}
           {!isFull && (
@@ -149,9 +223,9 @@ export function InventoryBoard({ inventoryId, addedId, entries, usedSlots, slotC
               type="button"
               onClick={() => setMenu("floating")}
               aria-label="추가"
-              className="flex size-11.5 items-center justify-center rounded-full bg-point text-white shadow-lg active:opacity-80"
+              className="flex size-10.5 items-center justify-center rounded-full bg-point text-white shadow-lg active:opacity-80"
             >
-              <Icon name="plus" />
+              <Icon name="plusBold" />
             </button>
             {menu === "floating" && <DarkMenu items={menuItems} onClose={() => setMenu(null)} className="bottom-full right-0 mb-2" />}
           </div>
@@ -159,6 +233,14 @@ export function InventoryBoard({ inventoryId, addedId, entries, usedSlots, slotC
       </div>
 
       <Toast message={notice} onDone={hideNotice} />
+      {!notice && (
+        <Toast
+          key={deletedId}
+          message={deletedId ? "아이템을 삭제했어요." : null}
+          onDone={clearDeleted}
+          action={{ label: "되돌리기", onClick: undoDelete }}
+        />
+      )}
     </div>
   );
 }
@@ -175,19 +257,37 @@ type GridProps = {
   slotCount: number;
   isFull: boolean;
   addedId: string | null;
+  // 길게 눌러 메뉴가 떠 있는 칸
+  actionsFor: string | null;
+  onActionsFor: (entryId: string | null) => void;
+  itemActions: (itemId: string) => { label: string; onSelect: () => void }[];
   // + 칸의 내용. 그 칸이 오른쪽 끝 열인지 알려준다
   children: (isLastColumn: boolean) => React.ReactNode;
 };
 
 // 채워진 칸과 그 다음의 + 칸만 그린다. 빈 칸은 그리지 않는다 — 남은 용량은 아래의 16/25 가 알려준다
-function Grid({ entries, slotCount, isFull, addedId, children }: GridProps) {
+function Grid({ entries, slotCount, isFull, addedId, actionsFor, onActionsFor, itemActions, children }: GridProps) {
   const { columns, className } = gridFor(slotCount);
 
   return (
     <ul className={`mt-6 grid gap-3.5 px-6.5 ${className}`}>
-      {entries.map((entry) => (
-        <li key={entry.id} id={slotElementId(entry.id)} className={entry.id === addedId ? HIGHLIGHT_CLASS : ""}>
-          <SlotCell entry={entry} />
+      {entries.map((entry, index) => (
+        <li key={entry.id} id={slotElementId(entry.id)} className={`relative ${entry.id === addedId ? HIGHLIGHT_CLASS : ""}`}>
+          {entry.kind === "item" ? (
+            // 칸이 작아서 밀지 않고 길게 누른다
+            <LongPressSlotCell entry={entry} onLongPress={() => onActionsFor(entry.id)} />
+          ) : (
+            // 안에 담긴 인벤토리의 수정 · 삭제는 인벤토리 목록(M-03)에서 한다
+            <SlotCell entry={entry} />
+          )}
+          {actionsFor === entry.id && (
+            <DarkMenu
+              items={itemActions(entry.id)}
+              onClose={() => onActionsFor(null)}
+              // 오른쪽 끝 칸에서는 메뉴가 화면 밖으로 나가지 않게 왼쪽으로 편다
+              className={index % columns === columns - 1 ? "right-1/2 top-1/2" : "left-1/2 top-1/2"}
+            />
+          )}
         </li>
       ))}
       {!isFull && (

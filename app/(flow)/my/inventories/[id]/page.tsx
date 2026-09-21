@@ -73,6 +73,7 @@ export default async function InventoryDetailPage(props: PageProps<"/my/inventor
       <InventoryBoard
         inventoryId={inventory.id}
         addedId={typeof searchParams.added === "string" ? searchParams.added : null}
+        deletedId={typeof searchParams.deleted === "string" && UUID_PATTERN.test(searchParams.deleted) ? searchParams.deleted : null}
         entries={entries}
         usedSlots={inventory.entries.length}
         slotCount={inventory.slotCount}

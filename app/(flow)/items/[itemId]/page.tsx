@@ -33,7 +33,7 @@ export default async function ItemDetailPage(props: PageProps<"/items/[itemId]">
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col pb-[max(2.5rem,env(safe-area-inset-bottom))]">
-      <HeaderMini icon="close" href={inventoryPath(inventory.id)} title="아이템" action={<ItemMenu />} />
+      <HeaderMini icon="close" href={inventoryPath(inventory.id)} title="아이템" action={<ItemMenu itemId={item.id} inventoryId={inventory.id} />} />
 
       <div className="relative mx-6.25 mt-3 aspect-square overflow-hidden rounded-lg bg-gray-1">
         {/* 올릴 때 이미 작게 줄여 둔 사진이라 Next 의 이미지 최적화를 거치지 않는다 */}

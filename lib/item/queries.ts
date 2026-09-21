@@ -7,11 +7,13 @@ export type ItemDetail = {
   name: string;
   description: string | null;
   imageUrl: string;
+  category: string | null;
   quantity: number;
   // "20살 생일" 같은 말이나 "26.09.22" 같은 날짜 글자
   acquiredNote: string | null;
   // "2026-09-22" 꼴
   expiresAt: string | null;
+  isPublic: boolean;
 };
 
 // 내 아이템 하나 (M-14). 없거나 지워졌거나 남의 것이면 null.
@@ -20,7 +22,7 @@ export async function getMyItemDetail(userId: string, itemId: string): Promise<I
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("items")
-    .select("id, inventory_id, name, description, image_url, quantity, acquired_note, expires_at")
+    .select("id, inventory_id, name, description, image_url, category, quantity, acquired_note, expires_at, is_public")
     .eq("id", itemId)
     .eq("user_id", userId)
     .is("deleted_at", null)
@@ -34,8 +36,10 @@ export async function getMyItemDetail(userId: string, itemId: string): Promise<I
     name: data.name,
     description: data.description,
     imageUrl: data.image_url,
+    category: data.category,
     quantity: data.quantity,
     acquiredNote: data.acquired_note,
     expiresAt: data.expires_at,
+    isPublic: data.is_public,
   };
 }
