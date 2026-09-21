@@ -191,7 +191,7 @@ export function ItemForm({ userId, inventoryId, categories, item }: ItemFormProp
       </div>
 
       <Button type="submit" size="pill" disabled={pending || (!item && !photo)} className="mx-auto mt-10">
-        {pending ? "저장 중…" : "저장하기"}
+        {item ? (pending ? "수정 중…" : "수정하기") : pending ? "저장 중…" : "저장하기"}
       </Button>
     </form>
   );

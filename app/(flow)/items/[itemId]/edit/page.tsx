@@ -25,7 +25,7 @@ export default async function ItemUpdatePage(props: PageProps<"/items/[itemId]/e
   return (
     <main className="flex flex-1 flex-col bg-surface-dark">
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col">
-        <HeaderMini icon="close" href={itemPath(item.id)} title="저장하기" tone="dark" />
+        <HeaderMini icon="close" href={itemPath(item.id)} title="수정하기" tone="dark" />
         <ItemForm userId={profile.id} inventoryId={inventory.id} categories={inventory.categories} item={item} />
       </div>
     </main>
