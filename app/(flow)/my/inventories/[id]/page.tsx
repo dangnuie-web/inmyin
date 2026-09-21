@@ -61,9 +61,11 @@ export default async function InventoryDetailPage(props: PageProps<"/my/inventor
         <InventoryStrip inventories={inventories} currentId={inventory.id} hrefFor={(inventoryId) => inventoryPath(inventoryId, { view })} />
       </div>
 
-      <ChipRow className="mt-9 pl-7">
+      {/* 토글은 제자리에 있고, 칩만 그 오른쪽에서 옆으로 넘어간다 — 칩을 넘겨 본 뒤에도 보기 방식을 바로 바꿀 수 있다 */}
+      <div className="mt-9 flex items-center gap-2.5 pl-7">
         <ViewToggle current={view} hrefFor={(next) => inventoryPath(inventory.id, { view: next, category })} />
-        <CategoryTag label="전체" selected={!category} href={inventoryPath(inventory.id, { view })} />
+        <ChipRow className="min-w-0 flex-1">
+          <CategoryTag label="전체" selected={!category} href={inventoryPath(inventory.id, { view })} />
         {inventory.categories.map((tag) => (
           <CategoryTag
             key={tag}
@@ -72,7 +74,8 @@ export default async function InventoryDetailPage(props: PageProps<"/my/inventor
             href={inventoryPath(inventory.id, { view, category: tag })}
           />
         ))}
-      </ChipRow>
+        </ChipRow>
+      </div>
 
       <InventoryBoard
         inventoryId={inventory.id}
