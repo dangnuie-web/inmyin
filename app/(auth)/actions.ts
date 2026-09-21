@@ -71,6 +71,14 @@ export async function sendSignupCode(email: string): Promise<FormState> {
   }
 
   const supabase = await createClient();
+
+  // 이미 가입한 이메일로 인증번호를 보내면 그 계정의 비밀번호를 덮어쓰게 된다. 보내기 전에 막는다
+  const { data: registered, error: checkError } = await supabase.rpc("is_email_registered", {
+    p_email: email.trim(),
+  });
+  if (checkError) return { error: authErrorMessage(undefined) };
+  if (registered) return { error: "이미 가입한 이메일입니다. 로그인해 주세요." };
+
   const { error } = await supabase.auth.signInWithOtp({
     email: email.trim(),
     options: { shouldCreateUser: true },
