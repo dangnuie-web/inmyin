@@ -17,17 +17,18 @@ function SlotImage({ entry, sizes }: { entry: SlotEntry; sizes: string }) {
   return <Image src={entry.imageUrl} alt={entry.name} fill sizes={sizes} unoptimized className="object-cover" />;
 }
 
-const CELL_CLASS = "relative flex aspect-square items-center justify-center rounded-sm";
+// 채워진 칸도 + 칸도 바탕은 같은 옅은 회색이다. 배경을 지운 사진은 이 바탕 위에 물건만 놓인다
+const CELL_CLASS = "relative flex aspect-square items-center justify-center rounded-sm bg-gray-1";
 
 // 그리드의 + 칸. 메뉴가 칸 밖으로 펼쳐져야 해서 넘치는 부분을 자르지 않는다.
 // (빈 칸은 그리지 않는다 — 채워진 칸과 그 다음의 + 칸만 보인다)
 export function AddSlotCell({ children }: { children: ReactNode }) {
-  return <div className={`${CELL_CLASS} bg-gray-1`}>{children}</div>;
+  return <div className={CELL_CLASS}>{children}</div>;
 }
 
 export function SlotCell({ entry }: { entry: SlotEntry }) {
   return (
-    <div className={`${CELL_CLASS} overflow-hidden bg-gray-2`}>
+    <div className={`${CELL_CLASS} overflow-hidden`}>
       <SlotImage entry={entry} sizes="(min-width: 448px) 130px, 30vw" />
       <QuantityBadge quantity={entry.quantity} className="absolute bottom-2 right-2 bg-white" />
     </div>
@@ -37,13 +38,9 @@ export function SlotCell({ entry }: { entry: SlotEntry }) {
 export const SLOT_ROW_CLASS = "flex h-25 w-full items-center gap-8 border-b border-border pl-5.25 pr-4.5";
 
 // 리스트 줄 왼쪽의 네모 칸
-export function SlotRowThumb({ filled = false, children }: { filled?: boolean; children?: ReactNode }) {
+export function SlotRowThumb({ children }: { children?: ReactNode }) {
   return (
-    <div
-      className={`relative flex size-13.5 shrink-0 items-center justify-center overflow-hidden rounded-sm ${
-        filled ? "bg-gray-2" : "bg-gray-1"
-      }`}
-    >
+    <div className="relative flex size-13.5 shrink-0 items-center justify-center overflow-hidden rounded-sm bg-gray-1">
       {children}
     </div>
   );
@@ -52,7 +49,7 @@ export function SlotRowThumb({ filled = false, children }: { filled?: boolean; c
 export function SlotRow({ entry }: { entry: SlotEntry }) {
   return (
     <div className={SLOT_ROW_CLASS}>
-      <SlotRowThumb filled>
+      <SlotRowThumb>
         <SlotImage entry={entry} sizes="54px" />
       </SlotRowThumb>
       <p className="min-w-0 flex-1 truncate text-body">{entry.name}</p>

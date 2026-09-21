@@ -90,8 +90,8 @@ export function PhotoEditor({ closeHref, nextHref }: PhotoEditorProps) {
         />
 
         <div className="flex flex-1 items-center px-3 py-6">
-          {/* 칸과 같은 회색 바탕 · 같은 자르기(가운데 정사각형)로 보여준다 — 격자에서 어떻게 보일지 그대로다 */}
-          <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-gray-2">
+          {/* 칸과 같은 옅은 회색 바탕 · 같은 자르기(가운데 정사각형)로 보여준다 — 격자에서 어떻게 보일지 그대로다 */}
+          <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-gray-1">
             <PhotoPreview file={photo} className={working ? "animate-pulse" : ""} />
             {working && (
               <p role="status" className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-dropdown text-center text-label">
