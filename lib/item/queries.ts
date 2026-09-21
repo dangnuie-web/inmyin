@@ -43,3 +43,34 @@ export async function getMyItemDetail(userId: string, itemId: string): Promise<I
     isPublic: data.is_public,
   };
 }
+
+// 아이템 모아보기(M-13)의 한 칸. 어느 인벤토리에 있는지도 같이 가진다
+export type CollectedItem = {
+  id: string;
+  name: string;
+  imageUrl: string;
+  quantity: number;
+  category: string | null;
+  inventoryName: string;
+};
+
+// 내 아이템 전부, 최신순 (M-13). 한 번에 다 읽는다 — 검색과 카테고리를 누르는 즉시 걸러 보여주려면 브라우저가 전부 갖고 있어야 한다
+export async function getMyItemCollection(userId: string): Promise<CollectedItem[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("items")
+    .select("id, name, image_url, quantity, category, inventories!inner(name)")
+    .eq("user_id", userId)
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+
+  return data.map((item) => ({
+    id: item.id,
+    name: item.name,
+    imageUrl: item.image_url,
+    quantity: item.quantity,
+    category: item.category,
+    inventoryName: item.inventories.name,
+  }));
+}

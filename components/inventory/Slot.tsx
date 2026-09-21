@@ -79,13 +79,22 @@ export function SlotRowThumb({ filled = false, children }: { filled?: boolean; c
 }
 
 // 나머지 props 는 링크에 그대로 넘긴다 — 길게 누르기(SlotGestures)가 여기에 손잡이를 단다
-export function SlotRow({ entry, ...props }: Omit<ComponentProps<typeof Link>, "href" | "className"> & { entry: SlotEntry }) {
+type SlotRowProps = Omit<ComponentProps<typeof Link>, "href" | "className"> & {
+  entry: SlotEntry;
+  // 이름 아래에 덧붙이는 한 줄. 아이템 모아보기(M-13)에서 "어느 인벤토리에 있는지"를 적는다
+  caption?: string;
+};
+
+export function SlotRow({ entry, caption, ...props }: SlotRowProps) {
   return (
     <Link {...props} href={slotEntryPath(entry)} draggable={false} className={`${SLOT_ROW_CLASS} ${NO_BROWSER_GESTURES} active:opacity-80`}>
       <SlotRowThumb filled>
         <SlotImage entry={entry} sizes="54px" />
       </SlotRowThumb>
-      <p className="min-w-0 flex-1 truncate text-body">{entry.name}</p>
+      <p className="flex min-w-0 flex-1 flex-col">
+        <span className="truncate text-body">{entry.name}</span>
+        {caption && <span className="truncate text-caption text-ink-muted">{caption}</span>}
+      </p>
       <QuantityBadge quantity={entry.quantity} className="bg-gray-1" />
     </Link>
   );

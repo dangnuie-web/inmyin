@@ -72,9 +72,9 @@ export default async function MyProfilePage() {
       <section className="border-b border-gray-3 pb-7">
         <div className="flex h-16 items-center pl-7 pr-6.5">
           <SectionTitle title="ITEM" note={`TOTAL ${stats.itemCount}/${maxInventories * slotCount}`} />
-          <SoonButton notice="아이템 모아보기는 곧 만들어요." className="ml-auto rounded-md bg-ink px-2.5 text-label font-bold text-white active:opacity-80">
+          <Link href="/my/items" className="ml-auto rounded-md bg-ink px-2.5 text-label font-bold text-white active:opacity-80">
             더보기
-          </SoonButton>
+          </Link>
         </div>
         {stats.recentItems.length > 0 ? (
           <ul className="flex gap-2.25 overflow-x-auto px-6 [scrollbar-width:none]">

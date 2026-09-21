@@ -5,6 +5,7 @@ import { InventoryBoard } from "@/components/inventory/InventoryBoard";
 import { InventoryStrip } from "@/components/inventory/InventoryStrip";
 import { ViewToggle } from "@/components/inventory/ViewToggle";
 import { CategoryTag } from "@/components/ui/CategoryTag";
+import { ChipRow } from "@/components/ui/ChipRow";
 import { HeaderMini } from "@/components/ui/HeaderMini";
 import { requireProfile } from "@/lib/auth/profile";
 import { inventoryPath, packingPath, type InventoryView } from "@/lib/inventory/paths";
@@ -60,7 +61,7 @@ export default async function InventoryDetailPage(props: PageProps<"/my/inventor
         <InventoryStrip inventories={inventories} currentId={inventory.id} hrefFor={(inventoryId) => inventoryPath(inventoryId, { view })} />
       </div>
 
-      <div className="mt-9 flex items-center gap-2.5 overflow-x-auto px-7 [scrollbar-width:none]">
+      <ChipRow className="mt-9 pl-7">
         <ViewToggle current={view} hrefFor={(next) => inventoryPath(inventory.id, { view: next, category })} />
         <CategoryTag label="전체" selected={!category} href={inventoryPath(inventory.id, { view })} />
         {inventory.categories.map((tag) => (
@@ -71,7 +72,7 @@ export default async function InventoryDetailPage(props: PageProps<"/my/inventor
             href={inventoryPath(inventory.id, { view, category: tag })}
           />
         ))}
-      </div>
+      </ChipRow>
 
       <InventoryBoard
         inventoryId={inventory.id}

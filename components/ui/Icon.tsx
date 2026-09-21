@@ -81,6 +81,16 @@ const ICONS = {
       </>
     ),
   },
+  // 아이템 모아보기(M-13) 검색칸의 돋보기
+  search: {
+    size: 18,
+    body: (
+      <>
+        <circle cx="7.5" cy="7.5" r="5.5" stroke="currentColor" strokeWidth="1.8" />
+        <path d="M11.8 11.8L16.5 16.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      </>
+    ),
+  },
   // 아이템 상세(M-14) 헤더의 더 보기. 세로 점 세 개
   more: {
     size: 24,

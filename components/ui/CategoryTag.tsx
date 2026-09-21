@@ -20,7 +20,7 @@ const SIZES = {
 
 export function CategoryTag({ label, selected = true, href, onClick, onRemove, size = "md" }: CategoryTagProps) {
   const sizes = SIZES[size];
-  const className = `flex items-center justify-center whitespace-nowrap rounded-md border border-border font-semibold ${sizes.base} ${
+  const className = `flex shrink-0 items-center justify-center whitespace-nowrap rounded-md border border-border font-semibold ${sizes.base} ${
     selected ? "bg-gray-2 text-ink" : "bg-white text-disabled"
   } ${onRemove ? sizes.removable : sizes.plain}`;
 
