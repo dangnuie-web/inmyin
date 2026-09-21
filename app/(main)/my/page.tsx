@@ -2,12 +2,13 @@ import { signOut } from "@/app/(auth)/actions";
 import { Button } from "@/components/ui/Button";
 import { requireProfile } from "@/lib/auth/profile";
 
-export default async function Home() {
+// 임시 — 내 프로필(M-01)을 만들면 이 화면을 대체한다
+export default async function My() {
   const profile = await requireProfile();
 
   return (
-    <main className="flex flex-1 flex-col items-center justify-center gap-2 px-5 text-center">
-      <h1 className="text-title font-bold">INMYIN</h1>
+    <div className="flex flex-1 flex-col items-center justify-center gap-2 px-5 text-center">
+      <h1 className="text-title font-bold">My</h1>
       <p className="text-body text-ink-muted">
         {profile.nickname} (@{profile.handle}) 님으로 로그인했습니다.
       </p>
@@ -17,6 +18,6 @@ export default async function Home() {
           로그아웃
         </Button>
       </form>
-    </main>
+    </div>
   );
 }
