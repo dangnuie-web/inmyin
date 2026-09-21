@@ -8,7 +8,6 @@ import { HeaderMini } from "@/components/ui/HeaderMini";
 import { requireProfile } from "@/lib/auth/profile";
 import { inventoryPath, type InventoryView } from "@/lib/inventory/paths";
 import { getMyInventories, getMyInventoryDetail } from "@/lib/inventory/queries";
-import { planLimits } from "@/lib/plans";
 
 export const metadata: Metadata = { title: "인벤토리 · INMYIN" };
 
@@ -55,12 +54,7 @@ export default async function InventoryDetailPage(props: PageProps<"/my/inventor
       />
 
       <div className="mt-5">
-        <InventoryStrip
-          inventories={inventories}
-          currentId={inventory.id}
-          view={view}
-          canAddMore={inventories.length < planLimits(profile.plan).maxInventories}
-        />
+        <InventoryStrip inventories={inventories} currentId={inventory.id} view={view} />
       </div>
 
       <div className="mt-9 flex items-center gap-2.5 overflow-x-auto px-7 [scrollbar-width:none]">

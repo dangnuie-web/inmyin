@@ -7,11 +7,7 @@ import { Icon } from "@/components/ui/Icon";
 import { Toast } from "@/components/ui/Toast";
 import type { InventoryView } from "@/lib/inventory/paths";
 import type { SlotEntry } from "@/lib/inventory/queries";
-import { EmptySlotCell, SLOT_ROW_CLASS, SlotCell, SlotRow, SlotRowThumb } from "./Slot";
-
-// 빈 칸은 화면을 채울 만큼만 그린다 — 아이템이 적어도 이만큼은 보여서 인벤토리처럼 보인다.
-// 남은 용량은 아래의 16/25 가 알려준다
-const MIN_ROWS = 5;
+import { AddSlotCell, SLOT_ROW_CLASS, SlotCell, SlotRow, SlotRowThumb } from "./Slot";
 
 // docs/screens.md "칸 수에 따른 격자". className 은 Tailwind가 찾을 수 있게 글자 그대로 적어둔다
 function gridFor(slotCount: number) {
@@ -160,27 +156,22 @@ type GridProps = {
   children: (isLastColumn: boolean) => React.ReactNode;
 };
 
+// 채워진 칸과 그 다음의 + 칸만 그린다. 빈 칸은 그리지 않는다 — 남은 용량은 아래의 16/25 가 알려준다
 function Grid({ entries, slotCount, isFull, children }: GridProps) {
   const { columns, className } = gridFor(slotCount);
-  const addIndex = isFull ? -1 : entries.length;
-
-  // + 칸이 있는 줄 + 빈 줄 하나까지. 적어도 MIN_ROWS 줄, 많아도 인벤토리 크기까지
-  const rows = Math.max(MIN_ROWS, Math.ceil((entries.length + 1) / columns) + 1);
-  const cellCount = Math.min(slotCount, rows * columns);
 
   return (
     <ul className={`mt-6 grid gap-3.5 px-6.5 ${className}`}>
-      {Array.from({ length: cellCount }, (_, index) => (
-        <li key={entries[index]?.id ?? index}>
-          {index < entries.length ? (
-            <SlotCell entry={entries[index]} />
-          ) : index === addIndex ? (
-            <EmptySlotCell>{children(index % columns === columns - 1)}</EmptySlotCell>
-          ) : (
-            <EmptySlotCell />
-          )}
+      {entries.map((entry) => (
+        <li key={entry.id}>
+          <SlotCell entry={entry} />
         </li>
       ))}
+      {!isFull && (
+        <li>
+          <AddSlotCell>{children(entries.length % columns === columns - 1)}</AddSlotCell>
+        </li>
+      )}
     </ul>
   );
 }

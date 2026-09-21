@@ -16,8 +16,8 @@ export type NewInventoryInput = {
   id: string;
   name: string;
   categories: string[];
-  // 올린 사진의 확장자. 사진 없이 만들면 null
-  imageExtension: string | null;
+  // 올린 사진의 확장자. 사진은 필수다 — + 가 항상 사진 고르기로 시작한다
+  imageExtension: string;
 };
 
 // M-03 · 인벤토리 만들기. 사진은 브라우저가 저장소에 먼저 올려 두고, 여기서는 DB에 한 줄을 적는다.
@@ -33,8 +33,7 @@ export async function createInventory(input: NewInventoryInput): Promise<FormSta
   const categories = cleanCategories(input.categories);
   if (!categories) return { error: "카테고리를 다시 확인해 주세요." };
 
-  const hasImage = input.imageExtension !== null;
-  if (!UUID_PATTERN.test(input.id) || (hasImage && !IMAGE_EXTENSIONS.includes(input.imageExtension!))) {
+  if (!UUID_PATTERN.test(input.id) || !IMAGE_EXTENSIONS.includes(input.imageExtension)) {
     return { error: "잘못된 요청입니다. 처음부터 다시 시도해 주세요." };
   }
 
@@ -61,9 +60,9 @@ export async function createInventory(input: NewInventoryInput): Promise<FormSta
     categories,
     slot_count: slotCount,
     sort_order: count ?? 0,
-    image_url: hasImage ? supabase.storage.from("inventories").getPublicUrl(path).data.publicUrl : null,
+    image_url: supabase.storage.from("inventories").getPublicUrl(path).data.publicUrl,
     // 원본은 비공개 저장소라 주소 대신 경로를 적어 둔다
-    raw_image_url: hasImage ? path : null,
+    raw_image_url: path,
   });
   if (error) return { error: "저장하지 못했습니다. 잠시 후 다시 시도해 주세요." };
 

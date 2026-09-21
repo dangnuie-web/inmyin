@@ -17,7 +17,7 @@ type OpenDropdown = "name" | "category" | null;
 
 // 인벤토리 정보 입력. 사진 · 이름 · 카테고리 태그를 받아 저장한다.
 export function InventoryForm({ userId }: { userId: string }) {
-  // 목록에서 고른 사진을 이어받는다. 새로고침해서 비어 있으면 여기서 다시 고를 수 있다
+  // 목록에서 고른 사진을 이어받는다. 사진은 필수다 — 새로고침해서 비어 있으면 여기서 다시 골라야 저장된다
   const [photo, setPhoto] = useState<File | null>(getPendingPhoto);
   const [name, setName] = useState("");
   const [tags, setTags] = useState<string[]>([]);
@@ -68,6 +68,10 @@ export function InventoryForm({ userId }: { userId: string }) {
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!photo) {
+      setError("사진을 추가해 주세요.");
+      return;
+    }
     if (!name.trim()) {
       setError("인벤토리 이름을 입력해 주세요.");
       return;
@@ -82,15 +86,12 @@ export function InventoryForm({ userId }: { userId: string }) {
     setError(undefined);
     startTransition(async () => {
       const id = crypto.randomUUID();
-      let imageExtension: string | null = null;
-
-      if (photo) {
-        try {
-          imageExtension = await uploadPhoto(photo, userId, id);
-        } catch {
-          setError("사진을 올리지 못했습니다. 잠시 후 다시 시도해 주세요.");
-          return;
-        }
+      let imageExtension: string;
+      try {
+        imageExtension = await uploadPhoto(photo, userId, id);
+      } catch {
+        setError("사진을 올리지 못했습니다. 잠시 후 다시 시도해 주세요.");
+        return;
       }
 
       // 성공하면 서버가 목록으로 보낸다. 돌아온 값이 있으면 오류다
@@ -112,7 +113,7 @@ export function InventoryForm({ userId }: { userId: string }) {
         ) : (
           <span className="flex flex-col items-center gap-3 text-caption">
             <Icon name="plus" />
-            사진 추가 (선택)
+            사진 추가
           </span>
         )}
       </button>

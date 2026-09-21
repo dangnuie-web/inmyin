@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AddInventoryRow } from "@/components/inventory/AddInventoryRow";
-import { EmptyInventoryRow, InventoryRow } from "@/components/inventory/InventoryRow";
+import { InventoryRow } from "@/components/inventory/InventoryRow";
 import { HeaderMini } from "@/components/ui/HeaderMini";
 import { requireProfile } from "@/lib/auth/profile";
 import { getMyInventories } from "@/lib/inventory/queries";
@@ -10,14 +10,13 @@ import { planLimits } from "@/lib/plans";
 export const metadata: Metadata = { title: "인벤토리 · INMYIN" };
 
 // M-03 · My › 인벤토리 목록.
-// 플랜의 인벤토리 한도만큼 줄을 그린다 — 있는 것, + 하나, 나머지는 빈 칸
+// 있는 인벤토리와 그 다음의 + 줄 하나만 그린다. 빈 자리는 그리지 않는다
 export default async function InventoriesPage() {
   const profile = await requireProfile();
   const inventories = await getMyInventories(profile.id);
   const { maxInventories, slotCount } = planLimits(profile.plan);
 
   const isFull = inventories.length >= maxInventories;
-  const emptyRows = Math.max(0, maxInventories - inventories.length - 1);
   const usedTotal = inventories.reduce((sum, inventory) => sum + inventory.usedSlots, 0);
 
   return (
@@ -33,9 +32,6 @@ export default async function InventoriesPage() {
           <InventoryRow key={inventory.id} inventory={inventory} />
         ))}
         {!isFull && <AddInventoryRow />}
-        {Array.from({ length: emptyRows }, (_, index) => (
-          <EmptyInventoryRow key={index} />
-        ))}
       </ul>
 
       {isFull && (

@@ -4,10 +4,10 @@ import type { ReactNode } from "react";
 import { inventoryPath } from "@/lib/inventory/paths";
 import type { InventorySummary } from "@/lib/inventory/queries";
 
-// 인벤토리 목록(M-03)의 한 줄. 피그마 컴포넌트의 변형 세 가지 중
-// 빈칸 · 인벤토리 있음 이 여기 있고, 추가(+)는 AddInventoryRow 에 있다.
+// 인벤토리 목록(M-03)의 한 줄. 피그마 컴포넌트의 변형 중 `인벤토리 있음` 이 여기 있고,
+// `추가`(+)는 AddInventoryRow 에 있다. `빈칸` 은 그리지 않기로 했다.
 
-// 줄 왼쪽의 네모 칸. 세 변형이 모두 쓴다
+// 줄 왼쪽의 네모 칸. 사진이 든 칸은 filled
 export function InventoryThumb({ filled = false, children }: { filled?: boolean; children?: ReactNode }) {
   return (
     <div
@@ -22,14 +22,6 @@ export function InventoryThumb({ filled = false, children }: { filled?: boolean;
 
 // 줄의 공통 틀 — 높이와 좌우 여백
 export const INVENTORY_ROW_CLASS = "flex h-21.25 w-full items-center gap-7 pl-6.25 pr-11";
-
-export function EmptyInventoryRow() {
-  return (
-    <li className={INVENTORY_ROW_CLASS} aria-hidden>
-      <InventoryThumb />
-    </li>
-  );
-}
 
 // 누르면 그 인벤토리의 상세(M-04)로 간다
 export function InventoryRow({ inventory }: { inventory: InventorySummary }) {

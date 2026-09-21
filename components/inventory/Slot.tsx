@@ -19,9 +19,9 @@ function SlotImage({ entry, sizes }: { entry: SlotEntry; sizes: string }) {
 
 const CELL_CLASS = "relative flex aspect-square items-center justify-center rounded-sm";
 
-// 그리드의 빈 칸. children 을 주면 + 칸처럼 안에 무언가를 놓을 수 있다.
-// + 칸의 메뉴가 칸 밖으로 펼쳐져야 해서 넘치는 부분을 자르지 않는다
-export function EmptySlotCell({ children }: { children?: ReactNode }) {
+// 그리드의 + 칸. 메뉴가 칸 밖으로 펼쳐져야 해서 넘치는 부분을 자르지 않는다.
+// (빈 칸은 그리지 않는다 — 채워진 칸과 그 다음의 + 칸만 보인다)
+export function AddSlotCell({ children }: { children: ReactNode }) {
   return <div className={`${CELL_CLASS} bg-gray-1`}>{children}</div>;
 }
 
