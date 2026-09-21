@@ -1,6 +1,5 @@
-// 화면 곳곳에서 쓰는 작은 아이콘. 색은 currentColor 라서 부모의 글자색을 따라간다.
-// close · dropdown 은 피그마에서 내보낸 그림 그대로다.
-// back · plus 는 아직 피그마 SVG를 받지 못해 임시로 그렸다 — 받으면 path 만 바꾼다.
+// 화면 곳곳에서 쓰는 작은 아이콘. 피그마에서 내보낸 그림 그대로다.
+// 색은 currentColor 라서 부모의 글자색을 따라간다.
 
 const ICONS = {
   // 피그마 `이동` 컴포넌트의 닫기. 64 × 64 칸 가운데에 놓인다
@@ -13,12 +12,10 @@ const ICONS = {
       />
     ),
   },
-  // 임시 — 닫기와 같은 칸 크기·선 굵기로 맞췄다
+  // 피그마 `이동` 컴포넌트의 뒤로가기. 원본은 15 × 26 이라, 닫기와 같은 64 × 64 칸 가운데로 옮겨 적었다
   back: {
     size: 64,
-    body: (
-      <path d="M37 21L26 32L37 43" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    ),
+    body: <path d="M37.9142 19.7072L25.9142 31.7072L37.9142 43.7072" stroke="currentColor" strokeWidth="2" />,
   },
   // 피그마의 드롭다운 화살표. 흰 원 안에 검은 세모
   dropdown: {
@@ -30,10 +27,15 @@ const ICONS = {
       </>
     ),
   },
-  // 임시 — 인벤토리 추가 칸의 +
+  // 인벤토리 추가 칸의 +
   plus: {
-    size: 20,
-    body: <path d="M10 2V18M2 10H18" stroke="currentColor" strokeWidth="4" />,
+    size: 21,
+    body: (
+      <>
+        <rect x="7.57007" width="5.04673" height="20.1869" fill="currentColor" />
+        <rect y="7.57007" width="20.1869" height="5.04673" fill="currentColor" />
+      </>
+    ),
   },
 };
 

@@ -43,7 +43,7 @@ export default async function InventoriesPage() {
           href="/my/plan"
           className="mx-auto mt-auto mb-10 flex h-11.25 w-52 items-center justify-center gap-1 rounded-sm bg-point text-link font-bold text-white active:opacity-80"
         >
-          {/* 임시 — 피그마의 반짝이 아이콘 SVG를 받으면 바꾼다 */}
+          {/* 피그마에서도 그림이 아니라 글자(✦)다 */}
           <span aria-hidden>✦</span>
           인벤토리 늘리기
         </Link>
