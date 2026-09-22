@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "디자인 토큰 · INMYIN",
@@ -121,6 +122,9 @@ export default function DesignPage() {
         <p className="text-label text-ink-muted">
           app/globals.css 의 @theme 값을 그대로 읽어 보여주는 확인용 페이지
         </p>
+        <Link href="/design/icons" className="text-label text-point underline">
+          앱 아이콘 미리보기 →
+        </Link>
       </header>
 
       <Section title="색 — 팔레트" note="피그마 변수 그대로">
