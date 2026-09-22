@@ -8,7 +8,7 @@ import { Toast } from "@/components/ui/Toast";
 import type { PackingInventory, SlotEntry } from "@/lib/inventory/queries";
 import { withSubjectParticle } from "@/lib/korean";
 import { InventoryStrip } from "./InventoryStrip";
-import { gridFor, PackingSlotCell } from "./Slot";
+import { gridFor, type GridColumns, PackingSlotCell } from "./Slot";
 
 // 넘어온 칸이 "톡" 하고 나타나는 동안. globals.css 의 slot-pop 보다 길어야 한다
 const ARRIVAL_MS = 1600;
@@ -20,11 +20,13 @@ type PackingBoardProps = {
   inventories: PackingInventory[];
   // 짐싸기 버튼을 누른 인벤토리. 위쪽에 열린다
   startId: string;
+  // 격자 한 줄의 칸 수 (Slot.tsx 의 gridFor)
+  columns: GridColumns;
 };
 
 // M-05 · 짐싸기. 인벤토리 두 개를 위아래로 열어 놓고, 아이템을 누르면 반대쪽으로 넘어간다.
 // 한 번에 하나씩, 되돌리기 버튼 없이 — 반대쪽에서 다시 누르면 돌아온다. 누르는 즉시 저장된다.
-export function PackingBoard({ inventories, startId }: PackingBoardProps) {
+export function PackingBoard({ inventories, startId, columns }: PackingBoardProps) {
   const [notice, setNotice] = useState<string | null>(null);
   const hideNotice = useCallback(() => setNotice(null), []);
 
@@ -78,7 +80,7 @@ export function PackingBoard({ inventories, startId }: PackingBoardProps) {
   return (
     <>
       {(["top", "bottom"] as const).map((side) => (
-        <PackingHalf
+        <PackingHalf columns={columns}
           key={side}
           inventories={inventories}
           inventory={inventories.find((inventory) => inventory.id === openId[side]) ?? null}
@@ -106,16 +108,17 @@ type PackingHalfProps = {
   arrivedId: string | null;
   onOpen: (inventoryId: string) => void;
   onPick: (entry: SlotEntry) => void;
+  columns: GridColumns;
   className: string;
 };
 
 // 화면의 절반. 인벤토리 띠 아래는 전부 칸이다 (이 안에서만 스크롤). 1/25 는 칸 위에 떠 있다.
 // 절반은 좁다. 그래서 M-04 에 있는 그리드/리스트 토글과 카테고리 칩을 여기서는 뺐다 —
 // 짐싸기는 찾아보는 화면이 아니라 옮기는 화면이고, 같은 면적이면 그리드가 가장 많이 보여준다
-function PackingHalf({ inventories, inventory, entries, otherId, arrivedId, onOpen, onPick, className }: PackingHalfProps) {
+function PackingHalf({ inventories, inventory, entries, otherId, arrivedId, onOpen, onPick, columns, className }: PackingHalfProps) {
   if (!inventory) {
     return (
-      <section className={`flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-6 text-center ${className}`}>
+      <section className={`flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-5 text-center ${className}`}>
         <p className="break-keep text-label text-ink-muted">짐을 옮기려면 인벤토리가 하나 더 필요해요.</p>
         <Link href="/my/inventories" className="text-label font-bold underline underline-offset-4">
           인벤토리 만들러 가기
@@ -131,7 +134,7 @@ function PackingHalf({ inventories, inventory, entries, otherId, arrivedId, onOp
       </div>
 
       {/* 아래 여백 — 맨 아랫줄이 떠 있는 1/25 에 가리지 않게 */}
-      <ul className={`mt-3 grid min-h-0 flex-1 content-start gap-3.5 overflow-y-auto px-6.5 pb-10 ${gridFor(inventory.slotCount).className}`}>
+      <ul className={`mt-3 grid min-h-0 flex-1 content-start gap-3.5 overflow-y-auto px-5 pb-10 ${gridFor(inventory.slotCount, columns).className}`}>
         {entries.map((entry) => (
           <li key={entry.id} id={`packing-${entry.id}`} className={entry.id === arrivedId ? "animate-slot-pop" : ""}>
             <PackingSlotCell

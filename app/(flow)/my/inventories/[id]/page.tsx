@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ColumnsSwitch } from "@/components/inventory/ColumnsSwitch";
 import { InventoryBoard } from "@/components/inventory/InventoryBoard";
 import { InventoryStrip } from "@/components/inventory/InventoryStrip";
 import { ViewToggle } from "@/components/inventory/ViewToggle";
@@ -9,6 +10,7 @@ import { ChipRow } from "@/components/ui/ChipRow";
 import { HeaderMini } from "@/components/ui/HeaderMini";
 import { requireProfile } from "@/lib/auth/profile";
 import { inventoryPath, packingPath, type InventoryView } from "@/lib/inventory/paths";
+import { getGridColumns } from "@/lib/inventory/grid-columns";
 import { getMyInventories, getMyInventoryDetail } from "@/lib/inventory/queries";
 
 export const metadata: Metadata = { title: "인벤토리 · INMYIN" };
@@ -26,6 +28,7 @@ export default async function InventoryDetailPage(props: PageProps<"/my/inventor
   const deletedId =
     typeof searchParams.deleted === "string" && UUID_PATTERN.test(searchParams.deleted) ? searchParams.deleted : null;
 
+  const columns = await getGridColumns();
   const [inventory, inventories] = await Promise.all([
     getMyInventoryDetail(profile.id, id, deletedId),
     getMyInventories(profile.id),
@@ -62,7 +65,7 @@ export default async function InventoryDetailPage(props: PageProps<"/my/inventor
       </div>
 
       {/* 토글은 제자리에 있고, 칩만 그 오른쪽에서 옆으로 넘어간다 — 칩을 넘겨 본 뒤에도 보기 방식을 바로 바꿀 수 있다 */}
-      <div className="mt-9 flex items-center gap-2.5 pl-7">
+      <div className="mt-9 flex items-center gap-2.5 pl-5">
         <ViewToggle current={view} hrefFor={(next) => inventoryPath(inventory.id, { view: next, category })} />
         <ChipRow className="min-w-0 flex-1">
           <CategoryTag label="전체" selected={!category} href={inventoryPath(inventory.id, { view })} />
@@ -77,6 +80,13 @@ export default async function InventoryDetailPage(props: PageProps<"/my/inventor
         </ChipRow>
       </div>
 
+      {/* 임시 — 한 줄의 칸 수를 3 · 4 · 5 로 견줘 보는 스위치. 정해지면 뗀다 */}
+      {view === "grid" && (
+        <div className="mt-3 flex justify-end px-5">
+          <ColumnsSwitch current={columns} />
+        </div>
+      )}
+
       <InventoryBoard
         inventoryId={inventory.id}
         inventories={inventories}
@@ -86,6 +96,7 @@ export default async function InventoryDetailPage(props: PageProps<"/my/inventor
         usedSlots={inventory.entries.filter((entry) => !entry.deleted).length}
         slotCount={inventory.slotCount}
         view={view}
+        columns={columns}
       />
     </main>
   );

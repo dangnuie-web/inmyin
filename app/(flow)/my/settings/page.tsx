@@ -20,7 +20,7 @@ export default async function SettingsPage() {
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col">
       <HeaderMini icon="back" href="/my" title="설정" />
 
-      <div className="flex flex-col px-6.5 pb-10">
+      <div className="flex flex-col px-5 pb-10">
         <Section title="멤버십">
           <div className={`${ROW_CLASS} justify-between active:opacity-100`}>
             {isPremium ? "프리미엄 적용중" : "베이직 이용중"}

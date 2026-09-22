@@ -20,8 +20,7 @@ export default async function InventoriesPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col">
-      {/* 뒤로 화살표는 64px 아이콘 칸의 25px 지점에 그려져 있다. 줄의 사진과 같은 20px 선에 오도록 5px 왼쪽으로 민다 */}
-      <HeaderMini icon="back" href="/my" title="INVENTORY" className="-ml-1.25" />
+      <HeaderMini icon="back" href="/my" title="INVENTORY" />
 
       {/* 검정 알약 안의 작은 글자. 오른쪽 끝은 아래 줄들의 "n/25" 와 같은 20px 선 */}
       <p className="mt-4 flex justify-end pr-5">

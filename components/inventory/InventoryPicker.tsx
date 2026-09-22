@@ -27,8 +27,8 @@ export function InventoryPicker({ inventories, intoId, onPick, onClose }: Invent
         aria-label="인벤토리 가져오기"
         className="relative mx-auto flex max-h-[70dvh] w-full max-w-md flex-col rounded-t-xl bg-white pb-[max(1.5rem,env(safe-area-inset-bottom))]"
       >
-        <h2 className="px-6.25 pt-7 text-link font-bold">인벤토리 가져오기</h2>
-        <p className="px-6.25 pt-1 text-caption text-ink-muted">고른 인벤토리가 안에 든 것과 함께 통째로 이 칸에 담겨요.</p>
+        <h2 className="px-5 pt-7 text-link font-bold">인벤토리 가져오기</h2>
+        <p className="px-5 pt-1 text-caption text-ink-muted">고른 인벤토리가 안에 든 것과 함께 통째로 이 칸에 담겨요.</p>
 
         {into && others.length > 0 ? (
           <ul className="mt-3 flex flex-col overflow-y-auto">
@@ -58,7 +58,7 @@ export function InventoryPicker({ inventories, intoId, onPick, onClose }: Invent
             })}
           </ul>
         ) : (
-          <p className="px-6.25 py-10 text-center text-label text-ink-muted">가져올 다른 인벤토리가 없어요.</p>
+          <p className="px-5 py-10 text-center text-label text-ink-muted">가져올 다른 인벤토리가 없어요.</p>
         )}
       </div>
     </div>

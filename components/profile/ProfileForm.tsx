@@ -51,7 +51,7 @@ export function ProfileForm({ userId, avatarUrl, ...initial }: ProfileFormProps)
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-1 flex-col px-6 pb-[max(3.5rem,env(safe-area-inset-bottom))]">
+    <form onSubmit={onSubmit} className="flex flex-1 flex-col px-5 pb-[max(3.5rem,env(safe-area-inset-bottom))]">
       <button type="button" onClick={() => photoRef.current?.click()} className="mx-auto mt-10 flex flex-col items-center gap-3 active:opacity-80">
         <span className="relative flex size-30 items-center justify-center overflow-hidden rounded-full bg-field-dark text-placeholder-dark">
           {photo ? (

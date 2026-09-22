@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { SlotCell, SlotRow } from "@/components/inventory/Slot";
+import { type GridColumns, gridColumnsClass, SlotCell, SlotRow } from "@/components/inventory/Slot";
 import { ViewToggle } from "@/components/inventory/ViewToggle";
 import { CategoryTag } from "@/components/ui/CategoryTag";
 import { ChipRow } from "@/components/ui/ChipRow";
@@ -15,11 +15,13 @@ type ItemCollectionProps = {
   items: CollectedItem[];
   // 넣을 수 있는 전체 칸 수 (인벤토리 한도 × 칸 수). 아래의 3/125 에 쓴다
   capacity: number;
+  // 격자 한 줄의 칸 수 (Slot.tsx 의 gridFor)
+  columns: GridColumns;
 };
 
 // M-13 · 아이템 모아보기. 인벤토리 구분 없이 아이템 전체를 최신순으로 본다.
 // 검색과 카테고리는 서버를 거치지 않고 여기서 바로 거른다 — 글자를 칠 때마다, 칩을 누를 때마다 즉시 바뀐다.
-export function ItemCollection({ items, capacity }: ItemCollectionProps) {
+export function ItemCollection({ items, capacity, columns }: ItemCollectionProps) {
   const [view, setView] = useState<InventoryView>("grid");
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | null>(null);
@@ -38,7 +40,7 @@ export function ItemCollection({ items, capacity }: ItemCollectionProps) {
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="flex items-center gap-6 pl-4 pr-4.5">
+      <div className="flex items-center gap-6 px-5">
         <label className="flex h-7.5 min-w-0 flex-1 items-center gap-2 rounded-full border border-border pl-4 pr-4">
           {/* 아이폰은 16px 보다 작은 입력칸을 누르면 화면을 멋대로 확대한다 */}
           <input
@@ -55,7 +57,7 @@ export function ItemCollection({ items, capacity }: ItemCollectionProps) {
         <ViewToggle current={view} onSelect={setView} />
       </div>
 
-      <ChipRow className="mt-3 pl-4">
+      <ChipRow className="mt-3 pl-5">
         <CategoryTag label="전체" selected={!category} onClick={() => setCategory(null)} />
         {categories.map((tag) => (
           <CategoryTag key={tag} label={tag} selected={tag === category} onClick={() => setCategory(tag === category ? null : tag)} />
@@ -63,11 +65,11 @@ export function ItemCollection({ items, capacity }: ItemCollectionProps) {
       </ChipRow>
 
       {shown.length === 0 ? (
-        <p className="mt-16 break-keep px-6 text-center text-label text-ink-muted">
+        <p className="mt-16 break-keep px-5 text-center text-label text-ink-muted">
           {isFiltered ? "찾는 아이템이 없어요." : "아직 등록한 아이템이 없어요. 인벤토리에서 + 를 눌러 넣어 보세요."}
         </p>
       ) : view === "grid" ? (
-        <ul className="mt-8 grid grid-cols-3 gap-3.5 px-6.5">
+        <ul className={`mt-8 grid gap-3.5 px-5 ${gridColumnsClass(columns)}`}>
           {shown.map((item) => (
             <li key={item.id}>
               <SlotCell entry={toEntry(item)} />

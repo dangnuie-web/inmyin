@@ -9,8 +9,8 @@ export default function LicensesPage() {
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col">
       <HeaderMini icon="back" href="/my/settings" title="오픈소스 라이선스" />
-      <p className="break-keep px-6.5 pt-4 text-label text-ink-muted">INMYIN 은 아래의 오픈소스로 만들어졌습니다. 이름을 누르면 원본 저장소가 열립니다.</p>
-      <ul className="mt-2 flex flex-col px-6.5 pb-10">
+      <p className="break-keep px-5 pt-4 text-label text-ink-muted">INMYIN 은 아래의 오픈소스로 만들어졌습니다. 이름을 누르면 원본 저장소가 열립니다.</p>
+      <ul className="mt-2 flex flex-col px-5 pb-10">
         {OPEN_SOURCE_LICENSES.map(({ name, license, url }) => (
           <li key={name}>
             <a

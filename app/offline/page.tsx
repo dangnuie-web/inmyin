@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 // 로그인 없이 열리는 주소다 (lib/supabase/proxy.ts) — 로그인 화면으로 돌려보내면 미리 저장할 때 엉뚱한 화면이 담긴다
 export default function OfflinePage() {
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-8 px-8 pb-10 pt-20 text-center">
+    <main className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-8 px-5 pb-10 pt-20 text-center">
       <Image src="/logo.svg" alt="INMYIN" width={146} height={31} priority />
       <div className="flex flex-col gap-2">
         <h1 className="text-title font-bold">인터넷이 연결되어 있지 않아요</h1>

@@ -91,7 +91,7 @@ export function ItemForm({ userId, inventoryId, categories, item }: ItemFormProp
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-1 flex-col px-6 pb-[max(3.5rem,env(safe-area-inset-bottom))]">
+    <form onSubmit={onSubmit} className="flex flex-1 flex-col px-5 pb-[max(3.5rem,env(safe-area-inset-bottom))]">
       <div className="mt-8 flex flex-col gap-4">
         <DarkInput
           label="아이템 이름"

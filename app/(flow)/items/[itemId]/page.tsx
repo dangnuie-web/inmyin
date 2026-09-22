@@ -5,6 +5,7 @@ import { gridFor, SlotCell } from "@/components/inventory/Slot";
 import { ItemMenu } from "@/components/item/ItemMenu";
 import { HeaderMini } from "@/components/ui/HeaderMini";
 import { requireProfile } from "@/lib/auth/profile";
+import { getGridColumns } from "@/lib/inventory/grid-columns";
 import { inventoryPath } from "@/lib/inventory/paths";
 import { getMyInventoryDetail } from "@/lib/inventory/queries";
 import { getMyItemDetail } from "@/lib/item/queries";
@@ -23,7 +24,7 @@ export default async function ItemDetailPage(props: PageProps<"/items/[itemId]">
 
   const item = await getMyItemDetail(profile.id, itemId);
   if (!item) notFound();
-  const inventory = await getMyInventoryDetail(profile.id, item.inventoryId);
+  const [inventory, columns] = await Promise.all([getMyInventoryDetail(profile.id, item.inventoryId), getGridColumns()]);
   if (!inventory) notFound();
 
   const facts = [
@@ -35,7 +36,7 @@ export default async function ItemDetailPage(props: PageProps<"/items/[itemId]">
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col pb-[max(2.5rem,env(safe-area-inset-bottom))]">
       <HeaderMini icon="close" href={inventoryPath(inventory.id)} title="아이템" action={<ItemMenu itemId={item.id} inventoryId={inventory.id} />} />
 
-      <div className="relative mx-6.25 mt-3 aspect-square overflow-hidden rounded-lg bg-gray-1">
+      <div className="relative mx-5 mt-3 aspect-square overflow-hidden rounded-lg bg-gray-1">
         {/* 올릴 때 이미 작게 줄여 둔 사진이라 Next 의 이미지 최적화를 거치지 않는다 */}
         <Image src={item.imageUrl} alt={item.name} fill sizes="(min-width: 448px) 400px, 90vw" unoptimized priority className="object-cover" />
         {item.quantity > 1 && (
@@ -43,7 +44,7 @@ export default async function ItemDetailPage(props: PageProps<"/items/[itemId]">
         )}
       </div>
 
-      <section className="mt-10 px-6">
+      <section className="mt-10 px-5">
         <h2 className="text-title font-bold">{item.name}</h2>
         {item.description && <p className="mt-4 whitespace-pre-line break-keep text-label">{item.description}</p>}
         {facts.length > 0 && (
@@ -58,7 +59,7 @@ export default async function ItemDetailPage(props: PageProps<"/items/[itemId]">
         )}
       </section>
 
-      <ul className={`mt-16 grid gap-3.5 px-6.5 ${gridFor(inventory.slotCount).className}`}>
+      <ul className={`mt-16 grid gap-3.5 px-5 ${gridFor(inventory.slotCount, columns).className}`}>
         {inventory.entries.map((entry) => (
           <li key={entry.id}>
             <SlotCell entry={entry} current={entry.id === item.id} />

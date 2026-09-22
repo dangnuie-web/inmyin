@@ -9,11 +9,24 @@ import type { SlotEntry } from "@/lib/inventory/queries";
 // 같은 내용을 그리드에서는 네모 칸(SlotCell)으로, 리스트에서는 한 줄(SlotRow)로 그린다.
 // 누르면 아이템은 상세(M-14)로, 안에 담긴 인벤토리는 그 인벤토리로 간다.
 
-// docs/screens.md "칸 수에 따른 격자". className 은 Tailwind가 찾을 수 있게 글자 그대로 적어둔다
-export function gridFor(slotCount: number) {
-  if (slotCount >= 100) return { columns: 5, className: "grid-cols-5" };
-  if (slotCount >= 50) return { columns: 4, className: "grid-cols-4" };
-  return { columns: 3, className: "grid-cols-3" };
+// 격자의 한 줄에 놓는 칸 수. 기본 4 — 3 은 써 보니 칸이 커 보였다.
+// 3 · 4 · 5 를 폰에서 견줘 보는 동안은 쿠키로 바꿀 수 있다 (ColumnsSwitch, lib/inventory/grid-columns.ts). 정해지면 스위치와 쿠키를 뗀다.
+// className 은 Tailwind가 찾을 수 있게 글자 그대로 적어둔다
+const COLUMN_CLASS = { 3: "grid-cols-3", 4: "grid-cols-4", 5: "grid-cols-5" } as const;
+export type GridColumns = keyof typeof COLUMN_CLASS;
+export const GRID_COLUMN_CHOICES: GridColumns[] = [3, 4, 5];
+export const DEFAULT_GRID_COLUMNS: GridColumns = 4;
+export const GRID_COLUMNS_COOKIE = "grid-columns";
+
+// 칸이 많은 플랜(docs/screens.md "칸 수에 따른 격자")은 고른 값보다 촘촘하게라도 그린다
+export function gridFor(slotCount: number, preferred: GridColumns = DEFAULT_GRID_COLUMNS) {
+  const columns: GridColumns = slotCount >= 100 ? 5 : slotCount >= 50 && preferred < 4 ? 4 : preferred;
+  return { columns, className: COLUMN_CLASS[columns] };
+}
+
+// 인벤토리 한 판이 아닌 격자(아이템 모아보기 M-13)는 고른 칸 수 그대로
+export function gridColumnsClass(columns: GridColumns) {
+  return COLUMN_CLASS[columns];
 }
 
 // 개수 배지 "× n". 하나뿐이면 그리지 않는다
@@ -63,7 +76,7 @@ export function SlotCell({ entry, current = false, ...props }: SlotCellProps) {
   );
 }
 
-export const SLOT_ROW_CLASS = "flex h-25 w-full items-center gap-8 border-b border-border pl-5.25 pr-4.5";
+export const SLOT_ROW_CLASS = "flex h-25 w-full items-center gap-8 border-b border-border px-5";
 
 // 리스트 줄 왼쪽의 네모 칸
 export function SlotRowThumb({ filled = false, children }: { filled?: boolean; children?: ReactNode }) {

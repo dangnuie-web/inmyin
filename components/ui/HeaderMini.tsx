@@ -15,14 +15,15 @@ type HeaderMiniProps = {
   tone?: "light" | "dark";
   // 오른쪽 끝에 놓을 것 (M-04 의 짐싸기 버튼 등)
   action?: ReactNode;
-  // 화면에 따라 자리를 미세하게 옮길 때 (M-03 의 -ml-1.25)
+  // 화면에 따라 덧붙일 것
   className?: string;
 };
 
 // 피그마 `헤더미니`. 아이콘 + 제목 한 줄
 export function HeaderMini({ icon, href, onClick, title, tone = "light", action, className = "" }: HeaderMiniProps) {
   return (
-    <header className={`flex items-center gap-2 ${tone === "dark" ? "text-white" : "text-ink"} ${className}`}>
+    // 뒤로 화살표는 64px 아이콘 칸의 25px 지점에 그려져 있다. 보이는 끝이 화면 여백 20px 선에 오도록 칸을 5px 왼쪽으로 민다
+    <header className={`-ml-1.25 flex items-center gap-2 ${tone === "dark" ? "text-white" : "text-ink"} ${className}`}>
       {href ? (
         <Link href={href} aria-label={LABELS[icon]} className="active:opacity-60">
           <Icon name={icon} />
@@ -33,7 +34,7 @@ export function HeaderMini({ icon, href, onClick, title, tone = "light", action,
         </button>
       )}
       <h1 className="min-w-0 flex-1 truncate text-link font-bold">{title}</h1>
-      {action && <div className="pr-6.25">{action}</div>}
+      {action && <div className="pr-5">{action}</div>}
     </header>
   );
 }

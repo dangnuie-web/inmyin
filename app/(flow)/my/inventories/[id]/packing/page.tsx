@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { PackingBoard } from "@/components/inventory/PackingBoard";
 import { HeaderMini } from "@/components/ui/HeaderMini";
 import { requireProfile } from "@/lib/auth/profile";
+import { getGridColumns } from "@/lib/inventory/grid-columns";
 import { inventoryPath } from "@/lib/inventory/paths";
 import { getMyPackingInventories } from "@/lib/inventory/queries";
 
@@ -17,13 +18,13 @@ export default async function PackingPage(props: PageProps<"/my/inventories/[id]
   const { id } = await props.params;
   if (!UUID_PATTERN.test(id)) notFound();
 
-  const inventories = await getMyPackingInventories(profile.id);
+  const [inventories, columns] = await Promise.all([getMyPackingInventories(profile.id), getGridColumns()]);
   if (!inventories.some((inventory) => inventory.id === id)) notFound();
 
   return (
     <main className="mx-auto flex h-dvh w-full max-w-md flex-col pb-[env(safe-area-inset-bottom)]">
       <HeaderMini icon="close" href={inventoryPath(id)} title="짐싸기" />
-      <PackingBoard inventories={inventories} startId={id} />
+      <PackingBoard inventories={inventories} startId={id} columns={columns} />
     </main>
   );
 }

@@ -120,7 +120,7 @@ export function CameraScreen({ closeHref, nextHref }: CameraScreenProps) {
       />
 
       {/* 프레임. 바깥으로 아주 넓은 반투명 테두리를 둘러서 프레임 밖을 어둡게 가린다 */}
-      <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-6">
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-5">
         {/* 폰을 눕혀도 위아래 버튼을 덮지 않게, 너비와 (화면 높이 − 위아래 버튼 자리) 중 작은 쪽에 맞춘다 */}
         <div
           ref={frameRef}

@@ -26,7 +26,7 @@ export default async function MyProfilePage() {
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col pb-6">
       <HeaderMini icon="settings" href="/my/settings" title="PROFILE" />
 
-      <section className="flex items-center gap-8.5 px-10.25 pt-1">
+      <section className="flex items-center gap-8.5 px-5 pt-1">
         <div className="relative flex size-24.5 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-2 text-disabled">
           {profile.avatar_url ? (
             <Image src={profile.avatar_url} alt="" fill sizes="98px" unoptimized className="object-cover" />
@@ -54,7 +54,7 @@ export default async function MyProfilePage() {
         </div>
       </section>
 
-      <div className="mt-6 flex gap-1 px-6">
+      <div className="mt-6 flex gap-1 px-5">
         <Link href="/my/edit" className={ACTION_CLASS}>
           프로필 관리
         </Link>
@@ -63,21 +63,21 @@ export default async function MyProfilePage() {
         </SoonButton>
       </div>
 
-      <Link href="/my/inventories" className="mt-8.5 flex h-15.5 items-center border-y border-gray-3 pl-7 active:opacity-60">
+      <Link href="/my/inventories" className="mt-8.5 flex h-15.5 items-center border-y border-gray-3 px-5 active:opacity-60">
         <SectionTitle title="INVENTORY" note={`${inventories.length}/${maxInventories}`} />
         {/* 뒤로가기 화살표를 뒤집어 쓴다 */}
-        <Icon name="back" className="ml-auto rotate-180" />
+        <Icon name="back" className="-mr-1.25 ml-auto rotate-180" />
       </Link>
 
       <section className="border-b border-gray-3 pb-7">
-        <div className="flex h-16 items-center pl-7 pr-6.5">
+        <div className="flex h-16 items-center px-5">
           <SectionTitle title="ITEM" note={`TOTAL ${stats.itemCount}/${maxInventories * slotCount}`} />
           <Link href="/my/items" className="ml-auto rounded-md bg-ink px-2.5 text-label font-bold text-white active:opacity-80">
             더보기
           </Link>
         </div>
         {stats.recentItems.length > 0 ? (
-          <ul className="flex gap-2.25 overflow-x-auto px-6 [scrollbar-width:none]">
+          <ul className="flex gap-2.25 overflow-x-auto px-5 [scrollbar-width:none]">
             {stats.recentItems.map((item) => (
               // 한 화면에 딱 다섯 칸이 보인다. 칸 사이 간격 넷(9px × 4)을 뺀 너비를 다섯으로 나눈다
               <li key={item.id} className="shrink-0 basis-[calc((100%-2.25rem)/5)]">
@@ -94,7 +94,7 @@ export default async function MyProfilePage() {
       </section>
 
       <section>
-        <div className="flex h-16 items-center pl-7">
+        <div className="flex h-16 items-center pl-5">
           <SectionTitle title="INMYIN" note={`게시물 ${stats.postCount}`} />
         </div>
         {/* INMYIN 에디터와 게시물은 3단계에서 만든다 */}
@@ -115,5 +115,5 @@ function SectionTitle({ title, note }: { title: string; note: string }) {
 }
 
 function EmptyNote({ children }: { children: ReactNode }) {
-  return <p className="break-keep px-7 text-label text-ink-muted">{children}</p>;
+  return <p className="break-keep px-5 text-label text-ink-muted">{children}</p>;
 }

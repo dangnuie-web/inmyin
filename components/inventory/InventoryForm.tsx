@@ -116,7 +116,7 @@ export function InventoryForm({ userId, inventory }: InventoryFormProps) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-1 flex-col px-6 pb-[max(3.5rem,env(safe-area-inset-bottom))]">
+    <form onSubmit={onSubmit} className="flex flex-1 flex-col px-5 pb-[max(3.5rem,env(safe-area-inset-bottom))]">
       <button
         type="button"
         onClick={() => photoRef.current?.click()}

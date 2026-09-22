@@ -12,7 +12,7 @@ import { itemCameraPath, itemUpdatePath, type InventoryView } from "@/lib/invent
 import type { FormState } from "@/lib/auth/rules";
 import type { InventorySummary, SlotEntry } from "@/lib/inventory/queries";
 import { InventoryPicker } from "./InventoryPicker";
-import { AddSlotCell, gridFor, SLOT_ROW_CLASS, SlotRow, SlotRowThumb, UndoSlotCell, UndoSlotRow } from "./Slot";
+import { AddSlotCell, gridFor, type GridColumns, SLOT_ROW_CLASS, SlotRow, SlotRowThumb, UndoSlotCell, UndoSlotRow } from "./Slot";
 import { LongPressSlotCell, LongPressSlotRow, SwipeRow, type SwipeSide } from "./SlotGestures";
 
 type MenuAnchor = "slot" | "floating" | null;
@@ -58,10 +58,12 @@ type InventoryBoardProps = {
   usedSlots: number;
   slotCount: number;
   view: InventoryView;
+  // 격자 한 줄의 칸 수 (Slot.tsx 의 gridFor)
+  columns: GridColumns;
 };
 
 // M-04 의 격자 · 리스트와 + 버튼. + 칸은 항상 마지막 아이템의 다음 칸에 하나만 있다.
-export function InventoryBoard({ inventoryId, inventories, addedId, deletedId, entries, usedSlots, slotCount, view }: InventoryBoardProps) {
+export function InventoryBoard({ inventoryId, inventories, addedId, deletedId, entries, usedSlots, slotCount, view, columns }: InventoryBoardProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -317,6 +319,7 @@ export function InventoryBoard({ inventoryId, inventories, addedId, deletedId, e
         <Grid
           entries={shown}
           slotCount={slotCount}
+          columns={columns}
           isFull={isFull}
           actionsFor={actionsFor}
           onActionsFor={setActionsFor}
@@ -416,6 +419,7 @@ function slotElementId(entryId: string) {
 type GridProps = {
   entries: SlotEntry[];
   slotCount: number;
+  columns: GridColumns;
   isFull: boolean;
   // 길게 눌러 메뉴가 떠 있는 칸
   actionsFor: string | null;
@@ -427,11 +431,11 @@ type GridProps = {
 };
 
 // 채워진 칸과 그 다음의 + 칸만 그린다. 빈 칸은 그리지 않는다 — 남은 용량은 아래의 16/25 가 알려준다
-function Grid({ entries, slotCount, isFull, actionsFor, onActionsFor, entryActions, onUndo, children }: GridProps) {
-  const { columns, className } = gridFor(slotCount);
+function Grid({ entries, slotCount, columns: preferred, isFull, actionsFor, onActionsFor, entryActions, onUndo, children }: GridProps) {
+  const { columns, className } = gridFor(slotCount, preferred);
 
   return (
-    <ul className={`mt-6 grid gap-3.5 px-6.5 ${className}`}>
+    <ul className={`mt-6 grid gap-3.5 px-5 ${className}`}>
       {entries.map((entry, index) => (
         <li key={entry.id} id={slotElementId(entry.id)} className="relative">
           {entry.deleted ? (

@@ -25,7 +25,7 @@ export default async function AccountPage() {
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col">
       <HeaderMini icon="back" href="/my/settings" title="로그인 정보" />
-      <dl className="mt-4 flex flex-col px-6.5">
+      <dl className="mt-4 flex flex-col px-5">
         {rows.map(({ label, value }) => (
           <div key={label} className="flex h-12 items-center justify-between gap-4 border-b border-gray-3 text-body">
             <dt className="shrink-0 font-bold">{label}</dt>
