@@ -48,6 +48,14 @@ export async function updateSession(request: NextRequest) {
   }
   // 화면을 열 때(GET)만 돌려보낸다. 가입 도중의 폼 전송(POST)까지 막으면 가입이 끊긴다
   if (isLoggedIn && request.method === "GET" && matches(pathname, GUEST_ONLY_PATHS)) {
+    // 다른 기기에서 로그아웃하면 모든 기기의 로그인이 끊기는데, 이 기기의 쿠키에 남은 토큰은 겉보기엔 멀쩡하다.
+    // 그대로 / 로 보내면 / 가 서버에 물어보고 무효라며 다시 /login 으로 보내 무한 반복이 된다.
+    // 그래서 로그인 화면에 올 때만 서버에 한 번 확인하고, 무효면 쿠키를 지우고 로그인 화면을 그대로 보여준다
+    const { error } = await supabase.auth.getUser();
+    if (error) {
+      await supabase.auth.signOut({ scope: "local" });
+      return response;
+    }
     return redirectTo(request, response, "/");
   }
   return response;

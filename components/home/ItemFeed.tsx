@@ -76,7 +76,8 @@ export function ItemFeed({ items, q, category, categories, columns }: ItemFeedPr
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="flex items-center gap-6 px-5">
+      {/* 갈래의 밑줄과 검색창 사이 20px */}
+      <div className="mt-5 flex items-center gap-6 px-5">
         <label className="flex h-7.5 min-w-0 flex-1 items-center gap-2 rounded-full border border-border pl-4 pr-4">
           {/* 아이폰은 16px 보다 작은 입력칸을 누르면 화면을 멋대로 확대한다 */}
           <input
