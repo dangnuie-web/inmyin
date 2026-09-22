@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { InventoryList } from "@/components/inventory/InventoryList";
+import { COUNT_PILL_CLASS } from "@/components/inventory/InventoryRow";
 import { HeaderMini } from "@/components/ui/HeaderMini";
 import { requireProfile } from "@/lib/auth/profile";
 import { getMyInventories } from "@/lib/inventory/queries";
@@ -22,9 +23,9 @@ export default async function InventoriesPage() {
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col">
       <HeaderMini icon="back" href="/my" title="INVENTORY" />
 
-      {/* 검정 알약 안의 작은 글자. 오른쪽 끝은 아래 줄들의 "n/25" 와 맞춘다 (INVENTORY_ROW_CLASS 의 pr-11) */}
+      {/* 검정 알약 안의 작은 글자. 아래 줄들의 흰 "n/25" 알약과 같은 여백(COUNT_PILL_CLASS)·같은 오른쪽 끝(pr-11) */}
       <p className="mt-4 flex justify-end pr-11">
-        <span className="rounded-full bg-ink px-3 py-1 text-caption font-bold text-white">
+        <span className={`${COUNT_PILL_CLASS} bg-ink font-bold text-white`}>
           TOTAL {usedTotal}/{maxInventories * slotCount}
         </span>
       </p>
