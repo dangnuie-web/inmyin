@@ -34,7 +34,7 @@ export default async function OtherProfilePage(props: PageProps<"/u/[handle]">) 
     person,
     mine: false,
     corner: <OtherProfileCorner userId={person.id} blocked={blocked} />,
-    actions: <OtherProfileActions userId={person.id} following={following} blocked={blocked} />,
+    actions: <OtherProfileActions userId={person.id} handle={person.handle} nickname={person.nickname} following={following} blocked={blocked} />,
   };
 
   return (
@@ -55,7 +55,7 @@ export default async function OtherProfilePage(props: PageProps<"/u/[handle]">) 
         {person.bio && <p className="mt-4 break-keep px-5 text-label">{person.bio}</p>}
 
         <div className="mt-6 flex gap-1 px-5">
-          <OtherProfileActions userId={person.id} following={following} blocked={blocked} />
+          <OtherProfileActions userId={person.id} handle={person.handle} nickname={person.nickname} following={following} blocked={blocked} />
         </div>
 
         <Link href={otherInventoriesPath(person.handle)} className="mt-8.5 flex h-15.5 items-center border-y border-gray-3 px-5 active:opacity-60">

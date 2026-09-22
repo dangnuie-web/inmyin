@@ -29,7 +29,7 @@ export default async function OtherInventoriesPage(props: PageProps<"/u/[handle]
       mine={false}
       tab="inventory"
       corner={<OtherProfileCorner userId={person.id} blocked={blocked} />}
-      actions={<OtherProfileActions userId={person.id} following={following} blocked={blocked} />}
+      actions={<OtherProfileActions userId={person.id} handle={person.handle} nickname={person.nickname} following={following} blocked={blocked} />}
     >
       <div className="lg:hidden">
         <BackHeader title="INVENTORY" />

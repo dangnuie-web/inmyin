@@ -3,9 +3,9 @@ import Link from "next/link";
 import { FollowCounts } from "@/components/follow/FollowCounts";
 import { Avatar } from "@/components/profile/Avatar";
 import { MyInventoriesSection } from "@/components/inventory/MyInventoriesSection";
-import { EmptyNote, PROFILE_ACTION_CLASS, RecentItems, SectionTitle } from "@/components/profile/ProfileParts";
+import { EmptyNote, RecentItems, SectionTitle } from "@/components/profile/ProfileParts";
+import { MyProfileActions, MyProfileCorner } from "@/components/profile/MyProfileActions";
 import { ProfileShell } from "@/components/profile/ProfileShell";
-import { SoonButton } from "@/components/profile/SoonButton";
 import { HeaderMini } from "@/components/ui/HeaderMini";
 import { Icon } from "@/components/ui/Icon";
 import { requireProfile } from "@/lib/auth/profile";
@@ -27,21 +27,8 @@ export default async function MyProfilePage() {
       person={{ ...profile, avatarUrl: profile.avatar_url, followerCount: stats.followerCount, followingCount: stats.followingCount }}
       mine
       tab="inventory"
-      corner={
-        <Link href="/my/settings" aria-label="설정" className="active:opacity-60">
-          <Icon name="settings" scale={0.5} />
-        </Link>
-      }
-      actions={
-        <>
-          <Link href="/my/edit" className={PROFILE_ACTION_CLASS}>
-            프로필 관리
-          </Link>
-          <SoonButton notice="프로필 공유는 곧 만들어요." className={PROFILE_ACTION_CLASS}>
-            프로필 공유
-          </SoonButton>
-        </>
-      }
+      corner={<MyProfileCorner />}
+      actions={<MyProfileActions handle={profile.handle} nickname={profile.nickname} />}
     >
       {/* 폰: 프로필 줄 · 버튼 · 세 줄(INVENTORY › ITEM › INMYIN) */}
       <div className="flex flex-1 flex-col pb-6 lg:hidden">
@@ -66,12 +53,7 @@ export default async function MyProfilePage() {
         </section>
 
         <div className="mt-6 flex gap-1 px-5">
-          <Link href="/my/edit" className={PROFILE_ACTION_CLASS}>
-            프로필 관리
-          </Link>
-          <SoonButton notice="프로필 공유는 곧 만들어요." className={PROFILE_ACTION_CLASS}>
-            프로필 공유
-          </SoonButton>
+          <MyProfileActions handle={profile.handle} nickname={profile.nickname} />
         </div>
 
         <Link href="/my/inventories" className="mt-8.5 flex h-15.5 items-center border-y border-gray-3 px-5 active:opacity-60">

@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { MyInventoriesSection } from "@/components/inventory/MyInventoriesSection";
-import { PROFILE_ACTION_CLASS } from "@/components/profile/ProfileParts";
+import { MyProfileActions, MyProfileCorner } from "@/components/profile/MyProfileActions";
 import { ProfileShell } from "@/components/profile/ProfileShell";
-import { SoonButton } from "@/components/profile/SoonButton";
 import { HeaderMini } from "@/components/ui/HeaderMini";
-import { Icon } from "@/components/ui/Icon";
 import { requireProfile } from "@/lib/auth/profile";
 import { getMyInventories } from "@/lib/inventory/queries";
 import { planLimits } from "@/lib/plans";
@@ -25,21 +22,8 @@ export default async function InventoriesPage() {
       person={{ ...profile, avatarUrl: profile.avatar_url, followerCount: stats.followerCount, followingCount: stats.followingCount }}
       mine
       tab="inventory"
-      corner={
-        <Link href="/my/settings" aria-label="설정" className="active:opacity-60">
-          <Icon name="settings" scale={0.5} />
-        </Link>
-      }
-      actions={
-        <>
-          <Link href="/my/edit" className={PROFILE_ACTION_CLASS}>
-            프로필 관리
-          </Link>
-          <SoonButton notice="프로필 공유는 곧 만들어요." className={PROFILE_ACTION_CLASS}>
-            프로필 공유
-          </SoonButton>
-        </>
-      }
+      corner={<MyProfileCorner />}
+      actions={<MyProfileActions handle={profile.handle} nickname={profile.nickname} />}
     >
       <div className="lg:hidden">
         <HeaderMini icon="back" href="/my" title="INVENTORY" />
