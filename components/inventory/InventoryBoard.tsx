@@ -8,7 +8,8 @@ import { bringInventory, takeOutInventory } from "@/app/(flow)/my/inventories/[i
 import { DarkMenu } from "@/components/ui/DarkMenu";
 import { Icon } from "@/components/ui/Icon";
 import { Toast } from "@/components/ui/Toast";
-import { itemCameraPath, itemUpdatePath, type InventoryView } from "@/lib/inventory/paths";
+import { pickedPhoto, setPendingPhoto } from "@/lib/image/pending-photo";
+import { itemCameraPath, itemEditPath, itemUpdatePath, type InventoryView } from "@/lib/inventory/paths";
 import type { FormState } from "@/lib/auth/rules";
 import type { InventorySummary, SlotEntry } from "@/lib/inventory/queries";
 import { InventoryPicker } from "./InventoryPicker";
@@ -120,6 +121,8 @@ export function InventoryBoard({ inventoryId, inventories, addedId, deletedId, e
 
   // + 칸이 화면 밖으로 나가면 플로팅 + 를 띄운다
   const addSlotRef = useRef<HTMLDivElement>(null);
+  // 컴퓨터에서 "새 아이템 등록"을 누르면 여는 사진 고르기 창
+  const uploadRef = useRef<HTMLInputElement>(null);
   const [addSlotVisible, setAddSlotVisible] = useState(true);
   useEffect(() => {
     const target = addSlotRef.current;
@@ -284,10 +287,10 @@ export function InventoryBoard({ inventoryId, inventories, addedId, deletedId, e
     {
       label: "새 아이템 등록",
       onSelect: () => {
-        // 아이템 등록(촬영)은 모바일 전용이다 (CLAUDE.md 규칙 5)
-        if (!window.matchMedia("(pointer: coarse)").matches) return setNotice("휴대폰에서 등록해 주세요.");
-        // 촬영 화면(M-06)으로 간다. 갤러리에서 고르는 것도 거기서 한다
-        router.push(itemCameraPath(inventoryId));
+        // 촬영은 폰에서만 된다 (CLAUDE.md 규칙 5). 손가락으로 쓰는 기기면 촬영 화면(M-06)으로 — 갤러리에서 고르는 것도 거기서 한다.
+        // 마우스를 쓰는 컴퓨터면 사진 고르기 창을 바로 열어 편집(M-07)으로 간다
+        if (window.matchMedia("(pointer: coarse)").matches) return router.push(itemCameraPath(inventoryId));
+        uploadRef.current?.click();
       },
     },
     { label: "인벤토리 가져오기", onSelect: () => setPickerOpen(true) },
@@ -405,6 +408,19 @@ export function InventoryBoard({ inventoryId, inventories, addedId, deletedId, e
       </div>
 
       {pickerOpen && <InventoryPicker inventories={inventories} intoId={inventoryId} onPick={bring} onClose={() => setPickerOpen(false)} />}
+      <input
+        ref={uploadRef}
+        type="file"
+        accept="image/*"
+        hidden
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          event.target.value = "";
+          if (!file) return;
+          setPendingPhoto(pickedPhoto(file));
+          router.push(itemEditPath(inventoryId));
+        }}
+      />
       <Toast message={notice} onDone={hideNotice} />
     </div>
   );
@@ -435,7 +451,8 @@ function Grid({ entries, slotCount, columns: preferred, isFull, actionsFor, onAc
   const { columns, className } = gridFor(slotCount, preferred);
 
   return (
-    <ul className={`mt-6 grid gap-3.5 px-5 ${className}`}>
+    // 웹은 7칸 고정 (피그마). 설정의 3/4칸은 폰에만
+    <ul className={`mt-6 grid gap-3.5 px-5 lg:grid-cols-7 ${className}`}>
       {entries.map((entry, index) => (
         <li key={entry.id} id={slotElementId(entry.id)} className="relative">
           {entry.deleted ? (

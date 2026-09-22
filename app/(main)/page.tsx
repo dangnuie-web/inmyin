@@ -18,7 +18,7 @@ export default async function Home(props: PageProps<"/">) {
   const [items, categories] = await Promise.all([getPublicItemFeed({ q, category: category ?? undefined }), getPopularCategories()]);
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-1 flex-col">
+    <div className="mx-auto flex w-full max-w-md flex-1 flex-col lg:max-w-web">
       <HomeTabs current="items" />
       <ItemFeed items={items} q={q} category={category} categories={categories} columns={toGridColumns(profile.grid_columns)} />
     </div>

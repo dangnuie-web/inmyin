@@ -7,10 +7,15 @@ import { InventoryStrip } from "@/components/inventory/InventoryStrip";
 import { ViewToggle } from "@/components/inventory/ViewToggle";
 import { CategoryTag } from "@/components/ui/CategoryTag";
 import { ChipRow } from "@/components/ui/ChipRow";
+import { PROFILE_ACTION_CLASS } from "@/components/profile/ProfileParts";
+import { ProfileShell } from "@/components/profile/ProfileShell";
+import { SoonButton } from "@/components/profile/SoonButton";
 import { HeaderMini } from "@/components/ui/HeaderMini";
+import { Icon } from "@/components/ui/Icon";
 import { requireProfile } from "@/lib/auth/profile";
 import { inventoryPath, packingPath, type InventoryView } from "@/lib/inventory/paths";
 import { getMyInventories, getMyInventoryDetail } from "@/lib/inventory/queries";
+import { getMyProfileStats } from "@/lib/profile/queries";
 
 export const metadata: Metadata = { title: "인벤토리 · INMYIN" };
 
@@ -27,9 +32,10 @@ export default async function InventoryDetailPage(props: PageProps<"/my/inventor
   const deletedId =
     typeof searchParams.deleted === "string" && UUID_PATTERN.test(searchParams.deleted) ? searchParams.deleted : null;
 
-  const [inventory, inventories] = await Promise.all([
+  const [inventory, inventories, stats] = await Promise.all([
     getMyInventoryDetail(profile.id, id, deletedId),
     getMyInventories(profile.id),
+    getMyProfileStats(profile.id),
   ]);
   if (!inventory) notFound();
 
@@ -42,22 +48,40 @@ export default async function InventoryDetailPage(props: PageProps<"/my/inventor
   // 태그가 없는 아이템은 전체에서만 보인다 (CLAUDE.md 규칙 4)
   const entries = category ? inventory.entries.filter((entry) => entry.category === category) : inventory.entries;
 
-  return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col">
-      <HeaderMini
-        icon="back"
-        href="/my/inventories"
-        title="INVENTORY"
-        action={
-          <Link
-            href={packingPath(inventory.id)}
-            className="rounded-sm border border-border bg-white px-3 py-0.5 text-body font-bold active:opacity-60"
-          >
-            짐싸기
-          </Link>
-        }
-      />
+  const packing = (
+    <Link href={packingPath(inventory.id)} className="rounded-sm border border-border bg-white px-3 py-0.5 text-body font-bold active:opacity-60">
+      짐싸기
+    </Link>
+  );
 
+  return (
+    // 폰은 헤더 아래 바로, 웹은 프로필 틀의 INVENTORY 탭 안의 회색 판 (피그마 M-04 웹)
+    <ProfileShell
+      person={{ ...profile, avatarUrl: profile.avatar_url, followerCount: stats.followerCount, followingCount: stats.followingCount }}
+      mine
+      tab="inventory"
+      corner={
+        <Link href="/my/settings" aria-label="설정" className="active:opacity-60">
+          <Icon name="settings" scale={0.5} />
+        </Link>
+      }
+      actions={
+        <>
+          <Link href="/my/edit" className={PROFILE_ACTION_CLASS}>
+            프로필 관리
+          </Link>
+          <SoonButton notice="프로필 공유는 곧 만들어요." className={PROFILE_ACTION_CLASS}>
+            프로필 공유
+          </SoonButton>
+        </>
+      }
+    >
+      <div className="lg:hidden">
+        <HeaderMini icon="back" href="/my/inventories" title="INVENTORY" action={packing} />
+      </div>
+      <div className="hidden justify-end px-5 pt-4 lg:flex">{packing}</div>
+
+      <main className="flex flex-1 flex-col lg:mx-5 lg:mt-4 lg:rounded-xl lg:bg-gray-1 lg:pb-4">
       <div className="mt-5">
         <InventoryStrip inventories={inventories} currentId={inventory.id} hrefFor={(inventoryId) => inventoryPath(inventoryId, { view })} />
       </div>
@@ -89,6 +113,7 @@ export default async function InventoryDetailPage(props: PageProps<"/my/inventor
         view={view}
         columns={toGridColumns(profile.grid_columns)}
       />
-    </main>
+      </main>
+    </ProfileShell>
   );
 }

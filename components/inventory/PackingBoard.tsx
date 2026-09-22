@@ -79,6 +79,8 @@ export function PackingBoard({ inventories, startId, columns }: PackingBoardProp
 
   return (
     <>
+      {/* 폰은 위아래로, 웹(피그마 M-05)은 나란히 두 판 */}
+      <div className="flex min-h-0 flex-1 flex-col lg:flex-row lg:gap-8 lg:px-5 lg:pt-4">
       {(["top", "bottom"] as const).map((side) => (
         <PackingHalf columns={columns}
           key={side}
@@ -89,10 +91,11 @@ export function PackingBoard({ inventories, startId, columns }: PackingBoardProp
           arrivedId={arrivedId}
           onOpen={(inventoryId) => setOpenId((current) => ({ ...current, [side]: inventoryId }))}
           onPick={(entry) => move(entry, side)}
-          // 위아래를 가르는 선
-          className={side === "top" ? "border-b border-gray-3" : ""}
+          // 폰에서는 위아래를 가르는 선. 웹에서는 각각 회색 판
+          className={`lg:h-130 lg:rounded-xl lg:bg-gray-1 lg:pb-4 ${side === "top" ? "border-b border-gray-3 lg:border-0" : ""}`}
         />
       ))}
+      </div>
       <Toast message={notice} onDone={hideNotice} />
     </>
   );

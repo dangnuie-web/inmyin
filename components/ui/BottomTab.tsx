@@ -25,10 +25,10 @@ export function BottomTab() {
 
   return (
     // sticky — 내용이 짧으면 화면 맨 아래에, 길면 스크롤해도 아래에 붙어 있는다.
-    // 아래 여백은 아이폰 홈 막대 영역과 기본 여백 중 큰 쪽
+    // 아래 여백은 아이폰 홈 막대 영역과 기본 여백 중 큰 쪽. 웹(1024px 이상)에서는 상단 메뉴(WebNav)가 대신한다
     <nav
       aria-label="하단 탭"
-      className="sticky bottom-0 bg-white px-5 pt-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))]"
+      className="sticky bottom-0 bg-white px-5 pt-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] lg:hidden"
     >
       <ul className="mx-auto flex max-w-md">
         {TABS.map(({ href, label, icon }) => {

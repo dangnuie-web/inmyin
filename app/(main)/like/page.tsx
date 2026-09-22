@@ -17,7 +17,7 @@ export default async function LikePage() {
   const { maxLikes } = planLimits(profile.plan);
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-1 flex-col">
+    <div className="mx-auto flex w-full max-w-md flex-1 flex-col lg:max-w-web">
       {/* Home 의 갈래와 같은 모양 — 고른 쪽에만 밑줄 */}
       <nav aria-label="Like 갈래" className="mb-5 flex items-end gap-9 px-5 pt-5 text-body font-bold text-ink">
         <span aria-current="page" className="-mx-0.5 border-b-2 border-ink px-0.5 pb-1 leading-none">
@@ -28,7 +28,7 @@ export default async function LikePage() {
         </SoonButton>
       </nav>
       {/* 아래 숫자는 모은 개수 / 플랜 한도 (lib/plans.ts 의 maxLikes) */}
-      <ItemCollection items={items} capacity={maxLikes} columns={toGridColumns(profile.grid_columns)} emptyText="아직 좋아요한 아이템이 없어요. 홈에서 하트를 눌러 모아 보세요." />
+      <ItemCollection items={items} capacity={maxLikes} columns={toGridColumns(profile.grid_columns)} emptyText="아직 좋아요한 아이템이 없어요. 홈에서 하트를 눌러 모아 보세요." sortable />
     </div>
   );
 }

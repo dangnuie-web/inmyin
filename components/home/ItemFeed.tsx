@@ -8,6 +8,7 @@ import { ViewToggle } from "@/components/inventory/ViewToggle";
 import { CategoryTag } from "@/components/ui/CategoryTag";
 import { ChipRow } from "@/components/ui/ChipRow";
 import { Icon } from "@/components/ui/Icon";
+import { ListControls } from "@/components/ui/ListControls";
 import { feedPath } from "@/lib/home/paths";
 import { itemPath, type InventoryView } from "@/lib/inventory/paths";
 import type { SlotEntry } from "@/lib/inventory/queries";
@@ -77,36 +78,42 @@ export function ItemFeed({ items, q, category, categories, columns }: ItemFeedPr
   return (
     <div className="flex flex-1 flex-col">
       {/* 갈래의 밑줄과 검색창 사이 20px. 토글은 검색창 왼쪽 — 써 보니 그쪽이 편했다 (M-04 와 같은 자리) */}
-      <div className="mt-5 flex items-center gap-4 px-5">
-        <ViewToggle current={view} onSelect={setView} />
-        <label className="flex h-7.5 min-w-0 flex-1 items-center gap-2 rounded-full border border-border pl-4 pr-4">
-          {/* 아이폰은 16px 보다 작은 입력칸을 누르면 화면을 멋대로 확대한다 */}
-          <input
-            type="search"
-            value={query}
-            onChange={(event) => changeQuery(event.target.value)}
-            aria-label="아이템 이름으로 찾기"
-            enterKeyHint="search"
-            autoComplete="off"
-            className="min-w-0 flex-1 bg-transparent text-body outline-none [&::-webkit-search-cancel-button]:appearance-none"
-          />
-          <Icon name="search" className={`shrink-0 ${pending ? "animate-pulse" : ""}`} />
-        </label>
+      <div className="mt-5">
+        <ListControls
+          toggle={<ViewToggle current={view} onSelect={setView} />}
+          search={
+            <label className="flex h-7.5 min-w-0 items-center gap-2 rounded-full border border-border pl-4 pr-4">
+              {/* 아이폰은 16px 보다 작은 입력칸을 누르면 화면을 멋대로 확대한다 */}
+              <input
+                type="search"
+                value={query}
+                onChange={(event) => changeQuery(event.target.value)}
+                aria-label="아이템 이름으로 찾기"
+                enterKeyHint="search"
+                autoComplete="off"
+                className="min-w-0 flex-1 bg-transparent text-body outline-none [&::-webkit-search-cancel-button]:appearance-none"
+              />
+              <Icon name="search" className={`shrink-0 ${pending ? "animate-pulse" : ""}`} />
+            </label>
+          }
+          chips={
+            <ChipRow className="pl-5 lg:pl-0">
+              <CategoryTag label="전체" selected={!category} href={feedPath({ q })} />
+              {chips.map((tag) => (
+                <CategoryTag key={tag} label={tag} selected={tag === category} href={feedPath({ q, category: tag === category ? null : tag })} />
+              ))}
+            </ChipRow>
+          }
+        />
       </div>
-
-      <ChipRow className="mt-3 pl-5">
-        <CategoryTag label="전체" selected={!category} href={feedPath({ q })} />
-        {chips.map((tag) => (
-          <CategoryTag key={tag} label={tag} selected={tag === category} href={feedPath({ q, category: tag === category ? null : tag })} />
-        ))}
-      </ChipRow>
 
       {shown.length === 0 ? (
         <p className="mt-16 break-keep px-5 text-center text-label text-ink-muted">
           {isFiltered ? "찾는 아이템이 없어요." : "아직 공개된 아이템이 없어요. 내 인벤토리에 넣은 것이 여기에 모여요."}
         </p>
       ) : view === "grid" ? (
-        <ul className={`mt-8 grid gap-3.5 px-5 ${gridColumnsClass(columns)}`}>
+        // 웹은 7칸 고정 (피그마). 설정의 3/4칸은 폰에만
+        <ul className={`mt-8 grid gap-3.5 px-5 lg:grid-cols-7 ${gridColumnsClass(columns)}`}>
           {shown.map((item) => (
             <li key={item.id}>
               <SlotCell entry={toEntry(item)} href={itemPath(item.id, { from: "home", q, category })} />

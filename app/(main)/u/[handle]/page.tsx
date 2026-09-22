@@ -1,18 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ProfileMenu } from "@/components/block/ProfileMenu";
-import { FollowButton } from "@/components/follow/FollowButton";
+import { VisibleInventoryList } from "@/components/inventory/VisibleInventoryList";
+import { FollowCounts } from "@/components/follow/FollowCounts";
 import { Avatar } from "@/components/profile/Avatar";
-import { EmptyNote, PROFILE_ACTION_CLASS, RecentItems, SectionTitle } from "@/components/profile/ProfileParts";
-import { SoonButton } from "@/components/profile/SoonButton";
+import { OtherProfileActions, OtherProfileCorner } from "@/components/profile/OtherProfileActions";
+import { EmptyNote, RecentItems, SectionTitle } from "@/components/profile/ProfileParts";
+import { ProfileShell } from "@/components/profile/ProfileShell";
 import { BackHeader } from "@/components/ui/BackHeader";
 import { Icon } from "@/components/ui/Icon";
 import { requireProfile } from "@/lib/auth/profile";
 import { HANDLE_PATTERN } from "@/lib/auth/rules";
 import { hasBlocked } from "@/lib/block/queries";
 import { isFollowing } from "@/lib/follow/queries";
-import { followsPath, otherInventoriesPath, otherItemsPath } from "@/lib/profile/paths";
+import { otherInventoriesPath, otherItemsPath } from "@/lib/profile/paths";
 import { getPublicProfile, getVisibleInventories } from "@/lib/profile/public-queries";
 
 export const metadata: Metadata = { title: "프로필 · INMYIN" };
@@ -29,63 +30,61 @@ export default async function OtherProfilePage(props: PageProps<"/u/[handle]">) 
   if (!person) notFound();
   const [inventories, following, blocked] = await Promise.all([getVisibleInventories(person.id), isFollowing(profile.id, person.id), hasBlocked(profile.id, person.id)]);
 
+  const shellProps = {
+    person,
+    mine: false,
+    corner: <OtherProfileCorner userId={person.id} blocked={blocked} />,
+    actions: <OtherProfileActions userId={person.id} following={following} blocked={blocked} />,
+  };
+
   return (
-    <div className="mx-auto flex w-full max-w-md flex-1 flex-col pb-6">
-      {/* ⋮ 메뉴 — 차단하기 / 차단 해제. 차단했으면 아래의 숫자와 목록은 DB 규칙 때문에 비어 보인다 */}
-      <BackHeader title="PROFILE" action={<ProfileMenu userId={person.id} blocked={blocked} />} />
+    <ProfileShell {...shellProps} tab="inventory">
+      {/* 폰: 프로필 줄 · 버튼 · 세 줄(INVENTORY › ITEM › INMYIN) */}
+        <div className="flex flex-1 flex-col pb-6 lg:hidden">
+        {/* ⋮ 메뉴 — 차단하기 / 차단 해제. 차단했으면 아래의 숫자와 목록은 DB 규칙 때문에 비어 보인다 */}
+        <BackHeader title="PROFILE" action={<OtherProfileCorner userId={person.id} blocked={blocked} />} />
 
-      <section className="flex items-center gap-8.5 px-5 pt-1">
-        <Avatar url={person.avatarUrl} size={98} />
-        <div className="flex min-w-0 flex-col gap-1">
-          <p className="truncate text-caption font-bold">{person.handle}</p>
-          <p className="truncate text-title font-bold">{person.nickname}</p>
-          <p className="flex gap-2.5 text-label">
-            <Link href={followsPath(person.handle, "followers")} className="active:opacity-60">
-              팔로워 {person.followerCount.toLocaleString("ko-KR")}
-            </Link>
-            <Link href={followsPath(person.handle, "following")} className="active:opacity-60">
-              팔로잉 {person.followingCount.toLocaleString("ko-KR")}
-            </Link>
-          </p>
+        <section className="flex items-center gap-8.5 px-5 pt-1">
+          <Avatar url={person.avatarUrl} size={98} />
+          <div className="flex min-w-0 flex-col gap-1">
+            <p className="truncate text-caption font-bold">{person.handle}</p>
+            <p className="truncate text-title font-bold">{person.nickname}</p>
+            <FollowCounts handle={person.handle} followerCount={person.followerCount} followingCount={person.followingCount} />
+          </div>
+        </section>
+        {person.bio && <p className="mt-4 break-keep px-5 text-label">{person.bio}</p>}
+
+        <div className="mt-6 flex gap-1 px-5">
+          <OtherProfileActions userId={person.id} following={following} blocked={blocked} />
         </div>
-      </section>
-      {person.bio && <p className="mt-4 break-keep px-5 text-label">{person.bio}</p>}
 
-      <div className="mt-6 flex gap-1 px-5">
-        {/* FollowButton 은 자기 크기를 가져서, 내 프로필의 버튼과 같은 크기가 되게 감싼다. 차단한 사람은 팔로우할 수 없다 */}
-        {blocked ? (
-          <span className="flex h-9.5 flex-1 items-center justify-center rounded-sm border border-disabled text-label font-bold text-disabled">차단함</span>
-        ) : (
-          <span className="flex flex-1 [&>button]:h-9.5 [&>button]:flex-1">
-            <FollowButton userId={person.id} following={following} />
-          </span>
-        )}
-        <SoonButton notice="프로필 공유는 곧 만들어요." className={PROFILE_ACTION_CLASS}>
-          프로필 공유
-        </SoonButton>
+        <Link href={otherInventoriesPath(person.handle)} className="mt-8.5 flex h-15.5 items-center border-y border-gray-3 px-5 active:opacity-60">
+          <SectionTitle title="INVENTORY" note={`${inventories.length}`} />
+          <Icon name="back" className="-mr-1.25 ml-auto rotate-180" />
+        </Link>
+
+        <section className="border-b border-gray-3 pb-7">
+          <div className="flex h-16 items-center px-5">
+            <SectionTitle title="ITEM" note={`${person.itemCount}`} />
+            <Link href={otherItemsPath(person.handle)} className="ml-auto rounded-md bg-ink px-2.5 text-label font-bold text-white active:opacity-80">
+              더보기
+            </Link>
+          </div>
+          {person.recentItems.length > 0 ? <RecentItems items={person.recentItems} /> : <EmptyNote>공개된 아이템이 아직 없어요.</EmptyNote>}
+        </section>
+
+        <section>
+          <div className="flex h-16 items-center pl-5">
+            <SectionTitle title="INMYIN" note={`게시물 ${person.postCount}`} />
+          </div>
+          <EmptyNote>아직 게시물이 없어요.</EmptyNote>
+        </section>
+        </div>
+
+      {/* 웹: 프로필 틀의 INVENTORY 탭 = 그 사람의 인벤토리 목록 (H-07 과 같은 몸통) */}
+      <div className="hidden flex-1 flex-col lg:flex">
+        <VisibleInventoryList handle={handle} inventories={inventories} />
       </div>
-
-      <Link href={otherInventoriesPath(person.handle)} className="mt-8.5 flex h-15.5 items-center border-y border-gray-3 px-5 active:opacity-60">
-        <SectionTitle title="INVENTORY" note={`${inventories.length}`} />
-        <Icon name="back" className="-mr-1.25 ml-auto rotate-180" />
-      </Link>
-
-      <section className="border-b border-gray-3 pb-7">
-        <div className="flex h-16 items-center px-5">
-          <SectionTitle title="ITEM" note={`${person.itemCount}`} />
-          <Link href={otherItemsPath(person.handle)} className="ml-auto rounded-md bg-ink px-2.5 text-label font-bold text-white active:opacity-80">
-            더보기
-          </Link>
-        </div>
-        {person.recentItems.length > 0 ? <RecentItems items={person.recentItems} /> : <EmptyNote>공개된 아이템이 아직 없어요.</EmptyNote>}
-      </section>
-
-      <section>
-        <div className="flex h-16 items-center pl-5">
-          <SectionTitle title="INMYIN" note={`게시물 ${person.postCount}`} />
-        </div>
-        <EmptyNote>아직 게시물이 없어요.</EmptyNote>
-      </section>
-    </div>
+    </ProfileShell>
   );
 }

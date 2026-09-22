@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { requireProfile } from "@/lib/auth/profile";
-import type { FormState } from "@/lib/auth/rules";
+import { HANDLE_PATTERN, type FormState } from "@/lib/auth/rules";
+import { getFollowLists, getMyFollowingIds } from "@/lib/follow/queries";
 import { createClient } from "@/lib/supabase/server";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -52,4 +53,13 @@ export async function unblockUser(userId: string): Promise<FormState> {
 
   revalidatePath("/", "layout");
   return {};
+}
+
+// 팔로워 · 팔로잉 목록을 모달(M-12a, 웹)에 채울 때. 화면(M-12)과 같은 조회를 쓴다
+export async function loadFollowLists(handle: string) {
+  const profile = await requireProfile();
+  if (!HANDLE_PATTERN.test(handle)) return null;
+  const [lists, myFollowing] = await Promise.all([getFollowLists(handle), getMyFollowingIds(profile.id)]);
+  if (!lists) return null;
+  return { ...lists, myFollowingIds: [...myFollowing], myId: profile.id };
 }

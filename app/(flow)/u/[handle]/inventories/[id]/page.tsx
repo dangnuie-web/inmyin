@@ -3,11 +3,15 @@ import { notFound, redirect } from "next/navigation";
 import { InventoryStrip } from "@/components/inventory/InventoryStrip";
 import { gridFor, SlotCell, SlotRow, toGridColumns } from "@/components/inventory/Slot";
 import { ViewToggle } from "@/components/inventory/ViewToggle";
+import { OtherProfileActions, OtherProfileCorner } from "@/components/profile/OtherProfileActions";
+import { ProfileShell } from "@/components/profile/ProfileShell";
 import { BackHeader } from "@/components/ui/BackHeader";
 import { CategoryTag } from "@/components/ui/CategoryTag";
 import { ChipRow } from "@/components/ui/ChipRow";
 import { requireProfile } from "@/lib/auth/profile";
 import { HANDLE_PATTERN } from "@/lib/auth/rules";
+import { hasBlocked } from "@/lib/block/queries";
+import { isFollowing } from "@/lib/follow/queries";
 import { inventoryPath, itemPath, type InventoryView } from "@/lib/inventory/paths";
 import type { SlotEntry } from "@/lib/inventory/queries";
 import { otherInventoryPath } from "@/lib/profile/paths";
@@ -29,7 +33,12 @@ export default async function OtherInventoryPage(props: PageProps<"/u/[handle]/i
 
   const person = await getPublicProfile(handle);
   if (!person) notFound();
-  const [inventory, inventories] = await Promise.all([getVisibleInventoryDetail(person.id, id), getVisibleInventories(person.id)]);
+  const [inventory, inventories, following, blocked] = await Promise.all([
+    getVisibleInventoryDetail(person.id, id),
+    getVisibleInventories(person.id),
+    isFollowing(profile.id, person.id),
+    hasBlocked(profile.id, person.id),
+  ]);
   if (!inventory) notFound();
 
   const view: InventoryView = searchParams.view === "list" ? "list" : "grid";
@@ -40,9 +49,18 @@ export default async function OtherInventoryPage(props: PageProps<"/u/[handle]/i
   const hrefFor = (entry: SlotEntry) => (entry.kind === "item" ? itemPath(entry.id) : otherInventoryPath(handle, entry.id));
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col">
-      <BackHeader title="INVENTORY" />
-
+    // 폰은 헤더 아래 바로, 웹은 프로필 틀의 INVENTORY 탭 안의 회색 판 (피그마 H-08 웹)
+    <ProfileShell
+      person={person}
+      mine={false}
+      tab="inventory"
+      corner={<OtherProfileCorner userId={person.id} blocked={blocked} />}
+      actions={<OtherProfileActions userId={person.id} following={following} blocked={blocked} />}
+    >
+      <div className="lg:hidden">
+        <BackHeader title="INVENTORY" />
+      </div>
+      <main className="flex flex-1 flex-col lg:mx-5 lg:mt-4 lg:rounded-xl lg:bg-gray-1 lg:pb-4">
       <div className="mt-5">
         <InventoryStrip inventories={inventories} currentId={inventory.id} hrefFor={(inventoryId) => otherInventoryPath(handle, inventoryId, { view })} />
       </div>
@@ -60,7 +78,7 @@ export default async function OtherInventoryPage(props: PageProps<"/u/[handle]/i
       {entries.length === 0 ? (
         <p className="mt-16 break-keep px-5 text-center text-label text-ink-muted">{category ? "이 카테고리에는 아직 없어요." : "공개된 아이템이 아직 없어요."}</p>
       ) : view === "grid" ? (
-        <ul className={`mt-6 grid gap-3.5 px-5 ${gridFor(inventory.slotCount, toGridColumns(profile.grid_columns)).className}`}>
+        <ul className={`mt-6 grid gap-3.5 px-5 lg:grid-cols-7 ${gridFor(inventory.slotCount, toGridColumns(profile.grid_columns)).className}`}>
           {entries.map((entry) => (
             <li key={entry.id}>
               <SlotCell entry={entry} href={hrefFor(entry)} />
@@ -83,6 +101,7 @@ export default async function OtherInventoryPage(props: PageProps<"/u/[handle]/i
           {inventory.entries.length}/{inventory.slotCount}
         </p>
       </div>
-    </main>
+      </main>
+    </ProfileShell>
   );
 }
