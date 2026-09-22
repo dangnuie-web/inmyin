@@ -17,6 +17,8 @@ export type NewInventoryInput = {
   id: string;
   name: string;
   categories: string[];
+  // 남에게 보일지. 꺼져 있으면 안의 아이템까지 통째로 숨는다
+  isPublic: boolean;
   // 올린 사진의 확장자. 사진은 필수다 — + 가 항상 사진 고르기로 시작한다
   imageExtension: string;
   // 원본의 확장자. 썸네일과 다를 수 있다
@@ -64,6 +66,7 @@ export async function createInventory(input: NewInventoryInput): Promise<FormSta
     categories,
     slot_count: slotCount,
     sort_order: count ?? 0,
+    is_public: input.isPublic !== false,
     image_url: supabase.storage.from("inventories").getPublicUrl(path).data.publicUrl,
     // 원본은 비공개 저장소라 주소 대신 경로를 적어 둔다
     raw_image_url: rawPath,

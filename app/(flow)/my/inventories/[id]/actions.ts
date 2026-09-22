@@ -26,8 +26,8 @@ async function inventoryExists(supabase: Supabase, userId: string, inventoryId: 
   return data !== null;
 }
 
-// 인벤토리 수정. 이름과 카테고리 태그만 고친다 — 사진은 여기서 바꾸지 않는다
-export async function updateInventory(inventoryId: string, input: { name: string; categories: string[] }): Promise<FormState> {
+// 인벤토리 수정. 이름 · 카테고리 태그 · 공개 여부를 고친다 — 사진은 여기서 바꾸지 않는다
+export async function updateInventory(inventoryId: string, input: { name: string; categories: string[]; isPublic: boolean }): Promise<FormState> {
   const profile = await requireProfile();
   if (!UUID_PATTERN.test(inventoryId)) return BAD_REQUEST;
 
@@ -48,7 +48,11 @@ export async function updateInventory(inventoryId: string, input: { name: string
     .maybeSingle();
   if (!inventory) return { error: "인벤토리를 찾을 수 없습니다." };
 
-  const { error } = await supabase.from("inventories").update({ name, categories }).eq("id", inventory.id).eq("user_id", profile.id);
+  const { error } = await supabase
+    .from("inventories")
+    .update({ name, categories, is_public: input.isPublic !== false })
+    .eq("id", inventory.id)
+    .eq("user_id", profile.id);
   if (error) return { error: "저장하지 못했습니다. 잠시 후 다시 시도해 주세요." };
 
   // 없앤 태그는 그 태그를 달고 있던 아이템에서도 뗀다. 안 그러면 어디에도 안 보이는 태그가 아이템에 남는다.

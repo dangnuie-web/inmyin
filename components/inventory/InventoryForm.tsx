@@ -10,6 +10,7 @@ import { DarkDropdown, DarkDropdownOption, DarkInput } from "@/components/ui/Dar
 import { FormError } from "@/components/ui/FormError";
 import { Icon } from "@/components/ui/Icon";
 import { PhotoPreview } from "@/components/ui/PhotoPreview";
+import { Switch } from "@/components/ui/Switch";
 import { MAX_CATEGORY_LENGTH, RECOMMENDED_INVENTORIES } from "@/lib/categories";
 import { getPendingPhoto, pickedPhoto, setPendingPhoto } from "@/lib/image/pending-photo";
 import { uploadPhotoPair } from "@/lib/image/upload";
@@ -20,7 +21,7 @@ type OpenDropdown = "name" | "category" | null;
 type InventoryFormProps = {
   userId: string;
   // 수정할 때만 준다. 그 값으로 채워서 열고, 사진은 보여주기만 한다 — 이름과 태그만 고친다
-  inventory?: { id: string; name: string; categories: string[]; imageUrl: string };
+  inventory?: { id: string; name: string; categories: string[]; imageUrl: string; isPublic: boolean };
 };
 
 // 인벤토리 정보 입력. 사진 · 이름 · 카테고리 태그를 받아 저장한다. 인벤토리 수정도 같은 폼이다.
@@ -29,6 +30,7 @@ export function InventoryForm({ userId, inventory }: InventoryFormProps) {
   const [photo, setPhoto] = useState(getPendingPhoto);
   const [name, setName] = useState(inventory?.name ?? "");
   const [tags, setTags] = useState<string[]>(inventory?.categories ?? []);
+  const [isPublic, setIsPublic] = useState(inventory?.isPublic ?? true);
   const [draft, setDraft] = useState("");
   // 마지막으로 고른 추천의 기본 태그. 지운 태그를 드롭다운에서 다시 달 수 있게 기억해 둔다
   const [recommendedTags, setRecommendedTags] = useState<readonly string[]>([]);
@@ -95,7 +97,7 @@ export function InventoryForm({ userId, inventory }: InventoryFormProps) {
     startTransition(async () => {
       // 성공하면 서버가 목록으로 보낸다. 돌아온 값이 있으면 오류다
       if (inventory) {
-        const result = await updateInventory(inventory.id, { name, categories });
+        const result = await updateInventory(inventory.id, { name, categories, isPublic });
         if (result?.error) setError(result.error);
         return;
       }
@@ -110,7 +112,7 @@ export function InventoryForm({ userId, inventory }: InventoryFormProps) {
         return;
       }
 
-      const result = await createInventory({ id, name, categories, ...extensions });
+      const result = await createInventory({ id, name, categories, isPublic, ...extensions });
       if (result?.error) setError(result.error);
     });
   }
@@ -220,6 +222,15 @@ export function InventoryForm({ userId, inventory }: InventoryFormProps) {
             ))}
           </ul>
         )}
+
+        {/* 아이템의 공개 토글(M-08)과 같은 모양. 끄면 안의 아이템까지 남에게 통째로 숨는다 */}
+        <div className="mt-2 flex items-center justify-between">
+          <div className="flex flex-col gap-1">
+            <p className="text-label font-bold text-white">공개</p>
+            <p className="text-caption text-white">끄면 안에 든 것까지 남에게 안 보여요.</p>
+          </div>
+          <Switch checked={isPublic} onChange={setIsPublic} label="공개" />
+        </div>
 
         <FormError message={error} />
       </div>

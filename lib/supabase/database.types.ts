@@ -150,6 +150,7 @@ export type Database = {
           deleted_at: string | null
           id: string
           image_url: string
+          is_public: boolean
           name: string
           parent_inventory_id: string | null
           parent_slot_index: number | null
@@ -164,6 +165,7 @@ export type Database = {
           deleted_at?: string | null
           id?: string
           image_url: string
+          is_public?: boolean
           name: string
           parent_inventory_id?: string | null
           parent_slot_index?: number | null
@@ -178,6 +180,7 @@ export type Database = {
           deleted_at?: string | null
           id?: string
           image_url?: string
+          is_public?: boolean
           name?: string
           parent_inventory_id?: string | null
           parent_slot_index?: number | null
@@ -390,6 +393,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      inventory_visible: { Args: { target_id: string }; Returns: boolean }
       is_email_registered: { Args: { p_email: string }; Returns: boolean }
       is_valid_categories: {
         Args: { p_categories: string[] }

@@ -25,7 +25,7 @@ export default async function InventoryUpdatePage(props: PageProps<"/my/inventor
         <HeaderMini icon="close" href="/my/inventories" title="수정하기" tone="dark" />
         <InventoryForm
           userId={profile.id}
-          inventory={{ id: detail.id, name: detail.name, categories: detail.categories, imageUrl }}
+          inventory={{ id: detail.id, name: detail.name, categories: detail.categories, imageUrl, isPublic: detail.isPublic }}
         />
       </div>
     </main>

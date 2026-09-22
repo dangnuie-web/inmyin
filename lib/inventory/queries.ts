@@ -29,6 +29,8 @@ export type InventoryDetail = {
   name: string;
   categories: string[];
   slotCount: number;
+  // 남에게 보이는가. 꺼져 있으면 안의 아이템까지 통째로 숨는다
+  isPublic: boolean;
   // 순서대로. 번호 사이가 비어 있어도 화면에서는 빈틈 없이 줄 세운다 (docs/data-model.md 규칙 4)
   entries: SlotEntry[];
 };
@@ -49,7 +51,7 @@ export async function getMyInventoryDetail(
   const [inventory, itemRows, children] = await Promise.all([
     supabase
       .from("inventories")
-      .select("id, name, categories, slot_count")
+      .select("id, name, categories, slot_count, is_public")
       .eq("id", inventoryId)
       .eq("user_id", userId)
       .is("deleted_at", null)
@@ -98,6 +100,7 @@ export async function getMyInventoryDetail(
     id: inventory.data.id,
     name: inventory.data.name,
     categories: inventory.data.categories,
+    isPublic: inventory.data.is_public,
     slotCount: inventory.data.slot_count,
     entries: entries.map(({ entry }) => entry),
   };

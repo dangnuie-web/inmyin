@@ -16,7 +16,7 @@ User ──< Inventory ──< Item
 | 테이블 | 주요 필드 | 메모 |
 | --- | --- | --- |
 | `User` | id, handle, nickname, avatarUrl, bio, plan, provider, gridColumns, createdAt, deletedAt | plan = `basic` \| `premium`. gridColumns = 격자 한 줄의 칸 수, 3 \| 4 (설정 M-02) |
-| `Inventory` | id, userId, name, categories, imageUrl, rawImageUrl, slotCount, parentInventoryId, parentSlotIndex, order, createdAt, deletedAt | categories = 유저가 정한 태그 목록. 사진은 필수다 — 만들기가 항상 사진 고르기로 시작한다 |
+| `Inventory` | id, userId, name, categories, imageUrl, rawImageUrl, slotCount, isPublic, parentInventoryId, parentSlotIndex, order, createdAt, deletedAt | categories = 유저가 정한 태그 목록. 사진은 필수다 — 만들기가 항상 사진 고르기로 시작한다. isPublic 이 꺼지면 안의 아이템 · 담긴 인벤토리까지 남에게 숨는다 |
 | `Item` | id, userId, inventoryId, slotIndex, category, imageUrl, rawImageUrl, name, description, quantity, isPublic, acquiredNote, expiresAt, likeCount, createdAt, deletedAt | rawImageUrl = 배경제거 전 원본. acquiredNote = 획득날짜 칸. 날짜가 아니라 글자다 ("20살 생일", "26.09.22") |
 | `InmyinPost` | id, userId, imageUrl, canvasJson, likeCount, createdAt, deletedAt | |
 | `PostItem` | postId, itemId, x, y, w, h | 게시물 ↔ 아이템 탭 영역 |
@@ -75,9 +75,11 @@ GROUP BY target_id ORDER BY score DESC;
 
 `RECOMMEND_THRESHOLD = 100` 을 상수로 둔다.
 
-## 비공개 아이템 읽기
+## 비공개 아이템 · 인벤토리 읽기
 
 저장은 칸 번호 그대로. 남의 프로필에서 읽을 때만 `isPublic = true` 인 것을 모아 인덱스를 다시 매긴다. 내 화면에서는 원래 칸 위치 그대로 보인다.
+
+인벤토리가 비공개면 그 안의 것은 아이템이 공개여도 남에게 보이지 않고, 안에 담긴 인벤토리도 같이 숨는다. 이것은 앱 코드가 아니라 DB 의 읽기 규칙(RLS)이 막는다 — `inventory_visible(id)` 함수가 그 인벤토리와 위의 인벤토리들(최대 5겹)이 모두 공개인지 본다. 그래서 어떤 화면을 새로 만들어도 남의 비공개 것이 새어 나갈 수 없다.
 
 ## 이미지 저장
 
