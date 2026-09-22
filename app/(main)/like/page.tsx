@@ -4,6 +4,7 @@ import { ItemCollection } from "@/components/item/ItemCollection";
 import { SoonButton } from "@/components/profile/SoonButton";
 import { requireProfile } from "@/lib/auth/profile";
 import { getMyLikedItems } from "@/lib/like/queries";
+import { planLimits } from "@/lib/plans";
 
 export const metadata: Metadata = { title: "Like · INMYIN" };
 
@@ -13,6 +14,7 @@ export const metadata: Metadata = { title: "Like · INMYIN" };
 export default async function LikePage() {
   const profile = await requireProfile();
   const items = await getMyLikedItems(profile.id);
+  const { maxLikes } = planLimits(profile.plan);
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col">
@@ -25,7 +27,8 @@ export default async function LikePage() {
           INMYIN
         </SoonButton>
       </nav>
-      <ItemCollection items={items} capacity={null} columns={toGridColumns(profile.grid_columns)} emptyText="아직 좋아요한 아이템이 없어요. 홈에서 하트를 눌러 모아 보세요." />
+      {/* 아래 숫자는 모은 개수 / 플랜 한도 (lib/plans.ts 의 maxLikes) */}
+      <ItemCollection items={items} capacity={maxLikes} columns={toGridColumns(profile.grid_columns)} emptyText="아직 좋아요한 아이템이 없어요. 홈에서 하트를 눌러 모아 보세요." />
     </div>
   );
 }

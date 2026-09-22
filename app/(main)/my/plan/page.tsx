@@ -15,7 +15,7 @@ export default async function PlanPage() {
       <div className="flex flex-1 flex-col items-center justify-center gap-2 px-5 text-center">
         <p className="text-title font-bold">프리미엄은 준비 중이에요</p>
         <p className="text-body text-ink-muted">
-          인벤토리 {PLANS.premium.maxInventories}개, 판마다 {PLANS.premium.slotCount}칸까지 늘릴 수 있게 됩니다.
+          인벤토리 {PLANS.premium.maxInventories}개, 판마다 {PLANS.premium.slotCount}칸, 좋아요 {PLANS.premium.maxLikes.toLocaleString("ko-KR")}개까지 늘릴 수 있게 됩니다.
         </p>
       </div>
     </div>

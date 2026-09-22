@@ -54,8 +54,8 @@ export const RECOMMENDED_INVENTORIES = [
 
 ```ts
 export const PLANS = {
-  basic:   { maxInventories: 5,  slotCount: 25 },
-  premium: { maxInventories: 20, slotCount: 50 },
+  basic:   { maxInventories: 5,  slotCount: 25, maxLikes: 500 },
+  premium: { maxInventories: 20, slotCount: 50, maxLikes: 2000 },
 } as const
 ```
 

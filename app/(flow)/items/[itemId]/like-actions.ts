@@ -5,6 +5,7 @@ import { requireProfile } from "@/lib/auth/profile";
 import type { FormState } from "@/lib/auth/rules";
 import { itemPath } from "@/lib/inventory/paths";
 import type { LikeTarget } from "@/lib/like/queries";
+import { planLimits } from "@/lib/plans";
 import { createClient } from "@/lib/supabase/server";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -16,6 +17,15 @@ export async function setLike(targetType: LikeTarget, targetId: string, liked: b
   if ((targetType !== "item" && targetType !== "post") || !UUID_PATTERN.test(targetId)) return { error: "잘못된 요청입니다." };
 
   const supabase = await createClient();
+
+  // 플랜 한도. 화면은 서버의 답을 기다리지 않고 먼저 켜지므로, 넘치면 여기서 돌려보내고 화면이 되돌린다
+  if (liked) {
+    const { maxLikes } = planLimits(profile.plan);
+    const { count, error: countError } = await supabase.from("likes").select("target_id", { count: "exact", head: true }).eq("user_id", profile.id);
+    if (countError) return { error: "잠시 후 다시 시도해 주세요." };
+    if ((count ?? 0) >= maxLikes) return { error: `좋아요는 ${maxLikes.toLocaleString("ko-KR")}개까지 모을 수 있어요.` };
+  }
+
   const { error } = liked
     ? await supabase.from("likes").insert({ user_id: profile.id, target_type: targetType, target_id: targetId })
     : await supabase.from("likes").delete().eq("user_id", profile.id).eq("target_type", targetType).eq("target_id", targetId);
