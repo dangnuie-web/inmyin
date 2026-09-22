@@ -6,7 +6,8 @@ import { resizeImage, THUMBNAIL_MAX_SIDE } from "@/lib/image/resize";
 // 지금은 @imgly/background-removal — 사진이 밖으로 나가지 않고 폰 안에서 처리된다.
 // 처음 한 번은 AI 모델 파일을 내려받느라 오래 걸리고, 그 뒤로는 브라우저가 저장해 둔 것을 쓴다.
 //
-// 주의: 이 라이브러리는 AGPL-3.0 이다. 남에게 서비스를 공개하기 전에 어떻게 할지 정해야 한다 (docs/roadmap.md "나중에 할 일")
+// 이 라이브러리는 AGPL-3.0 이다. 그래서 INMYIN 의 소스코드도 AGPL 로 공개한다 (README.md).
+// 라이선스가 자유로운 다른 모델로 갈아타면 그때 다시 비공개로 돌릴 수 있다 (docs/roadmap.md "나중에 할 일")
 export async function removeBackground(file: File): Promise<Blob> {
   // 썸네일 크기로 먼저 줄인다 — 어차피 그 크기로 저장되고, 큰 사진은 폰에서 느리고 메모리가 모자란다
   const small = await resizeImage(file, THUMBNAIL_MAX_SIDE);
