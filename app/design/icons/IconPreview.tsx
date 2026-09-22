@@ -1,12 +1,23 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/Button";
+import { BUILT_IN_COUNT, builtInSrc } from "./candidates";
+import { Squircle, SquircleDefs } from "./Squircle";
 
-// 홈 화면 앱 아이콘 시안을 폰에서 직접 골라 넣어 보는 확인용 페이지. 앱 기능이 아니다.
-// 그림은 서버에 올리지 않고 이 브라우저(localStorage)에만 남는다 — 그래서 다른 기기에서는 다시 넣어야 한다.
+// 홈 화면 앱 아이콘 시안을 폰에서 골라 보는 확인용 페이지. 앱 기능이 아니다.
+// 시안은 두 갈래다: 리포지토리에 들어 있는 것(candidates.ts)과 폰에서 직접 넣은 것.
+// 직접 넣은 그림은 서버에 올리지 않고 이 브라우저(localStorage)에만 남는다 — 그래서 다른 기기에서는 다시 넣어야 한다.
 
-type Candidate = { id: string; src: string };
+// builtIn 이 있으면 리포지토리의 시안 (그 번호), 없으면 폰에서 넣은 것
+type Candidate = { id: string; src: string; builtIn?: number };
+
+const BUILT_IN: Candidate[] = Array.from({ length: BUILT_IN_COUNT }, (_, i) => ({
+  id: `built-in-${i + 1}`,
+  src: builtInSrc(i + 1),
+  builtIn: i + 1,
+}));
 
 const STORAGE_KEY = "inmyin.icon-candidates";
 // 아이폰 홈 화면 아이콘은 60pt. 3배 화면이면 180px 인데, 아래의 "크게 보기"(120pt)까지 감안해 360px 로 줄여 둔다
@@ -69,36 +80,6 @@ async function toCandidate(file: File): Promise<Candidate> {
 
 // 투명한 부분이 티가 나도록 까는 체크무늬 (app/design/page.tsx 와 같은 것)
 const CHECKER = "repeating-conic-gradient(var(--color-gray-3) 0% 25%, var(--color-white) 0% 50%) 0 0 / 16px 16px";
-
-// 아이폰 아이콘 모양(스쿼클). 아이폰은 아이콘의 투명한 부분을 검게 칠하므로 쓰는 쪽에서 bg-ink 를 깐다.
-// |x|ⁿ + |y|ⁿ = 1 인 초타원을 n=5 로 그린 것 —
-// 모서리가 원처럼 딱 꺾이지 않고 변에서부터 서서히 굽는다. 0~1 좌표라 어떤 크기에도 씌울 수 있다
-function squirclePath(pointsPerQuadrant = 24) {
-  const n = 5;
-  const total = pointsPerQuadrant * 4;
-  const points: string[] = [];
-  for (let i = 0; i < total; i++) {
-    const t = (i / total) * Math.PI * 2;
-    const c = Math.cos(t);
-    const s = Math.sin(t);
-    const x = 0.5 + 0.5 * Math.sign(c) * Math.abs(c) ** (2 / n);
-    const y = 0.5 + 0.5 * Math.sign(s) * Math.abs(s) ** (2 / n);
-    points.push(`${x.toFixed(4)} ${y.toFixed(4)}`);
-  }
-  return `M${points.join("L")}Z`;
-}
-
-const SQUIRCLE = squirclePath();
-
-function Squircle({ src, size, className = "", children }: { src?: string; size: number; className?: string; children?: React.ReactNode }) {
-  return (
-    <div className={`shrink-0 overflow-hidden ${className}`} style={{ width: size, height: size, clipPath: "url(#ios-squircle)" }}>
-      {/* eslint-disable-next-line @next/next/no-img-element -- 브라우저 안의 data URL 이라 next/image 를 쓸 수 없다 */}
-      {src && <img src={src} alt="" className="size-full" draggable={false} />}
-      {children}
-    </div>
-  );
-}
 
 // ---- 가짜 홈 화면 ----
 
@@ -173,7 +154,8 @@ function HomeScreen({ candidate, wallpaper }: { candidate?: Candidate; wallpaper
 
 export function IconPreview() {
   const raw = useSyncExternalStore(subscribe, readRaw, () => "[]");
-  const candidates = useMemo(() => parse(raw), [raw]);
+  const uploaded = useMemo(() => parse(raw), [raw]);
+  const candidates = useMemo(() => [...BUILT_IN, ...uploaded], [uploaded]);
   const [selectedId, setSelectedId] = useState<string>();
   const [wallpaper, setWallpaper] = useState<Wallpaper>("dark");
   const [message, setMessage] = useState<string>();
@@ -186,7 +168,7 @@ export function IconPreview() {
     setMessage(undefined);
     try {
       const added = await Promise.all(Array.from(files).map(toCandidate));
-      if (!write([...candidates, ...added])) setMessage("브라우저 저장 공간이 모자라요. 안 쓰는 시안을 지우고 다시 넣어 주세요.");
+      if (!write([...uploaded, ...added])) setMessage("브라우저 저장 공간이 모자라요. 안 쓰는 시안을 지우고 다시 넣어 주세요.");
       else setSelectedId(added[0].id);
     } catch {
       setMessage("그림을 읽지 못했어요. PNG 나 JPG 로 다시 내보내 주세요.");
@@ -194,19 +176,12 @@ export function IconPreview() {
   }
 
   function remove(id: string) {
-    write(candidates.filter((c) => c.id !== id));
+    write(uploaded.filter((c) => c.id !== id));
   }
 
   return (
     <div className="flex flex-col gap-8">
-      {/* 스쿼클 모양 — 아래의 모든 아이콘이 이 하나를 같이 쓴다 */}
-      <svg className="absolute size-0" aria-hidden>
-        <defs>
-          <clipPath id="ios-squircle" clipPathUnits="objectBoundingBox">
-            <path d={SQUIRCLE} />
-          </clipPath>
-        </defs>
-      </svg>
+      <SquircleDefs />
 
       <section className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
@@ -217,27 +192,24 @@ export function IconPreview() {
           <input ref={inputRef} type="file" accept="image/*" multiple hidden onChange={(e) => addFiles(e.target.files)} />
         </div>
 
-        {candidates.length === 0 ? (
-          <p className="rounded-md bg-surface px-4 py-6 text-center text-label text-ink-muted">
-            피그마에서 PNG 로 내보낸 시안을 사진첩에 넣고, 그림 추가로 골라 주세요. 여러 장을 한 번에 고를 수 있어요.
-          </p>
-        ) : (
-          // 흰 시안도 보이게 옅은 바탕을 깐다
-          <ul className="-mx-5 flex gap-4 overflow-x-auto bg-gray-2 px-5 pt-3 pb-2">
-            {candidates.map((c, i) => {
-              const isSelected = c.id === selected?.id;
-              return (
-                <li key={c.id} className="relative flex shrink-0 flex-col items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedId(c.id)}
-                    className={`rounded-lg p-1 transition-shadow ${isSelected ? "ring-2 ring-point" : ""}`}
-                    aria-pressed={isSelected}
-                    aria-label={`${i + 1}번 시안 고르기`}
-                  >
-                    <Squircle src={c.src} size={64} className="bg-ink" />
-                  </button>
-                  <span className="text-caption text-ink-muted">{i + 1}</span>
+        {/* 흰 시안도 보이게 옅은 바탕을 깐다 */}
+        <ul className="-mx-5 flex gap-4 overflow-x-auto bg-gray-2 px-5 pt-3 pb-2">
+          {candidates.map((c, i) => {
+            const isSelected = c.id === selected?.id;
+            return (
+              <li key={c.id} className="relative flex shrink-0 flex-col items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setSelectedId(c.id)}
+                  className={`rounded-lg p-1 transition-shadow ${isSelected ? "ring-2 ring-point" : ""}`}
+                  aria-pressed={isSelected}
+                  aria-label={`${i + 1}번 시안 고르기`}
+                >
+                  <Squircle src={c.src} size={64} className="bg-ink" />
+                </button>
+                <span className="text-caption text-ink-muted">{i + 1}</span>
+                {/* 리포지토리의 시안은 못 지운다 — 폰에서 넣은 것만 */}
+                {!c.builtIn && (
                   <button
                     type="button"
                     onClick={() => remove(c.id)}
@@ -246,11 +218,14 @@ export function IconPreview() {
                   >
                     ×
                   </button>
-                </li>
-              );
-            })}
-          </ul>
-        )}
+                )}
+              </li>
+            );
+          })}
+        </ul>
+        <p className="text-caption text-ink-muted">
+          1~{BUILT_IN_COUNT}번은 SVG 폴더의 시안이에요. 새로 그린 게 있으면 PNG 로 내보내 사진첩에 넣고 그림 추가로 골라 보세요 — 그건 이 폰에만 남아요.
+        </p>
         {message && <p className="text-caption text-primary">{message}</p>}
       </section>
 
@@ -272,6 +247,13 @@ export function IconPreview() {
           </div>
         </div>
         <HomeScreen candidate={selected} wallpaper={wallpaper} />
+        {selected?.builtIn ? (
+          <Link href={`/design/icons/${selected.builtIn}`} className="text-label font-semibold text-point underline">
+            {selected.builtIn}번을 진짜 홈 화면에 깔아 보기 →
+          </Link>
+        ) : (
+          selected && <p className="text-caption text-ink-muted">폰에서 넣은 그림은 진짜 홈 화면에는 못 깔아요 — 파일이 서버에 없어서요. 마음에 들면 SVG 폴더에 넣어 주세요.</p>
+        )}
       </section>
 
       {selected && (

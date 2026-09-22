@@ -13,7 +13,7 @@ export default function IconsPage() {
       <header className="flex flex-col gap-1">
         <h1 className="text-title font-bold">앱 아이콘 미리보기</h1>
         <p className="text-label text-ink-muted">
-          시안을 아이폰 홈 화면 모양에 넣어 본다. 그림은 이 브라우저에만 남고 서버에는 올라가지 않는다
+          시안을 아이폰 홈 화면 모양에 넣어 본다. 폰에서 직접 넣은 그림은 이 브라우저에만 남고 서버에는 올라가지 않는다
         </p>
       </header>
       <IconPreview />
