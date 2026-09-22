@@ -113,9 +113,10 @@ lib/
   ranking.ts        인기·추천 정렬
 scripts/
   app-icon.mjs      정해진 아이콘 SVG 로 PWA 아이콘 4종 + favicon 을 만든다 (npm run app-icon)
-  icon-candidates.mjs  아이콘 시안 SVG 들을 /design/icons 용 PNG 로 만든다 (npm run icons)
 docs/
 ```
+
+아이콘 시안을 폰에서 골라 보는 도구는 이 리포지토리 밖에 있다 — 옆 폴더 `../icon-preview` (어떤 프로젝트에서든 쓰는 도구라 따로 둔다).
 
 PWA 파일: `app/manifest.ts`(매니페스트) · `app/sw.ts`(서비스워커) · `app/serwist/[path]/route.ts`(서비스워커를 내보내는 통로) · `app/offline/`(오프라인 화면). 서비스워커는 개발 중에는 꺼져 있다 — 확인은 `npm run build && npm start`.
 

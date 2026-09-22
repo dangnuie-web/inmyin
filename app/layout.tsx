@@ -16,8 +16,8 @@ export const metadata: Metadata = {
     // 상태 표시줄(시계 줄)을 흰 바탕에 검은 글자로. 화면은 그 아래부터 시작한다
     statusBarStyle: "default",
   },
-  // 아이폰 홈 화면 아이콘. 파일 방식(app/apple-icon.png)을 쓰지 않는 이유: 그러면 코드로 적은 icons 가 무시되는데,
-  // 아이콘 시안 페이지(app/design/icons/[n])가 코드로 apple-touch-icon 을 바꿔 끼우기 때문
+  // 아이폰 홈 화면 아이콘 (scripts/app-icon.mjs 가 만든다). 파일 방식(app/apple-icon.png)과 코드 방식을 섞으면
+  // Next.js 가 파일 쪽을 무시하므로, 아이콘은 모두 코드 방식으로 적는다. favicon.ico 만은 특별 취급이라 파일 그대로
   icons: { apple: "/icons/apple-touch-icon.png" },
   // 숫자를 전화번호로 착각해 링크로 만들지 않게
   formatDetection: { telephone: false },

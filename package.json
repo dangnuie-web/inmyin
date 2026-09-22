@@ -8,7 +8,6 @@
     "start": "next start",
     "lint": "eslint",
     "db:types": "supabase gen types typescript --linked > lib/supabase/database.types.ts",
-    "icons": "node scripts/icon-candidates.mjs",
     "app-icon": "node scripts/app-icon.mjs"
   },
   "dependencies": {
