@@ -22,9 +22,22 @@ export function inventoryPath(id: string, options: InventoryPathOptions = {}) {
   return `/my/inventories/${id}${query ? `?${query}` : ""}`;
 }
 
-// 아이템 상세(M-14)의 주소. 아이템은 짐싸기로 인벤토리를 옮겨 다니므로, 주소에 인벤토리를 넣지 않는다
-export function itemPath(itemId: string) {
-  return `/items/${itemId}`;
+export type ItemPathOptions = {
+  // 홈 피드(H-01)에서 왔으면 "home" — 상세가 남의 것 모양(H-02)으로 열리고, 아래에는 피드에서 근처에 있던 것들이 이어진다.
+  // 그때 피드의 검색어 · 카테고리도 같이 실어야 같은 줄을 이어 보여줄 수 있다
+  from?: "home";
+  q?: string | null;
+  category?: string | null;
+};
+
+// 아이템 상세(M-14 · H-02)의 주소. 아이템은 짐싸기로 인벤토리를 옮겨 다니므로, 주소에 인벤토리를 넣지 않는다
+export function itemPath(itemId: string, options: ItemPathOptions = {}) {
+  const params = new URLSearchParams();
+  if (options.from) params.set("from", options.from);
+  if (options.q?.trim()) params.set("q", options.q.trim());
+  if (options.category) params.set("category", options.category);
+  const query = params.toString();
+  return `/items/${itemId}${query ? `?${query}` : ""}`;
 }
 
 // 아이템 수정의 주소. 글자 정보를 고친다 (사진을 다듬는 M-07 의 itemEditPath 와 다른 화면이다)

@@ -59,15 +59,17 @@ type SlotCellProps = Omit<ComponentProps<typeof Link>, "href" | "className"> & {
   entry: SlotEntry;
   // 지금 보고 있는 아이템의 칸 (M-14 아래의 격자). 테두리를 두른다
   current?: boolean;
+  // 누르면 갈 곳을 따로 정할 때 (홈 피드는 "어디서 왔는지"를 주소에 싣는다). 없으면 아이템 상세 · 담긴 인벤토리
+  href?: string;
 };
 
 // 나머지 props 는 링크에 그대로 넘긴다 — 길게 누르기(SlotGestures)가 여기에 손잡이를 단다
-export function SlotCell({ entry, current = false, ...props }: SlotCellProps) {
+export function SlotCell({ entry, current = false, href, ...props }: SlotCellProps) {
   return (
     // 옅은 회색 바탕. 배경을 지운 사진은 이 위에 물건만 놓인다
     <Link
       {...props}
-      href={slotEntryPath(entry)}
+      href={href ?? slotEntryPath(entry)}
       aria-label={entry.name}
       aria-current={current ? "true" : undefined}
       draggable={false}
@@ -99,11 +101,12 @@ type SlotRowProps = Omit<ComponentProps<typeof Link>, "href" | "className"> & {
   entry: SlotEntry;
   // 이름 아래에 덧붙이는 한 줄. 아이템 모아보기(M-13)에서 "어느 인벤토리에 있는지"를 적는다
   caption?: string;
+  href?: string;
 };
 
-export function SlotRow({ entry, caption, ...props }: SlotRowProps) {
+export function SlotRow({ entry, caption, href, ...props }: SlotRowProps) {
   return (
-    <Link {...props} href={slotEntryPath(entry)} draggable={false} className={`${SLOT_ROW_CLASS} ${NO_BROWSER_GESTURES} active:opacity-80`}>
+    <Link {...props} href={href ?? slotEntryPath(entry)} draggable={false} className={`${SLOT_ROW_CLASS} ${NO_BROWSER_GESTURES} active:opacity-80`}>
       <SlotRowThumb filled>
         <SlotImage entry={entry} sizes="54px" />
       </SlotRowThumb>

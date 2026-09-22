@@ -9,7 +9,7 @@ import { CategoryTag } from "@/components/ui/CategoryTag";
 import { ChipRow } from "@/components/ui/ChipRow";
 import { Icon } from "@/components/ui/Icon";
 import { feedPath } from "@/lib/home/paths";
-import type { InventoryView } from "@/lib/inventory/paths";
+import { itemPath, type InventoryView } from "@/lib/inventory/paths";
 import type { SlotEntry } from "@/lib/inventory/queries";
 import { FEED_PAGE_SIZE, type FeedItem } from "@/lib/item/feed";
 
@@ -109,7 +109,7 @@ export function ItemFeed({ items, q, category, categories, columns }: ItemFeedPr
         <ul className={`mt-8 grid gap-3.5 px-5 ${gridColumnsClass(columns)}`}>
           {shown.map((item) => (
             <li key={item.id}>
-              <SlotCell entry={toEntry(item)} />
+              <SlotCell entry={toEntry(item)} href={itemPath(item.id, { from: "home", q, category })} />
             </li>
           ))}
         </ul>
@@ -118,7 +118,7 @@ export function ItemFeed({ items, q, category, categories, columns }: ItemFeedPr
           {shown.map((item) => (
             // 누구의 어느 인벤토리에 있는지. 여러 사람의 것이 섞이는 화면이라 이름 아래에 적는다
             <li key={item.id}>
-              <SlotRow entry={toEntry(item)} caption={`${item.ownerNickname} · ${item.inventoryName}`} />
+              <SlotRow entry={toEntry(item)} caption={`${item.ownerNickname} · ${item.inventoryName}`} href={itemPath(item.id, { from: "home", q, category })} />
             </li>
           ))}
         </ul>

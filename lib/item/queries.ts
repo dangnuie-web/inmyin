@@ -81,14 +81,14 @@ export async function getMyItemCollection(userId: string): Promise<CollectedItem
 // 비공개 아이템, 비공개 인벤토리 안의 것은 애초에 돌아오지 않는다 (docs/data-model.md "비공개 아이템 · 인벤토리 읽기") ----
 
 // 모든 사람의 공개 아이템, 최신순 (H-01). 남의 것이 계속 늘어나므로 한 장씩 읽고, 검색 · 카테고리도 서버가 거른다
-export async function getPublicItemFeed({ q, category, before }: FeedFilter = {}): Promise<FeedItem[]> {
+export async function getPublicItemFeed({ q, category, before, limit = FEED_PAGE_SIZE }: FeedFilter & { limit?: number } = {}): Promise<FeedItem[]> {
   const supabase = await createClient();
   let query = supabase
     .from("items")
     .select("id, name, image_url, quantity, category, created_at, inventories!inner(name), users!inner(handle, nickname)")
     .is("deleted_at", null)
     .order("created_at", { ascending: false })
-    .limit(FEED_PAGE_SIZE);
+    .limit(limit);
   // 태그가 없는 아이템은 전체에서만 보인다 (CLAUDE.md 규칙 4)
   if (category) query = query.eq("category", category);
   // %, _ 는 ilike 의 특수문자라 글자 그대로 찾게 앞에 \ 를 붙인다
@@ -121,6 +121,9 @@ export async function getPopularCategories(limit = 12): Promise<string[]> {
 
 // 아이템 하나와 주인. 내 것이든 남의 공개 것이든 (M-14 · H-02). 없거나 못 보는 것이면 null
 export type AnyItemDetail = ItemDetail & {
+  // "2026-09-22T…". 작성자 줄의 날짜이자, 피드에서 이 아이템 근처의 것을 찾는 기준
+  createdAt: string;
+  likeCount: number;
   owner: { id: string; handle: string; nickname: string; avatarUrl: string | null };
 };
 
@@ -128,7 +131,7 @@ export async function getItemDetail(itemId: string): Promise<AnyItemDetail | nul
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("items")
-    .select("id, inventory_id, name, description, image_url, category, quantity, acquired_note, expires_at, is_public, users!inner(id, handle, nickname, avatar_url)")
+    .select("id, inventory_id, name, description, image_url, category, quantity, acquired_note, expires_at, is_public, created_at, like_count, users!inner(id, handle, nickname, avatar_url)")
     .eq("id", itemId)
     .is("deleted_at", null)
     .maybeSingle();
@@ -146,6 +149,8 @@ export async function getItemDetail(itemId: string): Promise<AnyItemDetail | nul
     acquiredNote: data.acquired_note,
     expiresAt: data.expires_at,
     isPublic: data.is_public,
+    createdAt: data.created_at,
+    likeCount: data.like_count,
     owner: { id: data.users.id, handle: data.users.handle, nickname: data.users.nickname, avatarUrl: data.users.avatar_url },
   };
 }
