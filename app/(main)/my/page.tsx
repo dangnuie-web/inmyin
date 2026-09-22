@@ -10,6 +10,7 @@ import { requireProfile } from "@/lib/auth/profile";
 import { itemPath } from "@/lib/inventory/paths";
 import { getMyInventories } from "@/lib/inventory/queries";
 import { planLimits } from "@/lib/plans";
+import { followsPath } from "@/lib/profile/paths";
 import { getMyProfileStats } from "@/lib/profile/queries";
 
 export const metadata: Metadata = { title: "프로필 · INMYIN" };
@@ -46,10 +47,14 @@ export default async function MyProfilePage() {
               </span>
             )}
           </p>
-          {/* 팔로우는 2단계에서 열린다. 그때 이 숫자를 누르면 팔로워 · 팔로잉 목록(M-12)으로 간다 */}
+          {/* 누르면 팔로워 · 팔로잉 목록(M-12) */}
           <p className="flex gap-2.5 text-label">
-            <span>팔로워 {stats.followerCount.toLocaleString("ko-KR")}</span>
-            <span>팔로잉 {stats.followingCount.toLocaleString("ko-KR")}</span>
+            <Link href={followsPath(profile.handle, "followers")} className="active:opacity-60">
+              팔로워 {stats.followerCount.toLocaleString("ko-KR")}
+            </Link>
+            <Link href={followsPath(profile.handle, "following")} className="active:opacity-60">
+              팔로잉 {stats.followingCount.toLocaleString("ko-KR")}
+            </Link>
           </p>
         </div>
       </section>

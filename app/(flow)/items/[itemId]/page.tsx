@@ -3,16 +3,17 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { gridColumnsClass, gridFor, SlotCell, toGridColumns } from "@/components/inventory/Slot";
 import { ItemMenu } from "@/components/item/ItemMenu";
+import { FollowButton } from "@/components/follow/FollowButton";
 import { LikeButton } from "@/components/like/LikeButton";
-import { SoonButton } from "@/components/profile/SoonButton";
+import { Avatar } from "@/components/profile/Avatar";
 import { BackHeader } from "@/components/ui/BackHeader";
 import { HeaderMini } from "@/components/ui/HeaderMini";
-import { TabIcon } from "@/components/ui/TabIcon";
 import { requireProfile } from "@/lib/auth/profile";
 import { inventoryPath, itemPath } from "@/lib/inventory/paths";
 import { getMyInventoryDetail, type SlotEntry } from "@/lib/inventory/queries";
 import { getItemDetail, getPublicItemFeed, getVisibleInventoryEntries } from "@/lib/item/queries";
 import { formatShortDate } from "@/lib/item/rules";
+import { isFollowing } from "@/lib/follow/queries";
 import { hasLiked } from "@/lib/like/queries";
 
 export const metadata: Metadata = { title: "아이템 · INMYIN" };
@@ -65,13 +66,14 @@ export default async function ItemDetailPage(props: PageProps<"/items/[itemId]">
 
   // ---- 홈에서 왔거나 남의 아이템 (H-02) ----
   // 아래에 이어 보여줄 것: 홈에서 왔으면 피드에서 이 아이템 다음에 있던 것들(같은 검색어 · 카테고리), 아니면 그 사람 인벤토리의 공개 아이템
-  const [nearby, liked] = await Promise.all([
+  const [nearby, liked, following] = await Promise.all([
     fromHome
       ? getPublicItemFeed({ q, category: category ?? undefined, before: item.createdAt, limit: NEARBY_COUNT }).then((feedItems) =>
           feedItems.map((feedItem): SlotEntry => ({ kind: "item", deleted: false, ...feedItem })),
         )
       : getVisibleInventoryEntries(item.inventoryId),
     hasLiked(profile.id, "item", item.id),
+    isMine ? false : isFollowing(profile.id, item.owner.id),
   ]);
   const hrefFor = (entry: SlotEntry) => (fromHome ? itemPath(entry.id, { from: "home", q, category }) : undefined);
 
@@ -80,27 +82,15 @@ export default async function ItemDetailPage(props: PageProps<"/items/[itemId]">
       {/* 피드 · 프로필 등 어디서든 올 수 있어서 왔던 곳으로 돌아간다. 수정 · 삭제 메뉴는 없다 */}
       <BackHeader icon="close" title="아이템" />
 
-      {/* 작성자 줄 (피그마 H-02). 타유저 프로필(H-06)을 만들면 누르면 거기로 간다. 팔로우는 그 항목에서 동작을 붙인다 */}
+      {/* 작성자 줄 (피그마 H-02). 타유저 프로필(H-06)을 만들면 누르면 거기로 간다 */}
       <div className="mt-4 flex items-center gap-5 px-5">
-        <span className="relative flex size-18 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-2 text-disabled">
-          {item.owner.avatarUrl ? (
-            <Image src={item.owner.avatarUrl} alt="" fill sizes="72px" unoptimized className="object-cover" />
-          ) : (
-            <span className="scale-75">
-              <TabIcon name="my" active />
-            </span>
-          )}
-        </span>
+        <Avatar url={item.owner.avatarUrl} size={72} />
         <span className="flex min-w-0 flex-1 flex-col gap-1">
           <span className="truncate text-body font-bold">{item.owner.nickname}</span>
           {/* 등록한 날. 서버는 UTC 로 주므로 한국 날짜로 바꿔서 26.09.05 꼴로 */}
           <span className="text-body">{formatShortDate(new Date(item.createdAt).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }))}</span>
         </span>
-        {!isMine && (
-          <SoonButton notice="팔로우는 곧 만들어요." className="h-8 shrink-0 rounded-sm bg-ink px-3.5 text-label font-bold text-white active:opacity-80">
-            팔로우
-          </SoonButton>
-        )}
+        {!isMine && <FollowButton userId={item.owner.id} following={following} />}
       </div>
 
       {/* 피그마 H-02: 흰 바탕에 옅은 테두리 */}
