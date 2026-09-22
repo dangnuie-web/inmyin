@@ -38,10 +38,11 @@ export function InventoryPhoto({ inventory }: { inventory: Pick<InventorySummary
 
 // 누르면 그 인벤토리의 상세(M-04)로 간다. 밀어서 수정 · 삭제하는 줄이라, 브라우저가 끼어들지 않게 한다 —
 // 아이폰의 링크 미리보기, 글자 선택, 링크 끌어가기
-export function InventoryRow({ inventory }: { inventory: InventorySummary }) {
+// href — 누르면 갈 곳을 따로 정할 때 (타유저의 인벤토리 H-08). 없으면 내 인벤토리 상세(M-04)
+export function InventoryRow({ inventory, href }: { inventory: InventorySummary; href?: string }) {
   return (
     <Link
-      href={inventoryPath(inventory.id)}
+      href={href ?? inventoryPath(inventory.id)}
       draggable={false}
       className={`${INVENTORY_ROW_CLASS} select-none [-webkit-touch-callout:none] active:opacity-60`}
     >

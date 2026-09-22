@@ -1,13 +1,11 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { Avatar } from "@/components/profile/Avatar";
+import { EmptyNote, PROFILE_ACTION_CLASS, RecentItems, SectionTitle } from "@/components/profile/ProfileParts";
 import { SoonButton } from "@/components/profile/SoonButton";
 import { HeaderMini } from "@/components/ui/HeaderMini";
 import { Icon } from "@/components/ui/Icon";
-import { TabIcon } from "@/components/ui/TabIcon";
 import { requireProfile } from "@/lib/auth/profile";
-import { itemPath } from "@/lib/inventory/paths";
 import { getMyInventories } from "@/lib/inventory/queries";
 import { planLimits } from "@/lib/plans";
 import { followsPath } from "@/lib/profile/paths";
@@ -15,9 +13,8 @@ import { getMyProfileStats } from "@/lib/profile/queries";
 
 export const metadata: Metadata = { title: "프로필 · INMYIN" };
 
-const ACTION_CLASS = "flex h-9.5 flex-1 items-center justify-center rounded-sm bg-ink text-label font-bold text-white active:opacity-80";
-
 // M-01 · My › 내 프로필. My 탭의 기본 화면. 여기서 설정 · 인벤토리 · 아이템으로 갈라진다.
+// 타유저 프로필(H-06)과 같은 틀이고, 위쪽 버튼(프로필 관리 · 공유)과 갈 곳(내 화면들)만 다르다
 export default async function MyProfilePage() {
   const profile = await requireProfile();
   const [stats, inventories] = await Promise.all([getMyProfileStats(profile.id), getMyInventories(profile.id)]);
@@ -28,14 +25,7 @@ export default async function MyProfilePage() {
       <HeaderMini icon="settings" href="/my/settings" title="PROFILE" />
 
       <section className="flex items-center gap-8.5 px-5 pt-1">
-        <div className="relative flex size-24.5 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-2 text-disabled">
-          {profile.avatar_url ? (
-            <Image src={profile.avatar_url} alt="" fill sizes="98px" unoptimized className="object-cover" />
-          ) : (
-            // 프로필 사진이 아직 없을 때. 하단 탭의 My 와 같은 사람 그림
-            <TabIcon name="my" active />
-          )}
-        </div>
+        <Avatar url={profile.avatar_url} size={98} />
         <div className="flex min-w-0 flex-col gap-1">
           <p className="truncate text-caption font-bold">{profile.handle}</p>
           <p className="flex items-center gap-2 text-title font-bold">
@@ -60,10 +50,10 @@ export default async function MyProfilePage() {
       </section>
 
       <div className="mt-6 flex gap-1 px-5">
-        <Link href="/my/edit" className={ACTION_CLASS}>
+        <Link href="/my/edit" className={PROFILE_ACTION_CLASS}>
           프로필 관리
         </Link>
-        <SoonButton notice="프로필 공유는 곧 만들어요." className={ACTION_CLASS}>
+        <SoonButton notice="프로필 공유는 곧 만들어요." className={PROFILE_ACTION_CLASS}>
           프로필 공유
         </SoonButton>
       </div>
@@ -82,17 +72,7 @@ export default async function MyProfilePage() {
           </Link>
         </div>
         {stats.recentItems.length > 0 ? (
-          <ul className="flex gap-2.25 overflow-x-auto px-5 [scrollbar-width:none]">
-            {stats.recentItems.map((item) => (
-              // 한 화면에 딱 다섯 칸이 보인다. 칸 사이 간격 넷(9px × 4)을 뺀 너비를 다섯으로 나눈다
-              <li key={item.id} className="shrink-0 basis-[calc((100%-2.25rem)/5)]">
-                <Link href={itemPath(item.id)} aria-label={item.name} className="relative block aspect-square overflow-hidden rounded-md bg-gray-1 active:opacity-80">
-                  {/* 올릴 때 이미 작게 줄여 둔 사진이라 Next 의 이미지 최적화를 거치지 않는다 */}
-                  <Image src={item.imageUrl} alt="" fill sizes="64px" unoptimized className="object-cover" />
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <RecentItems items={stats.recentItems} />
         ) : (
           <EmptyNote>아직 등록한 아이템이 없어요. 인벤토리에서 + 를 눌러 넣어 보세요.</EmptyNote>
         )}
@@ -107,18 +87,4 @@ export default async function MyProfilePage() {
       </section>
     </div>
   );
-}
-
-// 줄의 제목. 큰 영문 제목 옆에 작은 숫자가 붙는다 (INVENTORY 5/25)
-function SectionTitle({ title, note }: { title: string; note: string }) {
-  return (
-    <h2 className="flex items-baseline gap-3 text-link font-bold">
-      {title}
-      <span className="text-caption font-normal">{note}</span>
-    </h2>
-  );
-}
-
-function EmptyNote({ children }: { children: ReactNode }) {
-  return <p className="break-keep px-5 text-label text-ink-muted">{children}</p>;
 }

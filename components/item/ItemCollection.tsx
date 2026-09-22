@@ -13,8 +13,8 @@ import type { CollectedItem } from "@/lib/item/queries";
 type ItemCollectionProps = {
   // 최신순으로 온다
   items: CollectedItem[];
-  // 넣을 수 있는 전체 칸 수 (인벤토리 한도 × 칸 수). 아래의 3/125 에 쓴다
-  capacity: number;
+  // 넣을 수 있는 전체 칸 수 (인벤토리 한도 × 칸 수). 아래의 3/125 에 쓴다. 남의 것(타유저 프로필)은 한도를 보여주지 않으므로 null — 개수만
+  capacity: number | null;
   // 격자 한 줄의 칸 수 (Slot.tsx 의 gridFor)
   columns: GridColumns;
 };
@@ -66,7 +66,7 @@ export function ItemCollection({ items, capacity, columns }: ItemCollectionProps
 
       {shown.length === 0 ? (
         <p className="mt-16 break-keep px-5 text-center text-label text-ink-muted">
-          {isFiltered ? "찾는 아이템이 없어요." : "아직 등록한 아이템이 없어요. 인벤토리에서 + 를 눌러 넣어 보세요."}
+          {isFiltered ? "찾는 아이템이 없어요." : capacity === null ? "공개된 아이템이 아직 없어요." : "아직 등록한 아이템이 없어요. 인벤토리에서 + 를 눌러 넣어 보세요."}
         </p>
       ) : view === "grid" ? (
         <ul className={`mt-8 grid gap-3.5 px-5 ${gridColumnsClass(columns)}`}>
@@ -88,7 +88,7 @@ export function ItemCollection({ items, capacity, columns }: ItemCollectionProps
 
       {/* 화면 아래에 붙어 있는 숫자. 거르고 있을 때는 찾은 개수를, 아니면 전체 사용량을 보여준다 */}
       <div className="pointer-events-none sticky bottom-0 mt-auto flex h-19 items-center justify-center pb-[env(safe-area-inset-bottom)]">
-        <p className="rounded-full bg-white px-3 py-0.5 text-label font-bold">{isFiltered ? `${shown.length}개` : `${items.length}/${capacity}`}</p>
+        <p className="rounded-full bg-white px-3 py-0.5 text-label font-bold">{isFiltered || capacity === null ? `${shown.length}개` : `${items.length}/${capacity}`}</p>
       </div>
     </div>
   );

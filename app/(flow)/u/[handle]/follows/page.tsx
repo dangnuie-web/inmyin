@@ -7,7 +7,7 @@ import { BackHeader } from "@/components/ui/BackHeader";
 import { requireProfile } from "@/lib/auth/profile";
 import { HANDLE_PATTERN } from "@/lib/auth/rules";
 import { getFollowLists, getMyFollowingIds, type UserCard } from "@/lib/follow/queries";
-import { followsPath, type FollowTab } from "@/lib/profile/paths";
+import { followsPath, profilePath, type FollowTab } from "@/lib/profile/paths";
 
 export const metadata: Metadata = { title: "팔로워 · INMYIN" };
 
@@ -62,15 +62,17 @@ export default async function FollowsPage(props: PageProps<"/u/[handle]/follows"
   );
 }
 
-// 한 줄 — 사진 · 닉네임 · @아이디 · 팔로우 버튼. 타유저 프로필(H-06)을 만들면 누르면 거기로 간다
+// 한 줄 — 사진 · 닉네임 · @아이디 · 팔로우 버튼. 사진과 이름을 누르면 그 사람의 프로필(H-06)
 function PersonRow({ person, isMe, following }: { person: UserCard; isMe: boolean; following: boolean }) {
   return (
     <li className="flex h-16 items-center gap-3 px-5">
-      <Avatar url={person.avatarUrl} size={44} />
-      <span className="flex min-w-0 flex-1 flex-col">
-        <span className="truncate text-label font-bold">{person.nickname}</span>
-        <span className="truncate text-caption text-ink-muted">@{person.handle}</span>
-      </span>
+      <Link href={isMe ? "/my" : profilePath(person.handle)} className="flex min-w-0 flex-1 items-center gap-3 active:opacity-60">
+        <Avatar url={person.avatarUrl} size={44} />
+        <span className="flex min-w-0 flex-1 flex-col">
+          <span className="truncate text-label font-bold">{person.nickname}</span>
+          <span className="truncate text-caption text-ink-muted">@{person.handle}</span>
+        </span>
+      </Link>
       {!isMe && <FollowButton userId={person.id} following={following} size="sm" />}
     </li>
   );
