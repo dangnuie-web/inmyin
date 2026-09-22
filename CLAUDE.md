@@ -109,9 +109,15 @@ lib/
   plans.ts          플랜별 한도 상수
   categories.ts     추천 인벤토리 4종의 이름과 기본 태그, 태그 한도
   background-removal.ts
+  design-tokens.ts  globals.css 의 토큰을 서버에서 읽는다 — CSS 를 못 읽는 매니페스트 · 메타 태그용
   ranking.ts        인기·추천 정렬
+scripts/
+  app-icon.mjs      정해진 아이콘 SVG 로 PWA 아이콘 4종 + favicon 을 만든다 (npm run app-icon)
+  icon-candidates.mjs  아이콘 시안 SVG 들을 /design/icons 용 PNG 로 만든다 (npm run icons)
 docs/
 ```
+
+PWA 파일: `app/manifest.ts`(매니페스트) · `app/sw.ts`(서비스워커) · `app/serwist/[path]/route.ts`(서비스워커를 내보내는 통로) · `app/offline/`(오프라인 화면). 서비스워커는 개발 중에는 꺼져 있다 — 확인은 `npm run build && npm start`.
 
 ---
 

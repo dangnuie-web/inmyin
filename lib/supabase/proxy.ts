@@ -3,7 +3,9 @@ import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "./database.types";
 
 // 로그인 없이 볼 수 있는 주소. 2단계에서 피드와 타유저 프로필을 공개할 때 늘린다.
-const PUBLIC_PATHS = ["/login", "/signup", "/reset-password", "/auth", "/design"];
+// PWA 몫: 매니페스트 · 서비스워커(/serwist/sw.js) · 오프라인 화면은 브라우저가 로그인과 상관없이 가져간다 —
+// 로그인 화면으로 돌려보내면 앱 설치가 안 되거나 서비스워커가 로그인 화면을 저장해 버린다
+const PUBLIC_PATHS = ["/login", "/signup", "/reset-password", "/auth", "/design", "/manifest.webmanifest", "/serwist", "/offline"];
 // 로그인한 사람에게는 필요 없는 주소
 const GUEST_ONLY_PATHS = ["/login", "/signup"];
 

@@ -1,3 +1,4 @@
+import { withSerwist } from "@serwist/turbopack";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
@@ -10,4 +11,5 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// 서비스워커(app/sw.ts)를 묶는 esbuild 를 서버 번들 밖에 두게 한다 — Serwist 의 Turbopack 연동에 필요한 전부
+export default withSerwist(nextConfig);

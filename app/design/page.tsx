@@ -1,7 +1,6 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { aliasOf, readTokens } from "@/lib/design-tokens";
 
 export const metadata: Metadata = {
   title: "디자인 토큰 · INMYIN",
@@ -57,20 +56,6 @@ const RADII = [
   { name: "xl", className: "rounded-xl" },
   { name: "full", className: "rounded-full" },
 ];
-
-function readTokens() {
-  const css = readFileSync(join(process.cwd(), "app/globals.css"), "utf8");
-  const tokens: Record<string, string> = {};
-  for (const [, name, value] of css.matchAll(/--([\w-]+):\s*([^;]+);/g)) {
-    tokens[name] = value.trim().replace(/\s+/g, " ");
-  }
-  return tokens;
-}
-
-// var(--color-gray-1) 처럼 다른 토큰을 가리키면 그 이름을 돌려준다
-function aliasOf(value: string) {
-  return value.match(/^var\(--color-([\w-]+)\)$/)?.[1];
-}
 
 function Section({ title, note, children }: { title: string; note?: string; children: React.ReactNode }) {
   return (
