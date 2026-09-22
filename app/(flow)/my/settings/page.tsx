@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { signOut } from "@/app/(auth)/actions";
+import { toGridColumns } from "@/components/inventory/Slot";
+import { GridColumnsSetting } from "@/components/profile/GridColumnsSetting";
 import { SoonButton } from "@/components/profile/SoonButton";
 import { HeaderMini } from "@/components/ui/HeaderMini";
 import { requireProfile } from "@/lib/auth/profile";
@@ -34,6 +36,11 @@ export default async function SettingsPage() {
           <Link href="/my/settings/account" className={ROW_CLASS}>
             로그인 정보
           </Link>
+          {/* 격자 한 줄의 칸 수. 3 이 좋은 사람도 4 가 좋은 사람도 있어서 고르게 한다 (Slot.tsx 의 gridFor) */}
+          <div className={`${ROW_CLASS} justify-between active:opacity-100`}>
+            격자 한 줄에
+            <GridColumnsSetting current={toGridColumns(profile.grid_columns)} />
+          </div>
           {/* 유통기한 임박 알림 · 푸시 알림은 4단계 */}
           <SoonButton notice="알림 설정은 곧 만들어요." className={ROW_CLASS}>
             알림

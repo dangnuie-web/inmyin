@@ -352,6 +352,7 @@ export type Database = {
           bio: string | null
           created_at: string
           deleted_at: string | null
+          grid_columns: number
           handle: string
           id: string
           nickname: string
@@ -363,6 +364,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           deleted_at?: string | null
+          grid_columns?: number
           handle: string
           id: string
           nickname: string
@@ -374,6 +376,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           deleted_at?: string | null
+          grid_columns?: number
           handle?: string
           id?: string
           nickname?: string

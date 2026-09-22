@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ColumnsSwitch } from "@/components/inventory/ColumnsSwitch";
 import { InventoryBoard } from "@/components/inventory/InventoryBoard";
+import { toGridColumns } from "@/components/inventory/Slot";
 import { InventoryStrip } from "@/components/inventory/InventoryStrip";
 import { ViewToggle } from "@/components/inventory/ViewToggle";
 import { CategoryTag } from "@/components/ui/CategoryTag";
@@ -10,7 +10,6 @@ import { ChipRow } from "@/components/ui/ChipRow";
 import { HeaderMini } from "@/components/ui/HeaderMini";
 import { requireProfile } from "@/lib/auth/profile";
 import { inventoryPath, packingPath, type InventoryView } from "@/lib/inventory/paths";
-import { getGridColumns } from "@/lib/inventory/grid-columns";
 import { getMyInventories, getMyInventoryDetail } from "@/lib/inventory/queries";
 
 export const metadata: Metadata = { title: "인벤토리 · INMYIN" };
@@ -28,7 +27,6 @@ export default async function InventoryDetailPage(props: PageProps<"/my/inventor
   const deletedId =
     typeof searchParams.deleted === "string" && UUID_PATTERN.test(searchParams.deleted) ? searchParams.deleted : null;
 
-  const columns = await getGridColumns();
   const [inventory, inventories] = await Promise.all([
     getMyInventoryDetail(profile.id, id, deletedId),
     getMyInventories(profile.id),
@@ -80,13 +78,6 @@ export default async function InventoryDetailPage(props: PageProps<"/my/inventor
         </ChipRow>
       </div>
 
-      {/* 임시 — 한 줄의 칸 수를 3 · 4 · 5 로 견줘 보는 스위치. 정해지면 뗀다 */}
-      {view === "grid" && (
-        <div className="mt-3 flex justify-end px-5">
-          <ColumnsSwitch current={columns} />
-        </div>
-      )}
-
       <InventoryBoard
         inventoryId={inventory.id}
         inventories={inventories}
@@ -96,7 +87,7 @@ export default async function InventoryDetailPage(props: PageProps<"/my/inventor
         usedSlots={inventory.entries.filter((entry) => !entry.deleted).length}
         slotCount={inventory.slotCount}
         view={view}
-        columns={columns}
+        columns={toGridColumns(profile.grid_columns)}
       />
     </main>
   );

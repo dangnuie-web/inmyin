@@ -9,18 +9,21 @@ import type { SlotEntry } from "@/lib/inventory/queries";
 // 같은 내용을 그리드에서는 네모 칸(SlotCell)으로, 리스트에서는 한 줄(SlotRow)로 그린다.
 // 누르면 아이템은 상세(M-14)로, 안에 담긴 인벤토리는 그 인벤토리로 간다.
 
-// 격자의 한 줄에 놓는 칸 수. 기본 4 — 3 은 써 보니 칸이 커 보였다.
-// 3 · 4 · 5 를 폰에서 견줘 보는 동안은 쿠키로 바꿀 수 있다 (ColumnsSwitch, lib/inventory/grid-columns.ts). 정해지면 스위치와 쿠키를 뗀다.
-// className 은 Tailwind가 찾을 수 있게 글자 그대로 적어둔다
+// 격자의 한 줄에 놓는 칸 수. 3 이 좋은 사람도 4 가 좋은 사람도 있어서 설정(M-02)에서 고르고 계정(users.grid_columns)에 남는다.
+// 5 는 써 보니 너무 작아서 뺐다. className 은 Tailwind가 찾을 수 있게 글자 그대로 적어둔다
 const COLUMN_CLASS = { 3: "grid-cols-3", 4: "grid-cols-4", 5: "grid-cols-5" } as const;
-export type GridColumns = keyof typeof COLUMN_CLASS;
-export const GRID_COLUMN_CHOICES: GridColumns[] = [3, 4, 5];
+export const GRID_COLUMN_CHOICES = [3, 4] as const;
+export type GridColumns = (typeof GRID_COLUMN_CHOICES)[number];
 export const DEFAULT_GRID_COLUMNS: GridColumns = 4;
-export const GRID_COLUMNS_COOKIE = "grid-columns";
 
-// 칸이 많은 플랜(docs/screens.md "칸 수에 따른 격자")은 고른 값보다 촘촘하게라도 그린다
+// DB 에서 온 숫자를 선택지 중 하나로. 아니면 기본값
+export function toGridColumns(value: number): GridColumns {
+  return (GRID_COLUMN_CHOICES as readonly number[]).includes(value) ? (value as GridColumns) : DEFAULT_GRID_COLUMNS;
+}
+
+// 칸이 많은 플랜(docs/screens.md "칸 수에 따른 격자")은 고른 값과 상관없이 촘촘하게 그린다
 export function gridFor(slotCount: number, preferred: GridColumns = DEFAULT_GRID_COLUMNS) {
-  const columns: GridColumns = slotCount >= 100 ? 5 : slotCount >= 50 && preferred < 4 ? 4 : preferred;
+  const columns = slotCount >= 100 ? 5 : slotCount >= 50 ? 4 : preferred;
   return { columns, className: COLUMN_CLASS[columns] };
 }
 

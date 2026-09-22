@@ -15,7 +15,7 @@ User ──< Inventory ──< Item
 
 | 테이블 | 주요 필드 | 메모 |
 | --- | --- | --- |
-| `User` | id, handle, nickname, avatarUrl, bio, plan, provider, createdAt, deletedAt | plan = `basic` \| `premium` |
+| `User` | id, handle, nickname, avatarUrl, bio, plan, provider, gridColumns, createdAt, deletedAt | plan = `basic` \| `premium`. gridColumns = 격자 한 줄의 칸 수, 3 \| 4 (설정 M-02) |
 | `Inventory` | id, userId, name, categories, imageUrl, rawImageUrl, slotCount, parentInventoryId, parentSlotIndex, order, createdAt, deletedAt | categories = 유저가 정한 태그 목록. 사진은 필수다 — 만들기가 항상 사진 고르기로 시작한다 |
 | `Item` | id, userId, inventoryId, slotIndex, category, imageUrl, rawImageUrl, name, description, quantity, isPublic, acquiredNote, expiresAt, likeCount, createdAt, deletedAt | rawImageUrl = 배경제거 전 원본. acquiredNote = 획득날짜 칸. 날짜가 아니라 글자다 ("20살 생일", "26.09.22") |
 | `InmyinPost` | id, userId, imageUrl, canvasJson, likeCount, createdAt, deletedAt | |

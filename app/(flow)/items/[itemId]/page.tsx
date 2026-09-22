@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { gridFor, SlotCell } from "@/components/inventory/Slot";
+import { gridFor, SlotCell, toGridColumns } from "@/components/inventory/Slot";
 import { ItemMenu } from "@/components/item/ItemMenu";
 import { HeaderMini } from "@/components/ui/HeaderMini";
 import { requireProfile } from "@/lib/auth/profile";
-import { getGridColumns } from "@/lib/inventory/grid-columns";
 import { inventoryPath } from "@/lib/inventory/paths";
 import { getMyInventoryDetail } from "@/lib/inventory/queries";
 import { getMyItemDetail } from "@/lib/item/queries";
@@ -24,7 +23,7 @@ export default async function ItemDetailPage(props: PageProps<"/items/[itemId]">
 
   const item = await getMyItemDetail(profile.id, itemId);
   if (!item) notFound();
-  const [inventory, columns] = await Promise.all([getMyInventoryDetail(profile.id, item.inventoryId), getGridColumns()]);
+  const inventory = await getMyInventoryDetail(profile.id, item.inventoryId);
   if (!inventory) notFound();
 
   const facts = [
@@ -59,7 +58,7 @@ export default async function ItemDetailPage(props: PageProps<"/items/[itemId]">
         )}
       </section>
 
-      <ul className={`mt-16 grid gap-3.5 px-5 ${gridFor(inventory.slotCount, columns).className}`}>
+      <ul className={`mt-16 grid gap-3.5 px-5 ${gridFor(inventory.slotCount, toGridColumns(profile.grid_columns)).className}`}>
         {inventory.entries.map((entry) => (
           <li key={entry.id}>
             <SlotCell entry={entry} current={entry.id === item.id} />
