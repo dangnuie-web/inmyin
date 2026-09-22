@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { TERMS, termFieldName, type TermId } from "@/lib/terms";
 
@@ -45,6 +46,11 @@ export function TermsAgreement({ onChange }: { onChange?: (requiredDone: boolean
             onChange={(e) => update({ ...checked, [term.id]: e.target.checked })}
           />
           [{term.required ? "필수" : "선택"}] {term.label}
+          {"href" in term && (
+            <Link href={term.href} target="_blank" className="ml-auto shrink-0 underline underline-offset-2">
+              보기
+            </Link>
+          )}
         </label>
       ))}
     </fieldset>

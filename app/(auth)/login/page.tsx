@@ -37,10 +37,11 @@ export default async function LoginPage({
       </div>
 
       <footer className="flex flex-col items-center gap-1 text-caption text-ink-muted">
-        {/* 약관 본문 페이지를 만들면 링크로 바꾼다 */}
         <p className="flex gap-4">
-          <span>이용약관</span>
-          <span className="text-ink">개인정보 취급방침</span>
+          <Link href="/terms">이용약관</Link>
+          <Link href="/privacy" className="text-ink">
+            개인정보처리방침
+          </Link>
         </p>
         <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
       </footer>

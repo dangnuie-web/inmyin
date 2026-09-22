@@ -48,13 +48,12 @@ export default async function SettingsPage() {
         </Section>
 
         <Section title="정보" className="mt-9">
-          {/* 약관의 글은 남에게 공개하기 전(2단계)에 준비한다 — docs/roadmap.md "나중에 할 일" */}
-          <SoonButton notice="이용약관은 준비 중이에요." className={ROW_CLASS}>
+          <Link href="/terms" className={ROW_CLASS}>
             이용약관
-          </SoonButton>
-          <SoonButton notice="개인정보처리방침은 준비 중이에요." className={ROW_CLASS}>
+          </Link>
+          <Link href="/privacy" className={ROW_CLASS}>
             개인정보처리방침
-          </SoonButton>
+          </Link>
           <Link href="/my/settings/licenses" className={ROW_CLASS}>
             오픈소스 라이선스
           </Link>
