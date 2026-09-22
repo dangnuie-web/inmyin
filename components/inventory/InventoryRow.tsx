@@ -53,7 +53,7 @@ export function InventoryRow({ inventory }: { inventory: InventorySummary }) {
   );
 }
 
-// 방금 지운 인벤토리의 자리. 아이템과 똑같이 7초 동안 "되돌리기" 줄로 남았다가 사라진다 (components/inventory/Slot.tsx)
+// 방금 지운 인벤토리의 자리. 아이템과 똑같이 5초 동안 "되돌리기" 줄로 남았다가 사라진다 (components/inventory/Slot.tsx)
 export function UndoInventoryRow({ inventory, onUndo }: { inventory: InventorySummary; onUndo: () => void }) {
   return (
     <button type="button" onClick={onUndo} className={`${INVENTORY_ROW_CLASS} relative text-left active:opacity-80`}>

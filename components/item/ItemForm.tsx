@@ -166,6 +166,9 @@ export function ItemForm({ userId, inventoryId, categories, item }: ItemFormProp
           trailing={<DatePickerButton label="획득날짜를 달력에서 고르기" onPick={(date) => setAcquiredNote(formatShortDate(date))} />}
         />
 
+        {/* 아이폰 달력의 "재설정"은 처음 열었을 때의 날짜로 돌아갈 뿐 비워 주지는 않는다.
+            실수로 골랐을 때 "없음"으로 돌아갈 길이 필요해서, 날짜가 있으면 × 를 둔다.
+            날짜 칸이 입력칸 전체를 덮고 있어서(cover="field") × 는 그 위(z-10)에 올려야 눌린다 */}
         <DarkInput
           label="유통기한"
           layout="inline"
@@ -174,6 +177,16 @@ export function ItemForm({ userId, inventoryId, categories, item }: ItemFormProp
           placeholder="날짜를 골라 주세요."
           trailing={
             <>
+              {expiresAt && (
+                <button
+                  type="button"
+                  onClick={() => setExpiresAt("")}
+                  aria-label="유통기한 없애기"
+                  className="relative z-10 -my-2 text-gray-mid active:opacity-60"
+                >
+                  <Icon name="close" scale={0.5} />
+                </button>
+              )}
               <span className="text-caption font-bold text-white">까지</span>
               <DatePickerButton label="유통기한을 달력에서 고르기" value={expiresAt} onPick={setExpiresAt} cover="field" />
             </>

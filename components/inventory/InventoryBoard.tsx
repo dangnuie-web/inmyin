@@ -42,7 +42,7 @@ function mergeLocal(entries: SlotEntry[], ghost: PlacedEntry | null, ghostId: st
 // 새 칸을 알린 뒤 주소에서 added 를 지우기까지의 시간. 스크롤로 데려오는 시간 + globals.css 의 모션 길이보다 길어야 한다
 const HIGHLIGHT_MS = 2500;
 // 지운 자리에 "되돌리기" 칸이 남아 있는 시간. globals.css 의 undo-countdown 길이와 맞춘다
-const UNDO_MS = 7000;
+const UNDO_MS = 5000;
 
 type InventoryBoardProps = {
   inventoryId: string;

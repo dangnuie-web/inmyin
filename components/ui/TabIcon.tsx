@@ -17,18 +17,21 @@ const MY = {
 
 export type TabIconName = keyof typeof OUTLINES | "my";
 
+// 그림은 47 칸에 그려져 있지만, 화면에서는 한 단계 작은 40px 로 보여준다 (피그마의 47 은 글자 옆에서 너무 컸다)
+const SIZE = 40;
+
 export function TabIcon({ name, active }: { name: TabIconName; active: boolean }) {
   if (name === "my") {
     // 원본 폭이 44라서 47 칸 가운데에 오도록 1.5 만큼 민다
     return (
-      <svg width="47" height="47" viewBox="-1.5 0 47 47" fill="currentColor" aria-hidden>
+      <svg width={SIZE} height={SIZE} viewBox="-1.5 0 47 47" fill="currentColor" aria-hidden>
         <path d={active ? MY.active : MY.inactive} />
       </svg>
     );
   }
 
   return (
-    <svg width="47" height="47" viewBox="0 0 47 47" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <svg width={SIZE} height={SIZE} viewBox="0 0 47 47" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <path d={OUTLINES[name]} />
     </svg>
   );

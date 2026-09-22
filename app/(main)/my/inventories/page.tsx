@@ -22,8 +22,11 @@ export default async function InventoriesPage() {
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col">
       <HeaderMini icon="back" href="/my" title="INVENTORY" />
 
-      <p className="mt-4 pr-7 text-right text-body font-bold">
-        TOTAL {usedTotal}/{maxInventories * slotCount}
+      {/* 검정 알약 안의 작은 글자. 오른쪽 끝은 아래 줄들의 "n/25" 와 맞춘다 (INVENTORY_ROW_CLASS 의 pr-11) */}
+      <p className="mt-4 flex justify-end pr-11">
+        <span className="rounded-full bg-ink px-3 py-1 text-caption font-bold text-white">
+          TOTAL {usedTotal}/{maxInventories * slotCount}
+        </span>
       </p>
 
       <InventoryList inventories={inventories} maxInventories={maxInventories} />

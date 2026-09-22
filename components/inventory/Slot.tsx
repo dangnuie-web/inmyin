@@ -100,7 +100,7 @@ export function SlotRow({ entry, caption, ...props }: SlotRowProps) {
   );
 }
 
-// 방금 지운 아이템의 자리. 7초 동안 "되돌리기" 칸으로 남았다가 사라진다 — 그때 뒤의 칸들이 당겨 붙는다.
+// 방금 지운 아이템의 자리. 5초 동안 "되돌리기" 칸으로 남았다가 사라진다 — 그때 뒤의 칸들이 당겨 붙는다.
 // 지운 바로 그 자리에 뜨기 때문에 눈도 손가락도 이미 여기에 있다. 보라색 선이 남은 시간을 알려준다 —
 // 리스트의 줄에서는 아래의 선이 줄어들고, 그리드의 칸에서는 테두리를 따라 한 바퀴 돌며 지워진다
 const UNDO_COUNTDOWN_CLASS = "absolute inset-x-0 bottom-0 h-0.75 origin-left animate-undo-countdown bg-point";

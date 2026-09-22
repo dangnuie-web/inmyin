@@ -12,7 +12,7 @@ import { InventoryRow, UndoInventoryRow } from "./InventoryRow";
 import { SwipeRow, type SwipeSide } from "./SlotGestures";
 
 // "되돌리기" 줄이 남아 있는 시간. globals.css 의 undo-countdown 길이와 맞춘다
-const UNDO_MS = 7000;
+const UNDO_MS = 5000;
 // 되살아난 줄에 옅은 보라색이 스치는 시간. globals.css 의 row-flash 보다 길어야 한다
 const FLASH_MS = 1600;
 
@@ -114,7 +114,8 @@ export function InventoryList({ inventories, maxInventories }: InventoryListProp
 
   return (
     <>
-      <ul className="mt-6 flex flex-col gap-4">
+      {/* TOTAL 알약과 줄 사이, 줄과 줄 사이 모두 16px */}
+      <ul className="mt-4 flex flex-col gap-4">
         {rows.map(({ inventory, deleted }) => (
           <li key={inventory.id} className={inventory.id === restoredId ? "animate-row-flash" : ""}>
             {deleted ? (
