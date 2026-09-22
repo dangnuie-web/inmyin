@@ -400,6 +400,13 @@ export type Database = {
         Returns: boolean
       }
       next_slot_index: { Args: { p_inventory_id: string }; Returns: number }
+      popular_item_categories: {
+        Args: { max_count?: number }
+        Returns: {
+          category: string
+          item_count: number
+        }[]
+      }
       used_slot_count: { Args: { p_inventory_id: string }; Returns: number }
     }
     Enums: {
