@@ -42,7 +42,9 @@ export function ItemCollection({ items, capacity, columns, emptyText }: ItemColl
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="flex items-center gap-6 px-5">
+      {/* 토글은 검색창 왼쪽 — 써 보니 그쪽이 편했다 (M-04 와 같은 자리) */}
+      <div className="flex items-center gap-4 px-5">
+        <ViewToggle current={view} onSelect={setView} />
         <label className="flex h-7.5 min-w-0 flex-1 items-center gap-2 rounded-full border border-border pl-4 pr-4">
           {/* 아이폰은 16px 보다 작은 입력칸을 누르면 화면을 멋대로 확대한다 */}
           <input
@@ -56,7 +58,6 @@ export function ItemCollection({ items, capacity, columns, emptyText }: ItemColl
           />
           <Icon name="search" className="shrink-0" />
         </label>
-        <ViewToggle current={view} onSelect={setView} />
       </div>
 
       <ChipRow className="mt-3 pl-5">

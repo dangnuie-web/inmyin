@@ -10,9 +10,9 @@ import { Avatar } from "@/components/profile/Avatar";
 import { BackHeader } from "@/components/ui/BackHeader";
 import { HeaderMini } from "@/components/ui/HeaderMini";
 import { requireProfile } from "@/lib/auth/profile";
-import { inventoryPath, itemPath } from "@/lib/inventory/paths";
+import { inventoryPath } from "@/lib/inventory/paths";
 import { getMyInventoryDetail, type SlotEntry } from "@/lib/inventory/queries";
-import { getItemDetail, getPublicItemFeed, getVisibleInventoryEntries } from "@/lib/item/queries";
+import { getItemDetail, getVisibleInventoryEntries } from "@/lib/item/queries";
 import { formatShortDate } from "@/lib/item/rules";
 import { isFollowing } from "@/lib/follow/queries";
 import { profilePath } from "@/lib/profile/paths";
@@ -21,22 +21,19 @@ import { hasLiked } from "@/lib/like/queries";
 export const metadata: Metadata = { title: "아이템 · INMYIN" };
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
-// 홈에서 왔을 때 아래에 이어 보여줄 "근처 아이템" 수
-const NEARBY_COUNT = 12;
 
 // 아이템 상세. 어디서 왔는지로 모양이 정해진다:
 //   내 인벤토리(M-04)에서 온 내 아이템 = M-14 — 닫으면 그 인벤토리로, ⋮ 메뉴로 수정 · 삭제, 아래는 같은 인벤토리의 칸들
-//   홈 피드(H-01)에서 왔거나 남의 아이템 = H-02 — 작성자 줄 · 팔로우 · 하트, 아래는 피드에서 근처에 있던 것들(홈에서 왔을 때).
+//   홈 피드(H-01)에서 왔거나 남의 아이템 = H-02 — 작성자 줄 · 팔로우 · 하트. 홈에서 왔으면 제목 · 내용에서 끝난다
+//   (홈으로 돌아가면 이어서 볼 수 있다), 프로필 · 인벤토리에서 왔으면 아래에 같은 인벤토리의 공개 아이템들.
 //   홈에서 연 내 아이템도 남의 것과 똑같이 보인다 — 내가 올린 것이 남에게 어떻게 보이는지 그대로 보려고
 // 주소는 둘 다 /items/[id]. 하단 탭이 없는 화면이라 (flow) 묶음에 둔다
 export default async function ItemDetailPage(props: PageProps<"/items/[itemId]">) {
   const profile = await requireProfile();
   const { itemId } = await props.params;
   if (!UUID_PATTERN.test(itemId)) notFound();
-  const searchParams = await props.searchParams;
-  const fromHome = searchParams.from === "home";
-  const q = typeof searchParams.q === "string" ? searchParams.q : "";
-  const category = typeof searchParams.category === "string" && searchParams.category ? searchParams.category : null;
+  // 홈 피드에서 왔는지 (?from=home). 피드의 검색어 · 카테고리도 같이 실려 오지만 지금은 쓰지 않는다 — 돌아갈 때 주소가 그대로라 홈이 알아서 이어 보여준다
+  const fromHome = (await props.searchParams).from === "home";
 
   // 남의 비공개 아이템은 DB 규칙(RLS)이 애초에 돌려주지 않아서 여기서 없는 것이 된다
   const item = await getItemDetail(itemId);
@@ -67,17 +64,13 @@ export default async function ItemDetailPage(props: PageProps<"/items/[itemId]">
   }
 
   // ---- 홈에서 왔거나 남의 아이템 (H-02) ----
-  // 아래에 이어 보여줄 것: 홈에서 왔으면 피드에서 이 아이템 다음에 있던 것들(같은 검색어 · 카테고리), 아니면 그 사람 인벤토리의 공개 아이템
+  // 아래의 칸들: 프로필 · 인벤토리에서 왔으면 그 사람 인벤토리의 공개 아이템. 홈에서 왔으면 없다 —
+  // "이것보다 먼저 올라온 것"만 쌓이는 건 이상하고, 홈으로 돌아가면 이어서 볼 수 있다
   const [nearby, liked, following] = await Promise.all([
-    fromHome
-      ? getPublicItemFeed({ q, category: category ?? undefined, before: item.createdAt, limit: NEARBY_COUNT }).then((feedItems) =>
-          feedItems.map((feedItem): SlotEntry => ({ kind: "item", deleted: false, ...feedItem })),
-        )
-      : getVisibleInventoryEntries(item.inventoryId),
+    fromHome ? [] : getVisibleInventoryEntries(item.inventoryId),
     hasLiked(profile.id, "item", item.id),
     isMine ? false : isFollowing(profile.id, item.owner.id),
   ]);
-  const hrefFor = (entry: SlotEntry) => (fromHome ? itemPath(entry.id, { from: "home", q, category }) : undefined);
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col pb-[max(2.5rem,env(safe-area-inset-bottom))]">
@@ -109,7 +102,7 @@ export default async function ItemDetailPage(props: PageProps<"/items/[itemId]">
         <Description item={item} facts={facts} />
       </section>
 
-      {nearby.length > 0 && <Grid entries={nearby} currentId={item.id} hrefFor={hrefFor} className={gridColumnsClass(toGridColumns(profile.grid_columns))} />}
+      {nearby.length > 0 && <Grid entries={nearby} currentId={item.id} className={gridColumnsClass(toGridColumns(profile.grid_columns))} />}
     </main>
   );
 }
@@ -149,12 +142,12 @@ function Description({ item, facts }: { item: Item; facts: Fact[] }) {
 }
 
 // 아래의 칸들. 지금 보고 있는 아이템에는 검은 테두리, 다른 칸을 누르면 그 아이템으로 건너간다
-function Grid({ entries, currentId, hrefFor, className }: { entries: SlotEntry[]; currentId: string; hrefFor?: (entry: SlotEntry) => string | undefined; className: string }) {
+function Grid({ entries, currentId, className }: { entries: SlotEntry[]; currentId: string; className: string }) {
   return (
     <ul className={`mt-16 grid gap-3.5 px-5 ${className}`}>
       {entries.map((entry) => (
         <li key={entry.id}>
-          <SlotCell entry={entry} current={entry.id === currentId} href={hrefFor?.(entry)} />
+          <SlotCell entry={entry} current={entry.id === currentId} />
         </li>
       ))}
     </ul>
