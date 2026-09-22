@@ -3,16 +3,17 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { gridColumnsClass, gridFor, SlotCell, toGridColumns } from "@/components/inventory/Slot";
 import { ItemMenu } from "@/components/item/ItemMenu";
+import { LikeButton } from "@/components/like/LikeButton";
 import { SoonButton } from "@/components/profile/SoonButton";
 import { BackHeader } from "@/components/ui/BackHeader";
 import { HeaderMini } from "@/components/ui/HeaderMini";
-import { Icon } from "@/components/ui/Icon";
 import { TabIcon } from "@/components/ui/TabIcon";
 import { requireProfile } from "@/lib/auth/profile";
 import { inventoryPath, itemPath } from "@/lib/inventory/paths";
 import { getMyInventoryDetail, type SlotEntry } from "@/lib/inventory/queries";
 import { getItemDetail, getPublicItemFeed, getVisibleInventoryEntries } from "@/lib/item/queries";
 import { formatShortDate } from "@/lib/item/rules";
+import { hasLiked } from "@/lib/like/queries";
 
 export const metadata: Metadata = { title: "아이템 · INMYIN" };
 
@@ -64,13 +65,14 @@ export default async function ItemDetailPage(props: PageProps<"/items/[itemId]">
 
   // ---- 홈에서 왔거나 남의 아이템 (H-02) ----
   // 아래에 이어 보여줄 것: 홈에서 왔으면 피드에서 이 아이템 다음에 있던 것들(같은 검색어 · 카테고리), 아니면 그 사람 인벤토리의 공개 아이템
-  const nearby: SlotEntry[] = fromHome
-    ? (await getPublicItemFeed({ q, category: category ?? undefined, before: item.createdAt, limit: NEARBY_COUNT })).map((feedItem) => ({
-        kind: "item",
-        deleted: false,
-        ...feedItem,
-      }))
-    : await getVisibleInventoryEntries(item.inventoryId);
+  const [nearby, liked] = await Promise.all([
+    fromHome
+      ? getPublicItemFeed({ q, category: category ?? undefined, before: item.createdAt, limit: NEARBY_COUNT }).then((feedItems) =>
+          feedItems.map((feedItem): SlotEntry => ({ kind: "item", deleted: false, ...feedItem })),
+        )
+      : getVisibleInventoryEntries(item.inventoryId),
+    hasLiked(profile.id, "item", item.id),
+  ]);
   const hrefFor = (entry: SlotEntry) => (fromHome ? itemPath(entry.id, { from: "home", q, category }) : undefined);
 
   return (
@@ -107,11 +109,8 @@ export default async function ItemDetailPage(props: PageProps<"/items/[itemId]">
       <section className="mt-6 px-5">
         <div className="flex items-center justify-between gap-4">
           <h2 className="min-w-0 truncate text-title font-bold">{item.name}</h2>
-          {/* 하트. 누르는 동작은 로드맵의 "좋아요" 항목에서 붙인다. 북마크는 없다 — 좋아요 하나뿐 (CLAUDE.md) */}
-          <SoonButton notice="좋아요는 곧 만들어요." className="flex shrink-0 items-center gap-1.5 text-title font-bold active:opacity-60">
-            <Icon name="heart" scale={0.5} />
-            {item.likeCount}
-          </SoonButton>
+          {/* 북마크는 없다 — 좋아요 하나뿐 (CLAUDE.md) */}
+          <LikeButton targetType="item" targetId={item.id} liked={liked} count={item.likeCount} />
         </div>
         <Description item={item} facts={facts} />
       </section>
