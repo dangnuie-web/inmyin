@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "db:types": "supabase gen types typescript --linked > lib/supabase/database.types.ts"
+    "db:types": "supabase gen types typescript --linked > lib/supabase/database.types.ts",
+    "icons": "node scripts/icon-candidates.mjs"
   },
   "dependencies": {
     "@imgly/background-removal": "^1.7.0",
@@ -26,6 +27,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
+    "sharp": "^0.35.4",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
