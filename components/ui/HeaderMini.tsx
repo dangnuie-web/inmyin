@@ -15,12 +15,14 @@ type HeaderMiniProps = {
   tone?: "light" | "dark";
   // 오른쪽 끝에 놓을 것 (M-04 의 짐싸기 버튼 등)
   action?: ReactNode;
+  // 화면에 따라 자리를 미세하게 옮길 때 (M-03 의 -ml-1.25)
+  className?: string;
 };
 
 // 피그마 `헤더미니`. 아이콘 + 제목 한 줄
-export function HeaderMini({ icon, href, onClick, title, tone = "light", action }: HeaderMiniProps) {
+export function HeaderMini({ icon, href, onClick, title, tone = "light", action, className = "" }: HeaderMiniProps) {
   return (
-    <header className={`flex items-center gap-2 ${tone === "dark" ? "text-white" : "text-ink"}`}>
+    <header className={`flex items-center gap-2 ${tone === "dark" ? "text-white" : "text-ink"} ${className}`}>
       {href ? (
         <Link href={href} aria-label={LABELS[icon]} className="active:opacity-60">
           <Icon name={icon} />

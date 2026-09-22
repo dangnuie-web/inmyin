@@ -22,10 +22,8 @@ export function InventoryThumb({ filled = false, children }: { filled?: boolean;
 }
 
 // 줄의 공통 틀 — 높이와 좌우 여백
-export const INVENTORY_ROW_CLASS = "flex h-21.25 w-full items-center gap-7 pl-6.25 pr-11";
-// 줄 오른쪽 끝의 "n/25" 알약 (피그마). 흰 바탕 위에서는 글자만 보이지만, 사진이나 밀기 블록이 뒤로 지나가면 알약이 드러난다.
-// M-03 의 TOTAL 알약(검정)도 이 여백을 써서 오른쪽 끝이 같은 선에 온다
-export const COUNT_PILL_CLASS = "rounded-full px-3 py-1 text-caption";
+// 좌우 여백 20px — 피그마는 25/44 였는데 써 보니 오른쪽이 넓어 보여서 양쪽을 같게 했다. 헤더의 뒤로 화살표도 이 선에 맞춘다 (M-03)
+export const INVENTORY_ROW_CLASS = "flex h-21.25 w-full items-center gap-7 px-5";
 
 export function InventoryPhoto({ inventory }: { inventory: Pick<InventorySummary, "imageUrl"> }) {
   return (
@@ -49,7 +47,7 @@ export function InventoryRow({ inventory }: { inventory: InventorySummary }) {
     >
       <InventoryPhoto inventory={inventory} />
       <p className="min-w-0 flex-1 truncate text-title font-bold">{inventory.name}</p>
-      <p className={`${COUNT_PILL_CLASS} bg-white`}>
+      <p className="text-caption">
         {inventory.usedSlots}/{inventory.slotCount}
       </p>
     </Link>

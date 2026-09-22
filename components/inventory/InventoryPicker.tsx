@@ -2,7 +2,7 @@
 
 import { nestingBlocker } from "@/lib/inventory/nesting";
 import type { InventorySummary } from "@/lib/inventory/queries";
-import { COUNT_PILL_CLASS, INVENTORY_ROW_CLASS, InventoryPhoto } from "./InventoryRow";
+import { INVENTORY_ROW_CLASS, InventoryPhoto } from "./InventoryRow";
 
 type InventoryPickerProps = {
   // 내 인벤토리 전부
@@ -49,7 +49,7 @@ export function InventoryPicker({ inventories, intoId, onPick, onClose }: Invent
                       <span className={`truncate text-title font-bold ${blocker ? "text-disabled" : ""}`}>{inventory.name}</span>
                       {blocker && <span className="truncate text-caption text-ink-muted">{blocker}</span>}
                     </span>
-                    <span className={`${COUNT_PILL_CLASS} bg-white ${blocker ? "text-disabled" : ""}`}>
+                    <span className={`text-caption ${blocker ? "text-disabled" : ""}`}>
                       {inventory.usedSlots}/{inventory.slotCount}
                     </span>
                   </button>
