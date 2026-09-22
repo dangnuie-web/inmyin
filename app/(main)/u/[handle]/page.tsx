@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { ProfileMenu } from "@/components/block/ProfileMenu";
 import { FollowButton } from "@/components/follow/FollowButton";
 import { Avatar } from "@/components/profile/Avatar";
 import { EmptyNote, PROFILE_ACTION_CLASS, RecentItems, SectionTitle } from "@/components/profile/ProfileParts";
@@ -9,6 +10,7 @@ import { BackHeader } from "@/components/ui/BackHeader";
 import { Icon } from "@/components/ui/Icon";
 import { requireProfile } from "@/lib/auth/profile";
 import { HANDLE_PATTERN } from "@/lib/auth/rules";
+import { hasBlocked } from "@/lib/block/queries";
 import { isFollowing } from "@/lib/follow/queries";
 import { followsPath, otherInventoriesPath, otherItemsPath } from "@/lib/profile/paths";
 import { getPublicProfile, getVisibleInventories } from "@/lib/profile/public-queries";
@@ -25,11 +27,12 @@ export default async function OtherProfilePage(props: PageProps<"/u/[handle]">) 
 
   const person = await getPublicProfile(handle);
   if (!person) notFound();
-  const [inventories, following] = await Promise.all([getVisibleInventories(person.id), isFollowing(profile.id, person.id)]);
+  const [inventories, following, blocked] = await Promise.all([getVisibleInventories(person.id), isFollowing(profile.id, person.id), hasBlocked(profile.id, person.id)]);
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col pb-6">
-      <BackHeader title="PROFILE" />
+      {/* ⋮ 메뉴 — 차단하기 / 차단 해제. 차단했으면 아래의 숫자와 목록은 DB 규칙 때문에 비어 보인다 */}
+      <BackHeader title="PROFILE" action={<ProfileMenu userId={person.id} blocked={blocked} />} />
 
       <section className="flex items-center gap-8.5 px-5 pt-1">
         <Avatar url={person.avatarUrl} size={98} />
@@ -49,10 +52,14 @@ export default async function OtherProfilePage(props: PageProps<"/u/[handle]">) 
       {person.bio && <p className="mt-4 break-keep px-5 text-label">{person.bio}</p>}
 
       <div className="mt-6 flex gap-1 px-5">
-        {/* FollowButton 은 자기 크기를 가져서, 내 프로필의 버튼과 같은 크기가 되게 감싼다 */}
-        <span className="flex flex-1 [&>button]:h-9.5 [&>button]:flex-1">
-          <FollowButton userId={person.id} following={following} />
-        </span>
+        {/* FollowButton 은 자기 크기를 가져서, 내 프로필의 버튼과 같은 크기가 되게 감싼다. 차단한 사람은 팔로우할 수 없다 */}
+        {blocked ? (
+          <span className="flex h-9.5 flex-1 items-center justify-center rounded-sm border border-disabled text-label font-bold text-disabled">차단함</span>
+        ) : (
+          <span className="flex flex-1 [&>button]:h-9.5 [&>button]:flex-1">
+            <FollowButton userId={person.id} following={following} />
+          </span>
+        )}
         <SoonButton notice="프로필 공유는 곧 만들어요." className={PROFILE_ACTION_CLASS}>
           프로필 공유
         </SoonButton>

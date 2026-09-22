@@ -393,6 +393,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      block_user: { Args: { target_id: string }; Returns: undefined }
+      blocked_between: { Args: { other_id: string }; Returns: boolean }
       inventory_visible: { Args: { target_id: string }; Returns: boolean }
       is_email_registered: { Args: { p_email: string }; Returns: boolean }
       is_valid_categories: {

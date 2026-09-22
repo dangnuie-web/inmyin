@@ -26,3 +26,30 @@ export async function setFollow(userId: string, following: boolean): Promise<For
   revalidatePath("/u", "layout");
   return {};
 }
+
+// 차단. DB 함수가 차단 행을 넣고 서로의 팔로우를 끊는다. 그 뒤로 서로의 아이템 · 인벤토리가 안 보인다 (DB 규칙)
+export async function blockUser(userId: string): Promise<FormState> {
+  const profile = await requireProfile();
+  if (!UUID_PATTERN.test(userId)) return { error: "잘못된 요청입니다." };
+  if (userId === profile.id) return { error: "나를 차단할 수는 없어요." };
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("block_user", { target_id: userId });
+  if (error) return { error: "잠시 후 다시 시도해 주세요." };
+
+  revalidatePath("/", "layout");
+  return {};
+}
+
+// 차단 해제. 끊긴 팔로우는 돌아오지 않는다 — 다시 걸면 된다
+export async function unblockUser(userId: string): Promise<FormState> {
+  const profile = await requireProfile();
+  if (!UUID_PATTERN.test(userId)) return { error: "잘못된 요청입니다." };
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("blocks").delete().eq("blocker_id", profile.id).eq("blocked_id", userId);
+  if (error) return { error: "잠시 후 다시 시도해 주세요." };
+
+  revalidatePath("/", "layout");
+  return {};
+}

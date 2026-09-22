@@ -41,6 +41,9 @@ export default async function SettingsPage() {
             격자 한 줄에
             <GridColumnsSetting current={toGridColumns(profile.grid_columns)} />
           </div>
+          <Link href="/my/settings/blocked" className={ROW_CLASS}>
+            차단한 사용자
+          </Link>
           {/* 유통기한 임박 알림 · 푸시 알림은 4단계 */}
           <SoonButton notice="알림 설정은 곧 만들어요." className={ROW_CLASS}>
             알림
