@@ -17,7 +17,12 @@ export default async function MyItemsPage() {
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col">
       <HeaderMini icon="back" href="/my" title="아이템" />
-      <ItemCollection items={items} capacity={maxInventories * slotCount} columns={toGridColumns(profile.grid_columns)} />
+      <ItemCollection
+        items={items}
+        capacity={maxInventories * slotCount}
+        columns={toGridColumns(profile.grid_columns)}
+        emptyText="아직 등록한 아이템이 없어요. 인벤토리에서 + 를 눌러 넣어 보세요."
+      />
     </main>
   );
 }

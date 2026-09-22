@@ -23,7 +23,7 @@ export default async function OtherItemsPage(props: PageProps<"/u/[handle]/items
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col">
       <BackHeader title="아이템" />
-      <ItemCollection items={items} capacity={null} columns={toGridColumns(profile.grid_columns)} />
+      <ItemCollection items={items} capacity={null} columns={toGridColumns(profile.grid_columns)} emptyText="공개된 아이템이 아직 없어요." />
     </main>
   );
 }

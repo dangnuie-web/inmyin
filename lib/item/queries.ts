@@ -54,6 +54,8 @@ export type CollectedItem = {
   quantity: number;
   category: string | null;
   inventoryName: string;
+  // 누구 것인지. 여러 사람의 것이 섞이는 곳(Like 탭)에서만 채운다 — 리스트의 줄에 "닉네임 · 인벤토리"로 보인다
+  ownerNickname?: string;
 };
 
 // 내 아이템 전부, 최신순 (M-13). 한 번에 다 읽는다 — 검색과 카테고리를 누르는 즉시 걸러 보여주려면 브라우저가 전부 갖고 있어야 한다

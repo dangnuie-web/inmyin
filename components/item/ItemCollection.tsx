@@ -17,11 +17,13 @@ type ItemCollectionProps = {
   capacity: number | null;
   // 격자 한 줄의 칸 수 (Slot.tsx 의 gridFor)
   columns: GridColumns;
+  // 아이템이 하나도 없을 때의 글자. 화면마다 다르다 (내 것 · 남의 것 · 좋아요)
+  emptyText: string;
 };
 
 // M-13 · 아이템 모아보기. 인벤토리 구분 없이 아이템 전체를 최신순으로 본다.
 // 검색과 카테고리는 서버를 거치지 않고 여기서 바로 거른다 — 글자를 칠 때마다, 칩을 누를 때마다 즉시 바뀐다.
-export function ItemCollection({ items, capacity, columns }: ItemCollectionProps) {
+export function ItemCollection({ items, capacity, columns, emptyText }: ItemCollectionProps) {
   const [view, setView] = useState<InventoryView>("grid");
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | null>(null);
@@ -66,7 +68,7 @@ export function ItemCollection({ items, capacity, columns }: ItemCollectionProps
 
       {shown.length === 0 ? (
         <p className="mt-16 break-keep px-5 text-center text-label text-ink-muted">
-          {isFiltered ? "찾는 아이템이 없어요." : capacity === null ? "공개된 아이템이 아직 없어요." : "아직 등록한 아이템이 없어요. 인벤토리에서 + 를 눌러 넣어 보세요."}
+          {isFiltered ? "찾는 아이템이 없어요." : emptyText}
         </p>
       ) : view === "grid" ? (
         <ul className={`mt-8 grid gap-3.5 px-5 ${gridColumnsClass(columns)}`}>
@@ -80,7 +82,7 @@ export function ItemCollection({ items, capacity, columns }: ItemCollectionProps
         <ul className="mt-5 flex flex-col border-t border-border">
           {shown.map((item) => (
             <li key={item.id}>
-              <SlotRow entry={toEntry(item)} caption={item.inventoryName} />
+              <SlotRow entry={toEntry(item)} caption={item.ownerNickname ? `${item.ownerNickname} · ${item.inventoryName}` : item.inventoryName} />
             </li>
           ))}
         </ul>
