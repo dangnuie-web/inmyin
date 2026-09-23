@@ -101,6 +101,44 @@ export type Database = {
           },
         ]
       }
+      comments: {
+        Row: {
+          body: string
+          created_at: string
+          deleted_at: string | null
+          id: string
+          target_id: string
+          target_type: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          target_id: string
+          target_type: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          target_id?: string
+          target_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       follows: {
         Row: {
           created_at: string
@@ -169,6 +207,7 @@ export type Database = {
           canvas_json: Json
           created_at: string
           deleted_at: string | null
+          comment_count: number
           heart_count: number
           id: string
           image_url: string
@@ -179,6 +218,7 @@ export type Database = {
           canvas_json: Json
           created_at?: string
           deleted_at?: string | null
+          comment_count?: number
           heart_count?: number
           id?: string
           image_url: string
@@ -189,6 +229,7 @@ export type Database = {
           canvas_json?: Json
           created_at?: string
           deleted_at?: string | null
+          comment_count?: number
           heart_count?: number
           id?: string
           image_url?: string
@@ -276,6 +317,7 @@ export type Database = {
           deleted_at: string | null
           description: string | null
           expires_at: string | null
+          comment_count: number
           heart_count: number
           id: string
           image_url: string
@@ -295,6 +337,7 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           expires_at?: string | null
+          comment_count?: number
           heart_count?: number
           id?: string
           image_url: string
@@ -314,6 +357,7 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           expires_at?: string | null
+          comment_count?: number
           heart_count?: number
           id?: string
           image_url?: string

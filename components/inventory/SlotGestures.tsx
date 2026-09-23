@@ -82,7 +82,8 @@ type SwipeRowProps = {
   // 어느 쪽이 열려 있는지. 한 번에 한 줄만 열리게 부모가 들고 있는다
   open: SwipeSide | null;
   onOpenChange: (side: SwipeSide | null) => void;
-  onEdit: () => void;
+  // 없으면 수정이 없는 줄이다 (댓글) — 오른쪽으로는 밀리지 않는다
+  onEdit?: () => void;
   onDelete: () => void;
   children: ReactNode;
 };
@@ -124,7 +125,7 @@ export function SwipeRow({ open, onOpenChange, onEdit, onDelete, children }: Swi
         event.currentTarget.setPointerCapture(event.pointerId);
       } catch {}
     }
-    latestOffset.current = Math.max(-PANEL_WIDTH, Math.min(PANEL_WIDTH, from.base + dx));
+    latestOffset.current = Math.max(-PANEL_WIDTH, Math.min(onEdit ? PANEL_WIDTH : 0, from.base + dx));
     setDragOffset(latestOffset.current);
   }
 
@@ -163,17 +164,19 @@ export function SwipeRow({ open, onOpenChange, onEdit, onDelete, children }: Swi
       onClickCapture={onClickCapture}
     >
       {children}
-      <button
-        type="button"
-        data-swipe-panel
-        onClick={onEdit}
-        aria-label="수정"
-        tabIndex={open === "edit" ? 0 : -1}
-        className={`${panelClass} left-0 bg-gray-4`}
-        style={{ transform: `translateX(${Math.min(0, offset - PANEL_WIDTH)}px)` }}
-      >
-        <Icon name="edit" />
-      </button>
+      {onEdit && (
+        <button
+          type="button"
+          data-swipe-panel
+          onClick={onEdit}
+          aria-label="수정"
+          tabIndex={open === "edit" ? 0 : -1}
+          className={`${panelClass} left-0 bg-gray-4`}
+          style={{ transform: `translateX(${Math.min(0, offset - PANEL_WIDTH)}px)` }}
+        >
+          <Icon name="edit" />
+        </button>
+      )}
       <button
         type="button"
         data-swipe-panel

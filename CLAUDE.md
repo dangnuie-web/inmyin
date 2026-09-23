@@ -109,6 +109,7 @@ components/
   item/             아이템 등록 플로우
   inmyin/           캔버스 에디터
   heart/ bookmark/  하트 · 책갈피 버튼 (제목 줄의 [하트 · 하트 수 · 북마크])
+  comment/          댓글 목록 + 입력칸
 lib/
   supabase/
   plans.ts          플랜별 한도 상수
