@@ -565,6 +565,14 @@ export type Database = {
     Functions: {
       block_user: { Args: { target_id: string }; Returns: undefined }
       blocked_between: { Args: { other_id: string }; Returns: boolean }
+      discover_users: {
+        Args: { p_limit?: number; p_mode: string; p_threshold: number }
+        Returns: {
+          latest_post_at: string
+          score: number
+          user_id: string
+        }[]
+      }
       has_unread_notifications: { Args: never; Returns: boolean }
       inventory_visible: { Args: { target_id: string }; Returns: boolean }
       is_email_registered: { Args: { p_email: string }; Returns: boolean }
@@ -578,6 +586,13 @@ export type Database = {
         Returns: {
           category: string
           item_count: number
+        }[]
+      }
+      popular_posts: {
+        Args: { p_limit?: number }
+        Returns: {
+          post_id: string
+          score: number
         }[]
       }
       target_owner: { Args: { p_id: string; p_type: string }; Returns: string }

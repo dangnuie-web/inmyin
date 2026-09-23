@@ -98,7 +98,7 @@ app/
   (main)/
     page.tsx        Home › 아이템
     inmyin/         Home › INMYIN 목록 (상세는 (flow)/inmyin/[postId])
-    discover/       Home › 발견
+    discover/       Home › 발견 (추천 · 인기)
     u/[handle]/     타유저 프로필
     my/             My (프로필, 설정, 인벤토리)
     bookmark/       Bookmark 탭
@@ -118,7 +118,7 @@ lib/
   categories.ts     추천 인벤토리 4종의 이름과 기본 태그, 태그 한도
   background-removal.ts
   design-tokens.ts  globals.css 의 토큰을 서버에서 읽는다 — CSS 를 못 읽는 매니페스트 · 메타 태그용
-  ranking.ts        인기·추천 정렬
+  ranking.ts        인기·추천 정렬 (DB 함수 discover_users · popular_posts 를 부른다, 문턱 상수)
   inmyin/           캔버스 저장 형태(canvas.ts) · 스티커(stickers.ts) · 글꼴(fonts.ts) · 사진 모양(photo-shape.ts) · 포스팅 규칙(rules.ts) · 저장소 올리기(upload.ts) · 게시물 조회(queries.ts) · 주소(paths.ts)
 scripts/
   app-icon.mjs      정해진 아이콘 SVG 로 PWA 아이콘 4종 + favicon 을 만든다 (npm run app-icon)

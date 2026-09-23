@@ -70,19 +70,16 @@ export const PLANS = {
 
 ## 순위 쿼리
 
-`lib/ranking.ts`. 인기는 **북마크 수**로 센다 — 하트는 가벼운 반응이라 순위에 넣지 않는다.
+`lib/ranking.ts` + DB 함수 (`20260924120000_ranking.sql`). 인기는 **북마크 수**로 센다 — 하트는 가벼운 반응이라 순위에 넣지 않는다.
 
-```sql
--- 인기: 최근 24시간
-SELECT target_id, count(*) AS score
-FROM bookmarks
-WHERE target_type = 'post' AND created_at > now() - interval '24 hours'
-GROUP BY target_id ORDER BY score DESC;
+북마크 행은 본인만 읽을 수 있어서(RLS) 남의 것까지 세는 함수는 `security definer` 다. 돌려주는 것은 숫자뿐이다.
 
--- 추천: 누적 북마크 100 미만 유저 중, 최근 1시간
-```
+| 함수 | 쓰는 곳 | 세는 것 |
+| --- | --- | --- |
+| `discover_users(mode, threshold, limit)` | 발견 탭(H-05) | `popular` — 최근 24시간에 받은 북마크. `recommend` — 누적 북마크가 threshold 미만인 사람 중 최근 1시간. 나와 차단 사이는 뺀다. 같으면 최근에 올린 사람 먼저 |
+| `popular_posts(limit)` | INMYIN 목록(H-03) 인기순 | 게시물별 최근 24시간 북마크. 같으면 최신순 |
 
-`RECOMMEND_THRESHOLD = 100` 을 상수로 둔다.
+`RECOMMEND_THRESHOLD = 100` 은 `lib/ranking.ts` 의 상수이고 함수에 넘긴다 (규칙 8). `bookmarkCount` 캐시는 순위에 쓰지 않는다 — 시간 창이 없어서.
 
 ## 비공개 아이템 · 인벤토리 읽기
 

@@ -1,3 +1,4 @@
+import { getPopularPostIds } from "@/lib/ranking";
 import { createClient } from "@/lib/supabase/server";
 import type { PostSort } from "./paths";
 
@@ -13,8 +14,7 @@ export type FeedPost = {
 const FEED_LIMIT = 60;
 
 // 모든 사람의 INMYIN 게시물. 카테고리는 게시물에 든 아이템의 태그로 거른다 (게시물 자체엔 태그가 없다).
-// 인기순은 지금은 북마크 수(캐시) 순 — 최근 24시간으로 세는 것은 순위 집계(lib/ranking.ts)를 만들 때.
-// 지워진 게시물 · 차단 사이의 게시물은 DB 규칙이 뺀다
+// 인기순은 최근 24시간에 받은 북마크 순 (DB 함수 popular_posts — lib/ranking.ts). 지워진 게시물 · 차단 사이의 게시물은 DB 규칙이 뺀다
 export async function getPostFeed({ category, sort }: { category?: string | null; sort?: PostSort } = {}): Promise<FeedPost[]> {
   const supabase = await createClient();
   let query = supabase.from("inmyin_posts").select("id, title, image_url, created_at, users!inner(handle, nickname, avatar_url)").is("deleted_at", null).limit(FEED_LIMIT);
@@ -27,11 +27,17 @@ export async function getPostFeed({ category, sort }: { category?: string | null
     if (ids.length === 0) return [];
     query = query.in("id", ids);
   }
-  query = sort === "popular" ? query.order("bookmark_count", { ascending: false }).order("created_at", { ascending: false }) : query.order("created_at", { ascending: false });
+  // 인기순은 DB 함수가 정한 순서대로 — 돌아온 것을 그 순서로 다시 줄 세운다
+  const popularIds = sort === "popular" ? await getPopularPostIds(FEED_LIMIT) : null;
+  if (popularIds) {
+    if (popularIds.length === 0) return [];
+    query = query.in("id", popularIds);
+  } else query = query.order("created_at", { ascending: false });
 
   const { data, error } = await query;
   if (error) throw error;
-  return data.map((post) => ({
+  const rows = popularIds ? popularIds.flatMap((id) => data.filter((post) => post.id === id)) : data;
+  return rows.map((post) => ({
     id: post.id,
     title: post.title,
     imageUrl: post.image_url,

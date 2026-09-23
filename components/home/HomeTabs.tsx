@@ -1,12 +1,11 @@
 import Link from "next/link";
-import { SoonButton } from "@/components/profile/SoonButton";
 import { Icon } from "@/components/ui/Icon";
 
-// Home 안의 세 갈래 — 아이템(H-01) · INMYIN(H-03) · 발견(H-05). 발견은 아직이라 자리만 잡아 둔다
+// Home 안의 세 갈래 — 아이템(H-01) · INMYIN(H-03) · 발견(H-05)
 const TABS = [
-  { id: "items", label: "아이템", href: "/", notice: "" },
-  { id: "inmyin", label: "INMYIN", href: "/inmyin", notice: "" },
-  { id: "discover", label: "발견", href: null, notice: "발견 탭은 곧 만들어요." },
+  { id: "items", label: "아이템", href: "/" },
+  { id: "inmyin", label: "INMYIN", href: "/inmyin" },
+  { id: "discover", label: "발견", href: "/discover" },
 ] as const;
 
 // 피그마 H-01: 셋 다 검정 글자이고, 고른 것에만 밑줄. 밑줄은 글자보다 살짝 넓고 글자 바로 아래(4px)에 붙는다 —
@@ -28,14 +27,10 @@ export function HomeTabs({ current, unread }: HomeTabsProps) {
           <span key={tab.id} aria-current="page" className={`${TAB_CLASS} border-ink`}>
             {tab.label}
           </span>
-        ) : tab.href ? (
+        ) : (
           <Link key={tab.id} href={tab.href} className={`${TAB_CLASS} border-transparent active:opacity-60`}>
             {tab.label}
           </Link>
-        ) : (
-          <SoonButton key={tab.id} notice={tab.notice} className={`${TAB_CLASS} border-transparent active:opacity-60`}>
-            {tab.label}
-          </SoonButton>
         ),
       )}
       <Link href="/notifications" aria-label={unread ? "알림 (새 알림 있음)" : "알림"} className="relative ml-auto -mb-1 active:opacity-60">
