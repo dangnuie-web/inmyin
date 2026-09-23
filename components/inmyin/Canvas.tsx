@@ -1,0 +1,159 @@
+"use client";
+
+import type Konva from "konva";
+import type { KonvaEventObject } from "konva/lib/Node";
+import { useEffect, useRef, useState } from "react";
+import { Image as KonvaImage, Layer, Stage, Transformer } from "react-konva";
+import { CANVAS_WIDTH, type CanvasObject } from "@/lib/inmyin/canvas";
+import { useImage } from "./useImage";
+
+// 고른 것의 화면 위 자리 (px). 에디터가 이 위에 × 버튼과 순서 메뉴를 얹는다
+export type OverlayRect = { x: number; y: number; width: number; height: number };
+
+// 손잡이로 줄여도 이보다 작아지지 않는다 (캔버스 기준)
+const MIN_SIZE = 60;
+
+type CanvasProps = {
+  objects: CanvasObject[];
+  // 화면에 그리는 크기 (px). 부모가 4:5 로 맞춰서 준다
+  width: number;
+  height: number;
+  selectedId: string | null;
+  // 손가락이 닿는 순간 (끌기 전에 골라지게). 빈 곳이면 null
+  onPress: (id: string | null) => void;
+  // 끌지 않고 눌렀다 뗐을 때. 이미 골라져 있던 것이면 에디터가 순서 메뉴를 띄운다
+  onTap: (id: string) => void;
+  // 옮기기 · 키우기 · 돌리기가 끝났을 때
+  onChange: (object: CanvasObject) => void;
+  // 고른 것의 화면 위 자리. 움직이는 동안은 null (버튼이 따라다니지 않게 잠깐 숨긴다)
+  onOverlay: (rect: OverlayRect | null) => void;
+};
+
+// INMYIN 캔버스 (M-09). 그림은 1080×1350 기준 좌표로 들고 있고, Stage 를 통째로 줄여서 화면에 맞춘다.
+// 누르면 고르기, 끌면 옮기기, 모서리 손잡이로 키우기, 위의 손잡이로 돌리기 — 전부 Konva 가 한다.
+// 브라우저에서만 도는 부품이라 Editor 가 dynamic(ssr: false) 로 부른다
+export function Canvas({ objects, width, height, selectedId, onPress, onTap, onChange, onOverlay }: CanvasProps) {
+  const stageRef = useRef<Konva.Stage>(null);
+  const transformerRef = useRef<Konva.Transformer>(null);
+  const nodes = useRef(new Map<string, Konva.Image>());
+  const scale = width / CANVAS_WIDTH;
+  // 그림이 다 불려서 캔버스에 나타난 횟수. 방금 올린 것은 그림이 불린 뒤에야 손잡이를 붙일 수 있다
+  const [loadedCount, setLoadedCount] = useState(0);
+
+  // 고른 것에 손잡이를 붙이고, 그 자리를 에디터에 알린다. 그림이 바뀔 때(옮기고 난 뒤)도 다시 잰다
+  useEffect(() => {
+    const transformer = transformerRef.current;
+    const stage = stageRef.current;
+    const node = selectedId ? nodes.current.get(selectedId) : undefined;
+    if (!transformer || !stage) return;
+    transformer.nodes(node ? [node] : []);
+    transformer.getLayer()?.batchDraw();
+    if (!node) return onOverlay(null);
+    const rect = node.getClientRect({ relativeTo: stage });
+    onOverlay({ x: rect.x * scale, y: rect.y * scale, width: rect.width * scale, height: rect.height * scale });
+  }, [selectedId, objects, scale, onOverlay, loadedCount]);
+
+  // 빈 곳을 누르면 고른 것을 푼다
+  function onStagePress(event: KonvaEventObject<MouseEvent | TouchEvent>) {
+    if (event.target === event.target.getStage()) onPress(null);
+  }
+
+  return (
+    <Stage ref={stageRef} width={width} height={height} scaleX={scale} scaleY={scale} onMouseDown={onStagePress} onTouchStart={onStagePress}>
+      <Layer>
+        {objects.map((object) => (
+          <CanvasImage
+            key={object.id}
+            object={object}
+            register={(node) => (node ? nodes.current.set(object.id, node) : nodes.current.delete(object.id))}
+            onPress={() => onPress(object.id)}
+            onTap={() => onTap(object.id)}
+            onChange={onChange}
+            onMoving={() => onOverlay(null)}
+            onLoaded={() => setLoadedCount((count) => count + 1)}
+          />
+        ))}
+        {/* 피그마: 검은 테두리 2px, 모서리에 흰 네모 손잡이. 돌리는 손잡이는 위쪽에 하나 */}
+        <Transformer
+          ref={transformerRef}
+          keepRatio
+          enabledAnchors={["top-left", "top-right", "bottom-left", "bottom-right"]}
+          anchorSize={12}
+          anchorStroke="#000000"
+          anchorFill="#ffffff"
+          anchorStrokeWidth={1}
+          anchorCornerRadius={1}
+          borderStroke="#000000"
+          borderStrokeWidth={2}
+          rotateAnchorOffset={28}
+          rotationSnaps={[0, 90, 180, 270]}
+          rotationSnapTolerance={5}
+          boundBoxFunc={(oldBox, newBox) => (newBox.width < MIN_SIZE * scale || newBox.height < MIN_SIZE * scale ? oldBox : newBox)}
+        />
+      </Layer>
+    </Stage>
+  );
+}
+
+type CanvasImageProps = {
+  object: CanvasObject;
+  register: (node: Konva.Image | null) => void;
+  onPress: () => void;
+  onTap: () => void;
+  onChange: (object: CanvasObject) => void;
+  onMoving: () => void;
+  onLoaded: () => void;
+};
+
+// 캔버스 위의 그림 하나. 손잡이로 키우면 Konva 는 scale 을 바꾸는데, 저장은 width · height 로 하므로 끝날 때 바꿔 적고 scale 은 1 로 되돌린다
+function CanvasImage({ object, register, onPress, onTap, onChange, onMoving, onLoaded }: CanvasImageProps) {
+  const image = useImage(object.src);
+  useEffect(() => {
+    if (image) onLoaded();
+    // 그림이 불린 순간 한 번만
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [image]);
+  if (!image) return null;
+
+  function onDragEnd(event: KonvaEventObject<DragEvent>) {
+    const node = event.target;
+    onChange({ ...object, x: node.x(), y: node.y() });
+  }
+
+  function onTransformEnd(event: KonvaEventObject<Event>) {
+    const node = event.target;
+    const scaleX = node.scaleX();
+    const scaleY = node.scaleY();
+    node.scaleX(1);
+    node.scaleY(1);
+    onChange({
+      ...object,
+      x: node.x(),
+      y: node.y(),
+      width: Math.max(MIN_SIZE, node.width() * scaleX),
+      height: Math.max(MIN_SIZE, node.height() * scaleY),
+      rotation: node.rotation(),
+    });
+  }
+
+  return (
+    <KonvaImage
+      ref={register}
+      image={image}
+      x={object.x}
+      y={object.y}
+      width={object.width}
+      height={object.height}
+      rotation={object.rotation}
+      draggable
+      onMouseDown={onPress}
+      onTouchStart={onPress}
+      onClick={onTap}
+      onTap={onTap}
+      onDragStart={onMoving}
+      onTransformStart={onMoving}
+      onDragEnd={onDragEnd}
+      onTransformEnd={onTransformEnd}
+    />
+  );
+}

@@ -175,19 +175,19 @@ export function UndoSlotRow({ entry, onUndo }: { entry: SlotEntry; onUndo: () =>
   );
 }
 
-// 짐싸기(M-05)의 칸. 누르면 상세로 가지 않고 반대쪽 인벤토리로 넘어간다.
+// 짐싸기(M-05)의 칸. 누르면 상세로 가지 않고 반대쪽 인벤토리로 넘어간다. INMYIN 에디터(M-09)도 같은 칸으로 캔버스에 올린다.
 // dimmed — 반대쪽에 열려 있는 인벤토리가 이 안에 담겨 있을 때. 어둡게 보인다
-type PackingSlotProps = { entry: SlotEntry; onPick: () => void; disabled?: boolean; dimmed?: boolean };
+type PackingSlotProps = { entry: SlotEntry; onPick: () => void; disabled?: boolean; dimmed?: boolean; actionLabel?: string };
 
 const DIMMED_CLASS = "absolute inset-0 bg-ink/60";
 
-export function PackingSlotCell({ entry, onPick, disabled = false, dimmed = false }: PackingSlotProps) {
+export function PackingSlotCell({ entry, onPick, disabled = false, dimmed = false, actionLabel = "옮기기" }: PackingSlotProps) {
   return (
     <button
       type="button"
       onClick={onPick}
       disabled={disabled}
-      aria-label={`${entry.name} 옮기기`}
+      aria-label={`${entry.name} ${actionLabel}`}
       className={`${CELL_CLASS} w-full overflow-hidden bg-gray-1 active:opacity-80`}
     >
       <SlotImage entry={entry} sizes="(min-width: 448px) 130px, 30vw" />

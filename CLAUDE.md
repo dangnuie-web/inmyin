@@ -28,7 +28,7 @@
 | 스타일 | Tailwind CSS | 색·여백을 짧은 이름으로 쓰는 방식 |
 | 백엔드 | Supabase (Auth, Postgres, Storage) | 로그인·데이터·이미지 저장을 한 번에 빌려줌 |
 | PWA | Serwist (manifest + 서비스워커) | 폰 홈 화면에 앱처럼 설치되게 하는 것 |
-| 캔버스 | Konva.js — INMYIN 에디터 전용 | 그림을 올리고 돌리고 키우는 도구 |
+| 캔버스 | Konva.js (`react-konva`) — INMYIN 에디터 전용. 브라우저에서만 불러온다 | 그림을 올리고 돌리고 키우는 도구 |
 | 배경제거 | `@imgly/background-removal` (브라우저 처리) | 사진에서 물건만 남기고 배경을 지움 |
 | 배포 | Vercel | 만든 걸 인터넷에 올려주는 곳 |
 
@@ -108,7 +108,7 @@ components/
   ui/               버튼, 인풋 등 원자 단위
   inventory/        인벤토리 격자, 칸, 아이템 카드
   item/             아이템 등록 플로우
-  inmyin/           캔버스 에디터
+  inmyin/           캔버스 에디터 (Editor · Canvas(Konva) · ItemPicker · StickerSheet)
   heart/ bookmark/  하트 · 책갈피 버튼 (제목 줄의 [하트 · 하트 수 · 댓글 · 댓글 수 · 북마크])
   comment/          댓글 목록 + 입력칸, 제목 줄의 말풍선 · 댓글 수
   notification/     알림 줄, 본 시각 기록
@@ -119,6 +119,7 @@ lib/
   background-removal.ts
   design-tokens.ts  globals.css 의 토큰을 서버에서 읽는다 — CSS 를 못 읽는 매니페스트 · 메타 태그용
   ranking.ts        인기·추천 정렬
+  inmyin/           캔버스 저장 형태(canvas.ts) · 스티커 목록(stickers.ts)
 scripts/
   app-icon.mjs      정해진 아이콘 SVG 로 PWA 아이콘 4종 + favicon 을 만든다 (npm run app-icon)
 docs/

@@ -23,7 +23,7 @@ Announcement (주인이 쓰는 공지 — 유저와 연결 없음)
 | `User` | id, handle, nickname, avatarUrl, bio, plan, provider, gridColumns, notificationsSeenAt, createdAt, deletedAt | plan = `basic` \| `premium`. gridColumns = 격자 한 줄의 칸 수, 3 \| 4 (설정 M-02). notificationsSeenAt = 알림 화면을 마지막으로 본 시각 (종의 빨간 점 기준) |
 | `Inventory` | id, userId, name, categories, imageUrl, rawImageUrl, slotCount, isPublic, parentInventoryId, parentSlotIndex, order, createdAt, deletedAt | categories = 유저가 정한 태그 목록. 사진은 필수다 — 만들기가 항상 사진 고르기로 시작한다. isPublic 이 꺼지면 안의 아이템 · 담긴 인벤토리까지 남에게 숨는다 |
 | `Item` | id, userId, inventoryId, slotIndex, category, imageUrl, rawImageUrl, name, description, quantity, isPublic, acquiredNote, expiresAt, bookmarkCount, heartCount, commentCount, createdAt, deletedAt | rawImageUrl = 배경제거 전 원본. acquiredNote = 획득날짜 칸. 날짜가 아니라 글자다 ("20살 생일", "26.09.22") |
-| `InmyinPost` | id, userId, imageUrl, canvasJson, bookmarkCount, heartCount, commentCount, createdAt, deletedAt | |
+| `InmyinPost` | id, userId, imageUrl, canvasJson, bookmarkCount, heartCount, commentCount, createdAt, deletedAt | canvasJson 의 꼴은 `lib/inmyin/canvas.ts` (1080×1350 기준 좌표의 개체 목록) |
 | `PostItem` | postId, itemId, x, y, w, h | 게시물 ↔ 아이템 탭 영역 |
 | `Bookmark` | userId, targetType, targetId, createdAt | targetType = `item` \| `post`. 모아 두는 것 — Bookmark 탭 · 플랜 한도 · 순위의 재료. 처음엔 `Like` 였고 이름만 바꿨다 |
 | `Heart` | userId, targetType, targetId, createdAt | 반응. (userId, targetType, targetId) 가 기본키라 한 사람이 한 번. 한도 없음, 모아 보는 곳 없음 — 수(`heartCount`)만 화면에 보인다 |

@@ -19,9 +19,7 @@ export default async function NotificationsPage() {
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col lg:max-w-web">
       <MarkSeen />
-      <div className="px-5 pt-3">
-        <HeaderMini icon="back" href="/" title="알림" />
-      </div>
+      <HeaderMini icon="back" href="/" title="알림" />
       {notifications.length === 0 ? (
         <p className="mt-16 text-center text-body text-ink-muted">아직 알림이 없어요.</p>
       ) : (

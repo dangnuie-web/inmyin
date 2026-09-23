@@ -14,4 +14,8 @@ export const OPEN_SOURCE_LICENSES = [
   { name: "@imgly/background-removal", license: "AGPL-3.0", url: "https://github.com/imgly/background-removal-js" },
   { name: "Serwist", license: "MIT", url: "https://github.com/serwist/serwist" },
   { name: "sharp", license: "Apache-2.0", url: "https://github.com/lovell/sharp" },
+  // INMYIN 에디터의 캔버스
+  { name: "Konva · react-konva", license: "MIT", url: "https://github.com/konvajs/konva" },
+  // 에디터의 스티커 그림 (public/stickers). 그림 파일은 Apache 2.0, 글꼴은 OFL
+  { name: "Noto Color Emoji", license: "Apache-2.0", url: "https://github.com/googlefonts/noto-emoji" },
 ] as const;

@@ -77,10 +77,13 @@ export default async function MyProfilePage() {
         </section>
 
         <section>
-          <div className="flex h-16 items-center pl-5">
+          <div className="flex h-16 items-center px-5">
             <SectionTitle title="INMYIN" note={`게시물 ${stats.postCount}`} />
+            {/* 에디터(M-09)로. 게시물 목록은 3단계 뒤 항목 */}
+            <Link href="/my/inmyin/new" className="ml-auto rounded-md bg-ink px-2.5 text-label font-bold text-white active:opacity-80">
+              만들기
+            </Link>
           </div>
-          {/* INMYIN 에디터와 게시물은 3단계에서 만든다 */}
           <EmptyNote>아직 게시물이 없어요.</EmptyNote>
         </section>
       </div>
