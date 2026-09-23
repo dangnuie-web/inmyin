@@ -9,6 +9,7 @@ import { Toast } from "@/components/ui/Toast";
 import type { Comment, CommentTarget } from "@/lib/comment/queries";
 import { COMMENT_MAX } from "@/lib/comment/rules";
 import { profilePath } from "@/lib/profile/paths";
+import { COMMENT_INPUT_ID, COMMENT_SECTION_ID } from "./CommentCount";
 import { timeAgo } from "@/lib/time";
 
 type Row = Comment & {
@@ -73,7 +74,8 @@ export function CommentSection({ targetType, targetId, comments, me, ownerId }: 
 
   return (
     <>
-      <section className="mt-12">
+      {/* id 는 제목 줄의 말풍선(CommentCount)이 여기로 내려올 때 쓴다 */}
+      <section id={COMMENT_SECTION_ID} className="mt-12 scroll-mt-4">
         <h3 className="px-5 text-body font-bold">{rows.length > 0 ? `댓글 ${rows.length}` : "댓글"}</h3>
         {rows.length === 0 ? (
           <p className="mt-3 px-5 text-caption text-ink-muted">첫 댓글을 남겨 보세요.</p>
@@ -100,6 +102,7 @@ export function CommentSection({ targetType, targetId, comments, me, ownerId }: 
       {/* 화면 맨 아래에 붙는 입력칸. 아래 여백은 아이폰 홈 막대 영역과 기본 여백 중 큰 쪽 (하단 탭과 같은 규칙) */}
       <form onSubmit={submit} className="sticky bottom-0 mt-6 flex items-center gap-3 border-t border-border bg-white px-5 pt-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))]">
         <input
+          id={COMMENT_INPUT_ID}
           value={text}
           onChange={(event) => setText(event.target.value)}
           maxLength={COMMENT_MAX}

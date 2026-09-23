@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { gridColumnsClass, gridFor, SlotCell, toGridColumns } from "@/components/inventory/Slot";
 import { ItemMenu } from "@/components/item/ItemMenu";
 import { BookmarkButton } from "@/components/bookmark/BookmarkButton";
+import { CommentCount } from "@/components/comment/CommentCount";
 import { CommentSection } from "@/components/comment/CommentSection";
 import { FollowButton } from "@/components/follow/FollowButton";
 import { HeartButton } from "@/components/heart/HeartButton";
@@ -68,8 +69,11 @@ export default async function ItemDetailPage(props: PageProps<"/items/[itemId]">
         <section className="mt-10 px-5">
           <div className="flex items-center justify-between gap-4">
             <h2 className="min-w-0 truncate text-title font-bold">{item.name}</h2>
-            {/* 내 아이템에도 하트 · 하트 수 — 누가 얼마나 반응했는지 보려고. 북마크는 없다 (내 것을 모을 일이 없다) */}
-            <HeartButton targetType="item" targetId={item.id} hearted={hearted} count={item.heartCount} />
+            {/* 내 아이템에도 하트 · 하트 수 · 댓글 수 — 누가 얼마나 반응했는지 보려고. 북마크는 없다 (내 것을 모을 일이 없다) */}
+            <div className="flex shrink-0 items-center gap-4">
+              <HeartButton targetType="item" targetId={item.id} hearted={hearted} count={item.heartCount} />
+              <CommentCount count={item.commentCount} />
+            </div>
           </div>
           <Description item={item} facts={facts} />
         </section>
@@ -115,9 +119,10 @@ export default async function ItemDetailPage(props: PageProps<"/items/[itemId]">
       <section className="mt-6 px-5">
         <div className="flex items-center justify-between gap-4">
           <h2 className="min-w-0 truncate text-title font-bold">{item.name}</h2>
-          {/* 오른쪽은 [하트 · 하트 수 · 북마크] 순서 (CLAUDE.md). 하트는 반응, 북마크는 모으기 */}
+          {/* 오른쪽은 [하트 · 하트 수 · 댓글 · 댓글 수 · 북마크] 순서 (CLAUDE.md). 하트는 반응, 북마크는 모으기 */}
           <div className="flex shrink-0 items-center gap-4">
             <HeartButton targetType="item" targetId={item.id} hearted={hearted} count={item.heartCount} />
+            <CommentCount count={item.commentCount} />
             <BookmarkButton targetType="item" targetId={item.id} bookmarked={bookmarked} />
           </div>
         </div>

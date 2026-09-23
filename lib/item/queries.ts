@@ -125,8 +125,9 @@ export async function getPopularCategories(limit = 12): Promise<string[]> {
 export type AnyItemDetail = ItemDetail & {
   // "2026-09-22T…". 작성자 줄의 날짜이자, 피드에서 이 아이템 근처의 것을 찾는 기준
   createdAt: string;
-  // 하트 수. 트리거가 세는 캐시 (북마크 수는 순위용이라 화면에 안 보이므로 읽지 않는다)
+  // 하트 수 · 댓글 수. 트리거가 세는 캐시 (북마크 수는 순위용이라 화면에 안 보이므로 읽지 않는다)
   heartCount: number;
+  commentCount: number;
   owner: { id: string; handle: string; nickname: string; avatarUrl: string | null };
 };
 
@@ -134,7 +135,7 @@ export async function getItemDetail(itemId: string): Promise<AnyItemDetail | nul
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("items")
-    .select("id, inventory_id, name, description, image_url, category, quantity, acquired_note, expires_at, is_public, created_at, heart_count, users!inner(id, handle, nickname, avatar_url)")
+    .select("id, inventory_id, name, description, image_url, category, quantity, acquired_note, expires_at, is_public, created_at, heart_count, comment_count, users!inner(id, handle, nickname, avatar_url)")
     .eq("id", itemId)
     .is("deleted_at", null)
     .maybeSingle();
@@ -154,6 +155,7 @@ export async function getItemDetail(itemId: string): Promise<AnyItemDetail | nul
     isPublic: data.is_public,
     createdAt: data.created_at,
     heartCount: data.heart_count,
+    commentCount: data.comment_count,
     owner: { id: data.users.id, handle: data.users.handle, nickname: data.users.nickname, avatarUrl: data.users.avatar_url },
   };
 }
