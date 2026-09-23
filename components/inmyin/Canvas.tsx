@@ -2,7 +2,7 @@
 
 import type Konva from "konva";
 import type { KonvaEventObject } from "konva/lib/Node";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { Image as KonvaImage, Layer, Stage, Transformer } from "react-konva";
 import { CANVAS_WIDTH, type CanvasBackground, type CanvasObject } from "@/lib/inmyin/canvas";
 import { Background } from "./Background";
@@ -29,12 +29,16 @@ type CanvasProps = {
   onChange: (object: CanvasObject) => void;
   // 고른 것의 화면 위 자리. 움직이는 동안은 null (버튼이 따라다니지 않게 잠깐 숨긴다)
   onOverlay: (rect: OverlayRect | null) => void;
+  // 에디터가 "이미지 만들기"에서 부른다 — 캔버스를 통째로 JPG 로. pixelRatio 는 1080 / 화면 폭
+  captureRef: RefObject<CaptureFn | null>;
 };
+
+export type CaptureFn = (pixelRatio: number) => Promise<Blob>;
 
 // INMYIN 캔버스 (M-09). 그림은 1080×1350 기준 좌표로 들고 있고, Stage 를 통째로 줄여서 화면에 맞춘다.
 // 누르면 고르기, 끌면 옮기기, 모서리 손잡이로 키우기, 위의 손잡이로 돌리기 — 전부 Konva 가 한다.
 // 브라우저에서만 도는 부품이라 Editor 가 dynamic(ssr: false) 로 부른다
-export function Canvas({ background, objects, width, height, selectedId, onPress, onTap, onChange, onOverlay }: CanvasProps) {
+export function Canvas({ background, objects, width, height, selectedId, onPress, onTap, onChange, onOverlay, captureRef }: CanvasProps) {
   const stageRef = useRef<Konva.Stage>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
   const nodes = useRef(new Map<string, Konva.Image>());
@@ -54,6 +58,19 @@ export function Canvas({ background, objects, width, height, selectedId, onPress
     const rect = node.getClientRect({ relativeTo: stage });
     onOverlay({ x: rect.x * scale, y: rect.y * scale, width: rect.width * scale, height: rect.height * scale });
   }, [selectedId, objects, scale, onOverlay, loadedCount]);
+
+  // 캔버스를 이미지로. 손잡이는 에디터가 미리 풀어 둔다 (고른 것이 없으면 Transformer 는 아무것도 그리지 않는다)
+  useEffect(() => {
+    captureRef.current = async (pixelRatio) => {
+      const stage = stageRef.current;
+      if (!stage) throw new Error("캔버스가 아직 준비되지 않았어요.");
+      const dataUrl = stage.toDataURL({ pixelRatio, mimeType: "image/jpeg", quality: 0.92 });
+      return (await fetch(dataUrl)).blob();
+    };
+    return () => {
+      captureRef.current = null;
+    };
+  }, [captureRef]);
 
   // 빈 곳(바닥)을 누르면 고른 것을 푼다 — 바닥은 눌림을 받지 않아서(listening=false) 그때의 target 은 Stage 다
   function onStagePress(event: KonvaEventObject<MouseEvent | TouchEvent>) {

@@ -23,8 +23,8 @@ Announcement (주인이 쓰는 공지 — 유저와 연결 없음)
 | `User` | id, handle, nickname, avatarUrl, bio, plan, provider, gridColumns, notificationsSeenAt, createdAt, deletedAt | plan = `basic` \| `premium`. gridColumns = 격자 한 줄의 칸 수, 3 \| 4 (설정 M-02). notificationsSeenAt = 알림 화면을 마지막으로 본 시각 (종의 빨간 점 기준) |
 | `Inventory` | id, userId, name, categories, imageUrl, rawImageUrl, slotCount, isPublic, parentInventoryId, parentSlotIndex, order, createdAt, deletedAt | categories = 유저가 정한 태그 목록. 사진은 필수다 — 만들기가 항상 사진 고르기로 시작한다. isPublic 이 꺼지면 안의 아이템 · 담긴 인벤토리까지 남에게 숨는다 |
 | `Item` | id, userId, inventoryId, slotIndex, category, imageUrl, rawImageUrl, name, description, quantity, isPublic, acquiredNote, expiresAt, bookmarkCount, heartCount, commentCount, createdAt, deletedAt | rawImageUrl = 배경제거 전 원본. acquiredNote = 획득날짜 칸. 날짜가 아니라 글자다 ("20살 생일", "26.09.22") |
-| `InmyinPost` | id, userId, imageUrl, canvasJson, bookmarkCount, heartCount, commentCount, createdAt, deletedAt | canvasJson 의 꼴은 `lib/inmyin/canvas.ts` (1080×1350 기준 좌표의 개체 목록) |
-| `PostItem` | postId, itemId, x, y, w, h | 게시물 ↔ 아이템 탭 영역 |
+| `InmyinPost` | id, userId, title, description, imageUrl, canvasJson, bookmarkCount, heartCount, commentCount, createdAt, deletedAt | title 40자 · description 500자. canvasJson 의 꼴은 `lib/inmyin/canvas.ts` (1080×1350 기준 좌표의 개체 목록 + 배경) |
+| `PostItem` | postId, itemId, x, y, w, h | 게시물 ↔ 아이템 탭 영역. 이미지에 대한 비율(0~1) — 어느 크기로 보여줘도 같은 자리 |
 | `Bookmark` | userId, targetType, targetId, createdAt | targetType = `item` \| `post`. 모아 두는 것 — Bookmark 탭 · 플랜 한도 · 순위의 재료. 처음엔 `Like` 였고 이름만 바꿨다 |
 | `Heart` | userId, targetType, targetId, createdAt | 반응. (userId, targetType, targetId) 가 기본키라 한 사람이 한 번. 한도 없음, 모아 보는 곳 없음 — 수(`heartCount`)만 화면에 보인다 |
 | `Comment` | id, userId, targetType, targetId, body, createdAt, deletedAt | 댓글. 답글 없음(부모 없음). body 는 1~500자. 삭제는 `deletedAt` — 쓴 사람과 게시물 주인이 지울 수 있다 (DB 규칙) |
@@ -99,7 +99,7 @@ GROUP BY target_id ORDER BY score DESC;
 | 인벤토리 썸네일 | `inventories` | 목록과 부모 격자의 칸에 표시 |
 | 인벤토리 원본 | `inventories-raw` | 아이템 원본과 같은 방식 |
 | 프로필 사진 | `avatars` | 긴 변 320px. 원본은 따로 두지 않는다. 바꿀 때마다 새 파일 |
-| INMYIN 최종 이미지 | `posts` | 피드 노출용 |
+| INMYIN 최종 이미지 | `posts` | 피드 노출용. `<유저 id>/<게시물 id>.jpg` (1080×1350). 캔버스에 올린 갤러리 사진도 `<유저 id>/<게시물 id>-<개체 id>.<확장자>` 로 여기에 |
 
 원본을 보관하는 이유는 배경제거 모델이 나아졌을 때 다시 따낼 수 있어야 하기 때문이다.
 

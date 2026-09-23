@@ -235,9 +235,11 @@ export type Database = {
           comment_count: number
           created_at: string
           deleted_at: string | null
+          description: string | null
           heart_count: number
           id: string
           image_url: string
+          title: string
           user_id: string
         }
         Insert: {
@@ -246,9 +248,11 @@ export type Database = {
           comment_count?: number
           created_at?: string
           deleted_at?: string | null
+          description?: string | null
           heart_count?: number
           id?: string
           image_url: string
+          title?: string
           user_id: string
         }
         Update: {
@@ -257,9 +261,11 @@ export type Database = {
           comment_count?: number
           created_at?: string
           deleted_at?: string | null
+          description?: string | null
           heart_count?: number
           id?: string
           image_url?: string
+          title?: string
           user_id?: string
         }
         Relationships: [

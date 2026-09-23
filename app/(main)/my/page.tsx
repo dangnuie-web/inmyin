@@ -3,7 +3,7 @@ import Link from "next/link";
 import { FollowCounts } from "@/components/follow/FollowCounts";
 import { Avatar } from "@/components/profile/Avatar";
 import { MyInventoriesSection } from "@/components/inventory/MyInventoriesSection";
-import { EmptyNote, RecentItems, SectionTitle } from "@/components/profile/ProfileParts";
+import { EmptyNote, RecentItems, RecentPosts, SectionTitle } from "@/components/profile/ProfileParts";
 import { MyProfileActions, MyProfileCorner } from "@/components/profile/MyProfileActions";
 import { ProfileShell } from "@/components/profile/ProfileShell";
 import { HeaderMini } from "@/components/ui/HeaderMini";
@@ -84,7 +84,7 @@ export default async function MyProfilePage() {
               만들기
             </Link>
           </div>
-          <EmptyNote>아직 게시물이 없어요.</EmptyNote>
+          {stats.recentPosts.length > 0 ? <RecentPosts posts={stats.recentPosts} /> : <EmptyNote>아직 게시물이 없어요. 만들기를 눌러 첫 INMYIN 을 올려 보세요.</EmptyNote>}
         </section>
       </div>
 

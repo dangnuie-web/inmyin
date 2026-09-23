@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { itemPath } from "@/lib/inventory/paths";
-import type { ProfileItem } from "@/lib/profile/queries";
+import type { ProfileItem, ProfilePost } from "@/lib/profile/queries";
 
 // 내 프로필(M-01)과 타유저 프로필(H-06)이 같이 쓰는 조각들
 
@@ -33,6 +33,21 @@ export function RecentItems({ items }: { items: ProfileItem[] }) {
             {/* 올릴 때 이미 작게 줄여 둔 사진이라 Next 의 이미지 최적화를 거치지 않는다 */}
             <Image src={item.imageUrl} alt="" fill sizes="64px" unoptimized className="object-cover" />
           </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+// 프로필 INMYIN 줄의 게시물 카드 — 4:5 이미지, 한 화면에 셋. 누르면 상세(H-04)로 가는 것은 그 화면을 만들 때 붙인다
+export function RecentPosts({ posts }: { posts: ProfilePost[] }) {
+  return (
+    <ul className="flex gap-2.5 overflow-x-auto px-5 [scrollbar-width:none]">
+      {posts.map((post) => (
+        <li key={post.id} className="shrink-0 basis-[calc((100%-1.25rem)/3)]">
+          <div className="relative aspect-[4/5] overflow-hidden rounded-md border border-border bg-white" aria-label={post.title}>
+            <Image src={post.imageUrl} alt={post.title} fill sizes="120px" unoptimized className="object-cover" />
+          </div>
         </li>
       ))}
     </ul>
