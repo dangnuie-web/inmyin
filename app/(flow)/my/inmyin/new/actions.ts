@@ -35,7 +35,7 @@ export async function createPost(input: NewPostInput): Promise<FormState> {
   if (description.length > POST_DESCRIPTION_MAX) return { error: `내용은 ${POST_DESCRIPTION_MAX}자까지 쓸 수 있어요.` };
   if (input.canvas?.version !== 1 || !Array.isArray(input.canvas.objects)) return { error: "잘못된 요청입니다. 처음부터 다시 시도해 주세요." };
   // 갤러리 사진이 브라우저 안 주소(blob:)로 남아 있으면 남에게 안 보인다 — 올리기 전에 바꿔 넣었어야 한다
-  if (input.canvas.objects.some((object) => !/^https?:\/\//.test(object.src) && !object.src.startsWith("/"))) return { error: "사진을 올리지 못했어요. 다시 시도해 주세요." };
+  if (input.canvas.objects.some((object) => object.kind !== "text" && !/^https?:\/\//.test(object.src) && !object.src.startsWith("/"))) return { error: "사진을 올리지 못했어요. 다시 시도해 주세요." };
   if (!input.items.every((item) => UUID_PATTERN.test(item.itemId) && [item.x, item.y, item.w, item.h].every(inRange))) return { error: "잘못된 요청입니다. 처음부터 다시 시도해 주세요." };
 
   const supabase = await createClient();

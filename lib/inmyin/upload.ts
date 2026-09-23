@@ -16,7 +16,7 @@ export async function uploadCanvasPhotos(document: CanvasDocument, photos: Map<s
   const objects = await Promise.all(
     document.objects.map(async (object) => {
       const blob = photos.get(object.id);
-      if (!blob) return object;
+      if (!blob || object.kind === "text") return object;
       const path = `${userId}/${postId}-${object.id}.${extensionOf(blob)}`;
       const { error } = await storage.upload(path, blob, { contentType: blob.type });
       if (error) throw error;

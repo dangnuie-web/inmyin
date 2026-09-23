@@ -1,10 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { Icon } from "@/components/ui/Icon";
-import { GRADIENT_DEFAULT, PALETTE } from "@/lib/inmyin/palette";
+import { GRADIENT_DEFAULT } from "@/lib/inmyin/palette";
 import { STICKERS, stickerLabel, stickerSrc } from "@/lib/inmyin/stickers";
-import { WHITE, type CanvasBackground } from "@/lib/inmyin/canvas";
+import type { CanvasBackground } from "@/lib/inmyin/canvas";
+import { ColorField } from "./ColorField";
+import { PhotoEditorSheet } from "./PhotoEditorSheet";
+import { TextEditor, type TextStyle } from "./TextEditor";
 
 export type AddTab = "stickers" | "photo" | "text" | "background";
 
@@ -46,13 +48,20 @@ type AddSheetProps = {
   background: CanvasBackground;
   onBackground: (background: CanvasBackground) => void;
   onSticker: (code: string) => void;
-  onPhoto: () => void;
+  // 사진 칩. 고른 파일이 있으면 다듬기, 없으면 고르기 버튼
+  photoFile: File | null;
+  onPickPhoto: () => void;
+  onPhoto: (photo: Blob) => void;
+  // 텍스트 칩. 고치는 중이면 지금 글자의 모양이 들어온다
+  textDraft: TextStyle;
+  editingText: boolean;
+  onText: (style: TextStyle) => void;
   onClose: () => void;
 };
 
 // ＋ 를 누르면 아래에서 올라오는 판 (인스타 스토리처럼 하나로). 맨 위 칩으로 스티커 · 사진 · 텍스트 · 배경을 오간다 —
 // 헤더에 아이콘을 더 늘리지 않으려고. 배경은 고르는 즉시 캔버스에 보인다 (판 뒤가 살짝만 어두워서 미리 볼 수 있다)
-export function AddSheet({ tab, onTab, background, onBackground, onSticker, onPhoto, onClose }: AddSheetProps) {
+export function AddSheet({ tab, onTab, background, onBackground, onSticker, photoFile, onPickPhoto, onPhoto, textDraft, editingText, onText, onClose }: AddSheetProps) {
   return (
     <div className="fixed inset-0 z-30 flex flex-col justify-end">
       <button type="button" aria-label="닫기" onClick={onClose} className="absolute inset-0 cursor-default bg-ink/20" />
@@ -74,13 +83,8 @@ export function AddSheet({ tab, onTab, background, onBackground, onSticker, onPh
 
         <div className="mt-4 min-h-0 flex-1 overflow-y-auto px-5">
           {tab === "stickers" && <Stickers onPick={onSticker} />}
-          {tab === "photo" && (
-            <button type="button" onClick={onPhoto} className="flex h-14 w-full items-center justify-center gap-2 rounded-md bg-ink text-label font-bold text-white active:opacity-80">
-              <Icon name="gallery" className="size-6" />
-              갤러리에서 고르기
-            </button>
-          )}
-          {tab === "text" && <p className="py-6 text-center text-label text-ink-muted">텍스트는 다음 항목에서 만들어요.</p>}
+          {tab === "photo" && <PhotoEditorSheet file={photoFile} onPickFile={onPickPhoto} onSubmit={onPhoto} />}
+          {tab === "text" && <TextEditor initial={textDraft} editing={editingText} onSubmit={onText} />}
           {tab === "background" && <BackgroundPicker background={background} onChange={onBackground} />}
         </div>
       </div>
@@ -128,8 +132,8 @@ function BackgroundPicker({ background, onChange }: { background: CanvasBackgrou
       {background.kind === "gradient" && background.shape === "linear" && (
         <Chips options={ANGLES.map(({ angle, label }) => ({ id: String(angle), label }))} current={String(background.angle)} onPick={(angle) => onChange({ ...background, angle: Number(angle) })} />
       )}
-      <Swatches label={background.kind === "color" ? "색" : background.kind === "pattern" ? "바탕" : "안쪽"} current={first} onPick={(color) => pickColor(0, color)} />
-      {background.kind !== "color" && <Swatches label={background.kind === "pattern" ? "무늬" : "바깥"} current={second} onPick={(color) => pickColor(1, color)} />}
+      <ColorField label={background.kind === "color" ? "색" : background.kind === "pattern" ? "바탕" : "안쪽"} value={first} onChange={(color) => pickColor(0, color)} />
+      {background.kind !== "color" && <ColorField label={background.kind === "pattern" ? "무늬" : "바깥"} value={second} onChange={(color) => pickColor(1, color)} />}
     </div>
   );
 }
@@ -155,29 +159,6 @@ function Chips<T extends string>({ options, current, onPick }: { options: readon
           {option.label}
         </button>
       ))}
-    </div>
-  );
-}
-
-// 색 견본 한 줄. 고른 것에 검은 테두리. 흰색은 테두리가 없으면 안 보여서 옅은 선을 두른다
-function Swatches({ label, current, onPick }: { label: string; current: string; onPick: (color: string) => void }) {
-  return (
-    <div className="flex flex-col gap-2">
-      <p className="text-caption font-semibold text-ink-muted">{label}</p>
-      <ul className="flex flex-wrap gap-2">
-        {PALETTE.map((color) => (
-          <li key={color}>
-            <button
-              type="button"
-              onClick={() => onPick(color)}
-              aria-label={color}
-              aria-pressed={color === current}
-              className={`size-8 rounded-full border ${color === current ? "border-2 border-ink" : color === WHITE ? "border-border" : "border-transparent"}`}
-              style={{ backgroundColor: color }}
-            />
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }

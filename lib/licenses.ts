@@ -18,4 +18,6 @@ export const OPEN_SOURCE_LICENSES = [
   { name: "Konva · react-konva", license: "MIT", url: "https://github.com/konvajs/konva" },
   // 에디터의 스티커 그림 (public/stickers). 그림 파일은 Apache 2.0, 글꼴은 OFL
   { name: "Noto Color Emoji", license: "Apache-2.0", url: "https://github.com/googlefonts/noto-emoji" },
+  // 에디터 텍스트의 글꼴 (lib/inmyin/fonts.ts). 구글 폰트에서 받아 우리 서버에서 내보낸다
+  { name: "주아 · 도현 · 나눔손글씨 · 개구 · 고운바탕 · Dancing Script · Great Vibes · Pacifico", license: "SIL OFL 1.1", url: "https://fonts.google.com" },
 ] as const;

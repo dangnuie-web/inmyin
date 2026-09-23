@@ -8,8 +8,8 @@ import { HeaderMini } from "@/components/ui/HeaderMini";
 import { Icon } from "@/components/ui/Icon";
 import { Toast } from "@/components/ui/Toast";
 import type { GridColumns } from "@/components/inventory/Slot";
-import { resizeImage } from "@/lib/image/resize";
-import { CANVAS_HEIGHT, CANVAS_WIDTH, emptyDocument, fitCanvas, MAX_OBJECTS, placeNew, type CanvasBackground, type CanvasDocument, type CanvasObject } from "@/lib/inmyin/canvas";
+import { CANVAS_HEIGHT, CANVAS_WIDTH, emptyDocument, fitCanvas, MAX_OBJECTS, placeNew, placeNewText, type CanvasBackground, type CanvasDocument, type CanvasObject, type ImageObject } from "@/lib/inmyin/canvas";
+import { loadTextFont, textFont } from "@/lib/inmyin/fonts";
 import type { PostItemArea } from "@/lib/inmyin/rules";
 import { stickerSrc } from "@/lib/inmyin/stickers";
 import { uploadCanvasPhotos, uploadPostImage } from "@/lib/inmyin/upload";
@@ -19,6 +19,7 @@ import type { CaptureFn, OverlayRect } from "./Canvas";
 import { AddSheet, type AddTab } from "./AddSheet";
 import { ItemPicker } from "./ItemPicker";
 import { PostForm, type PostLabel } from "./PostForm";
+import { DEFAULT_TEXT_STYLE, type TextStyle } from "./TextEditor";
 import { PreviewScreen } from "./PreviewScreen";
 import { loadImageSize } from "./useImage";
 
@@ -27,8 +28,6 @@ const Canvas = dynamic(() => import("./Canvas").then((module) => module.Canvas),
 
 // 되돌리기로 돌아갈 수 있는 걸음 수
 const HISTORY_LIMIT = 50;
-// 갤러리 사진은 캔버스 폭까지만 줄여서 올린다 — 폰 사진 원본은 너무 크다
-const PHOTO_MAX_SIDE = CANVAS_WIDTH;
 
 // 헤더 오른쪽의 버튼들. 그림은 피그마에서 받은 파일 (public/icons/editor). 스티커 · 사진은 ＋ 판 안으로 들어갔다 —
 // 아이콘을 더 늘리지 않는다 (인스타 스토리처럼 ＋ 하나)
@@ -64,6 +63,10 @@ export function Editor({ inventories, columns, userId }: EditorProps) {
   const [overlay, setOverlay] = useState<OverlayRect | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [sheet, setSheet] = useState<AddTab | null>(null);
+  // 글자를 고치는 중이면 그 글자의 id
+  const [editingTextId, setEditingTextId] = useState<string | null>(null);
+  // 갤러리에서 고른 사진 — ＋ 판의 사진 칩에서 다듬는 중
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const hideNotice = useCallback(() => setNotice(null), []);
   const photoInput = useRef<HTMLInputElement>(null);
@@ -114,7 +117,7 @@ export function Editor({ inventories, columns, userId }: EditorProps) {
     setMenuOpen(false);
   }
 
-  async function add(base: Pick<CanvasObject, "kind" | "src" | "itemId">) {
+  async function add(base: Pick<ImageObject, "kind" | "src" | "itemId">) {
     if (objects.length >= MAX_OBJECTS) return setNotice(`캔버스에는 ${MAX_OBJECTS}개까지 올릴 수 있어요.`);
     try {
       const { width, height } = await loadImageSize(base.src);
@@ -132,14 +135,15 @@ export function Editor({ inventories, columns, userId }: EditorProps) {
     add({ kind: "item", itemId: entry.id, src: entry.imageUrl });
   }
 
-  async function addPhoto(file: File | undefined) {
-    if (!file) return;
-    const blob = await resizeImage(file, PHOTO_MAX_SIDE);
+  // 다듬은 사진(원본 · 배경 지움 · 모양대로 자름)을 캔버스에. 파일은 포스팅할 때 저장소에 올리려고 따로 들고 있는다
+  async function addPhoto(blob: Blob) {
+    setSheet(null);
+    setPhotoFile(null);
     const src = URL.createObjectURL(blob);
     await add({ kind: "photo", src });
     // add 가 만든 개체의 id 를 몰라서 주소로 찾는다
     setSnapshot((current) => {
-      const object = current.objects.find((candidate) => candidate.src === src);
+      const object = current.objects.find((candidate) => candidate.kind !== "text" && candidate.src === src);
       if (object) photoBlobs.current.set(object.id, blob);
       return current;
     });
@@ -154,6 +158,39 @@ export function Editor({ inventories, columns, userId }: EditorProps) {
   function change(changed: CanvasObject) {
     apply(objects.map((object) => (object.id === changed.id ? changed : object)));
   }
+
+  // 글자를 그려 본 뒤 잰 크기 — 되돌리기 기록 없이 조용히 적는다
+  const measure = useCallback((id: string, width: number, height: number) => {
+    setSnapshot((current) => ({ ...current, objects: current.objects.map((object) => (object.id === id ? { ...object, width, height } : object)) }));
+  }, []);
+
+  // 글자 올리기 · 고치기 (＋ 판의 텍스트 칩). 자리를 잡으려고 글꼴을 불러 대강의 크기를 잰다 — 정확한 크기는 캔버스가 그린 뒤 다시 잰다
+  async function putText(style: TextStyle) {
+    setSheet(null);
+    if (editingTextId) {
+      const id = editingTextId;
+      setEditingTextId(null);
+      apply(objects.map((object) => (object.id === id && object.kind === "text" ? { ...object, ...style } : object)));
+      return;
+    }
+    if (objects.length >= MAX_OBJECTS) return setNotice(`캔버스에는 ${MAX_OBJECTS}개까지 올릴 수 있어요.`);
+    await loadTextFont(style.font, style.text, style.bold);
+    const context = document.createElement("canvas").getContext("2d");
+    const lines = style.text.split("\n");
+    let width = style.fontSize * Math.max(...lines.map((line) => line.length)) * 0.6;
+    if (context) {
+      context.font = `${style.bold ? "bold" : "normal"} ${style.fontSize}px ${textFont(style.font).family}`;
+      width = Math.max(...lines.map((line) => context.measureText(line).width));
+    }
+    const padding = style.background ? style.fontSize * 0.5 : 0;
+    const object = placeNewText(style, width + padding, style.fontSize * 1.3 * lines.length + padding, objects.length);
+    apply([...objects, object]);
+    setSelectedId(object.id);
+    setMenuOpen(false);
+  }
+
+  const selected = objects.find((object) => object.id === selectedId) ?? null;
+  const textDraft: TextStyle = selected?.kind === "text" && editingTextId === selected.id ? selected : DEFAULT_TEXT_STYLE;
 
   // 누르는 순간 골라진다 (그래야 바로 끌 수 있다). 이미 골라져 있던 것을 끌지 않고 눌렀다 떼면 순서 메뉴
   const pressedSelected = useRef(false);
@@ -193,7 +230,7 @@ export function Editor({ inventories, columns, userId }: EditorProps) {
     setNotice("전부 지웠어요. 되돌리기로 돌아올 수 있어요.");
   }
 
-  const placedItemIds = new Set(objects.flatMap((object) => (object.itemId ? [object.itemId] : [])));
+  const placedItemIds = new Set(objects.flatMap((object) => (object.kind !== "text" && object.itemId ? [object.itemId] : [])));
 
   // 이미지 만들기 (→ M-10). 손잡이를 풀고 화면이 다시 그려진 뒤에 캔버스를 통째로 JPG 로 뽑는다 — 1080×1350
   async function makeImage() {
@@ -233,7 +270,7 @@ export function Editor({ inventories, columns, userId }: EditorProps) {
   function itemAreas(): PostItemArea[] {
     const areas = new Map<string, PostItemArea>();
     for (const object of objects) {
-      if (!object.itemId) continue;
+      if (object.kind === "text" || !object.itemId) continue;
       const area = { itemId: object.itemId, x: object.x / CANVAS_WIDTH, y: object.y / CANVAS_HEIGHT, w: object.width / CANVAS_WIDTH, h: object.height / CANVAS_HEIGHT };
       const previous = areas.get(object.itemId);
       if (!previous || previous.w * previous.h < area.w * area.h) areas.set(object.itemId, area);
@@ -297,7 +334,7 @@ export function Editor({ inventories, columns, userId }: EditorProps) {
         <div ref={box} className="relative flex min-h-0 flex-1 items-center justify-center px-5 py-3">
           {size.width > 0 && (
             <div className="relative shadow-[0_0_0_1px_var(--color-border)]" style={{ width: size.width, height: size.height }}>
-              <Canvas background={background} objects={objects} width={size.width} height={size.height} selectedId={selectedId} onPress={press} onTap={tap} onChange={change} onOverlay={setOverlay} captureRef={captureRef} />
+              <Canvas background={background} objects={objects} width={size.width} height={size.height} selectedId={selectedId} onPress={press} onTap={tap} onChange={change} onMeasure={measure} onOverlay={setOverlay} captureRef={captureRef} />
 
               {objects.length === 0 && (
                 <p className="pointer-events-none absolute inset-0 flex items-center justify-center px-8 text-center text-label text-ink-muted">
@@ -323,6 +360,20 @@ export function Editor({ inventories, columns, userId }: EditorProps) {
                       className="absolute z-10 flex flex-col gap-2 rounded-sm bg-dropdown p-2 text-label font-semibold text-gray-1"
                       style={{ left: Math.min(overlay.x + overlay.width + 8, size.width - 130), top: Math.min(overlay.y + overlay.height / 2, size.height - 70) }}
                     >
+                      {selected?.kind === "text" && (
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            setEditingTextId(selected.id);
+                            setMenuOpen(false);
+                            setSheet("text");
+                          }}
+                          className="whitespace-nowrap text-left active:opacity-60"
+                        >
+                          글자 고치기
+                        </button>
+                      )}
                       <button type="button" role="menuitem" onClick={() => reorder("back")} className="whitespace-nowrap text-left active:opacity-60">
                         맨 뒤로 보내기
                       </button>
@@ -349,8 +400,12 @@ export function Editor({ inventories, columns, userId }: EditorProps) {
         accept="image/*"
         className="hidden"
         onChange={(event) => {
-          addPhoto(event.target.files?.[0]);
+          const file = event.target.files?.[0] ?? null;
           event.target.value = "";
+          if (!file) return;
+          // 고르면 ＋ 판의 사진 칩에서 다듬는다 (배경 지우기 · 모양)
+          setPhotoFile(file);
+          setSheet("photo");
         }}
       />
       {sheet && (
@@ -360,11 +415,17 @@ export function Editor({ inventories, columns, userId }: EditorProps) {
           background={background}
           onBackground={applyBackground}
           onSticker={addSticker}
-          onPhoto={() => {
+          photoFile={photoFile}
+          onPickPhoto={() => photoInput.current?.click()}
+          onPhoto={addPhoto}
+          textDraft={textDraft}
+          editingText={editingTextId !== null}
+          onText={putText}
+          onClose={() => {
             setSheet(null);
-            photoInput.current?.click();
+            setEditingTextId(null);
+            setPhotoFile(null);
           }}
-          onClose={() => setSheet(null)}
         />
       )}
       <Toast message={notice} onDone={hideNotice} />
