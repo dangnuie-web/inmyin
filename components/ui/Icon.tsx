@@ -91,6 +91,17 @@ const ICONS = {
     size: 47,
     body: <path d="M13 4H34C36.2091 4 38 5.79086 38 8V42.5L23.5 32.5L9 42.5V8C9 5.79086 10.7909 4 13 4Z" fill="currentColor" stroke="currentColor" strokeWidth="3" strokeLinejoin="round" />,
   },
+  // 알림 종 (Home 갈래 줄 오른쪽 끝). 임시 그림 — 디자인이 오면 바꾼다
+  bell: {
+    size: 24,
+    body: (
+      <>
+        <path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2v.5h-15v-.5l1.5-2Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+        <path d="M10 20.5a2 2 0 0 0 4 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        <path d="M12 3.5v1.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      </>
+    ),
+  },
   // 하트 — 게시물에 반응하는 것. 작게 쓴다 (scale 0.5 = 24px). 눌렀으면 fill 을 채운다
   heart: {
     size: 47,

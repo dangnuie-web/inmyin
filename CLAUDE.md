@@ -102,6 +102,7 @@ app/
     u/[handle]/     타유저 프로필
     my/             My (프로필, 설정, 인벤토리)
     bookmark/       Bookmark 탭
+    notifications/  알림 (Home 갈래 줄의 종)
   api/
 components/
   ui/               버튼, 인풋 등 원자 단위
@@ -110,6 +111,7 @@ components/
   inmyin/           캔버스 에디터
   heart/ bookmark/  하트 · 책갈피 버튼 (제목 줄의 [하트 · 하트 수 · 북마크])
   comment/          댓글 목록 + 입력칸
+  notification/     알림 줄, 본 시각 기록
 lib/
   supabase/
   plans.ts          플랜별 한도 상수

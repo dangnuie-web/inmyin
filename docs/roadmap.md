@@ -82,7 +82,7 @@
 - [✅] Like → 북마크 — DB 의 `likes` 를 `bookmarks` 로, `like_count` 를 `bookmark_count` 로 이름만 바꿨다 (누른 것은 그대로 남는다). 하단 탭 · 웹 메뉴 · 주소(`/bookmark`) · 플랜 한도(`maxBookmarks`) · 문서까지. 책갈피 아이콘은 임시로 그렸다 — 주인이 디자인해 주면 `TabIcon.tsx` · `Icon.tsx` 의 path 두 개만 바꾼다
 - [✅] 하트 — 새 테이블 `hearts` + `heart_count` (DB 트리거가 센다). 한 사람이 한 게시물에 한 번(기본키), 한도 없음, 모아 보는 곳 없음. H-02 제목 줄이 [하트 · 하트 수 · 북마크], 내 아이템(M-14)에도 하트 · 하트 수. `setHeart` · `HeartButton` 은 북마크와 같은 꼴
 - [✅] 댓글 — `comments` 테이블 + `comment_count` (DB 트리거). 아이템 상세(H-02 · M-14) 맨 아래에 목록, 화면 바닥에 붙은 입력칸. 답글 없음, 500자. 쓰기 · 지우기 모두 화면부터 바뀐다. 삭제는 줄을 왼쪽으로 밀기 (내 댓글 · 내 아이템에 달린 댓글) — `SwipeRow` 를 수정 없는 줄도 쓸 수 있게 넓혔다. 차단 사이에는 안 보인다 (DB 규칙). 개인정보처리방침에 댓글을 더했다
-- [ ] 알림 — `notifications` 테이블. 팔로우 · 하트 · 댓글이 생기면 DB 트리거가 받는 사람에게 쌓는다 (내 것에 내가 한 건 빼고, 취소하면 같이 사라진다). 공지는 `announcements` 테이블에 주인이 Supabase 대시보드에서 한 줄 넣으면 모두의 목록 맨 위에. 종은 Home 갈래 줄 오른쪽 끝, 안 본 게 있으면 빨간 점. 화면 `/notifications`
+- [✅] 알림 (N-01) — `notifications` 테이블. 팔로우 · 하트 · 댓글이 생기면 DB 트리거가 받는 사람에게 쌓는다 (내 것에 내가 한 건 빼고, 취소하면 같이 사라진다). 공지는 `announcements` 테이블에 주인이 Supabase 대시보드에서 한 줄 넣으면 모두의 목록 맨 위에 — 넣는 법은 `docs/screens.md` 의 N-01. 종은 Home 갈래 줄 오른쪽 끝, 안 본 게 있으면 빨간 점(`has_unread_notifications` · `users.notifications_seen_at`). 화면 `/notifications` (피그마 없음 — 종 아이콘도 임시)
 
 ## 3단계 — INMYIN
 

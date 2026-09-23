@@ -1,6 +1,6 @@
 # 데이터 모델
 
-테이블 9개 + 연결 테이블 1개로 전체 기능이 돌아간다.
+테이블 11개 + 연결 테이블 1개로 전체 기능이 돌아간다.
 
 ```
 User ──< Inventory ──< Item
@@ -9,15 +9,18 @@ User ──< Inventory ──< Item
  ├──< Bookmark
  ├──< Heart
  ├──< Comment
+ ├──< Notification
  ├──< Follow
  └──< Block
+
+Announcement (주인이 쓰는 공지 — 유저와 연결 없음)
 ```
 
 ## 테이블
 
 | 테이블 | 주요 필드 | 메모 |
 | --- | --- | --- |
-| `User` | id, handle, nickname, avatarUrl, bio, plan, provider, gridColumns, createdAt, deletedAt | plan = `basic` \| `premium`. gridColumns = 격자 한 줄의 칸 수, 3 \| 4 (설정 M-02) |
+| `User` | id, handle, nickname, avatarUrl, bio, plan, provider, gridColumns, notificationsSeenAt, createdAt, deletedAt | plan = `basic` \| `premium`. gridColumns = 격자 한 줄의 칸 수, 3 \| 4 (설정 M-02). notificationsSeenAt = 알림 화면을 마지막으로 본 시각 (종의 빨간 점 기준) |
 | `Inventory` | id, userId, name, categories, imageUrl, rawImageUrl, slotCount, isPublic, parentInventoryId, parentSlotIndex, order, createdAt, deletedAt | categories = 유저가 정한 태그 목록. 사진은 필수다 — 만들기가 항상 사진 고르기로 시작한다. isPublic 이 꺼지면 안의 아이템 · 담긴 인벤토리까지 남에게 숨는다 |
 | `Item` | id, userId, inventoryId, slotIndex, category, imageUrl, rawImageUrl, name, description, quantity, isPublic, acquiredNote, expiresAt, bookmarkCount, heartCount, commentCount, createdAt, deletedAt | rawImageUrl = 배경제거 전 원본. acquiredNote = 획득날짜 칸. 날짜가 아니라 글자다 ("20살 생일", "26.09.22") |
 | `InmyinPost` | id, userId, imageUrl, canvasJson, bookmarkCount, heartCount, commentCount, createdAt, deletedAt | |
@@ -25,6 +28,8 @@ User ──< Inventory ──< Item
 | `Bookmark` | userId, targetType, targetId, createdAt | targetType = `item` \| `post`. 모아 두는 것 — Bookmark 탭 · 플랜 한도 · 순위의 재료. 처음엔 `Like` 였고 이름만 바꿨다 |
 | `Heart` | userId, targetType, targetId, createdAt | 반응. (userId, targetType, targetId) 가 기본키라 한 사람이 한 번. 한도 없음, 모아 보는 곳 없음 — 수(`heartCount`)만 화면에 보인다 |
 | `Comment` | id, userId, targetType, targetId, body, createdAt, deletedAt | 댓글. 답글 없음(부모 없음). body 는 1~500자. 삭제는 `deletedAt` — 쓴 사람과 게시물 주인이 지울 수 있다 (DB 규칙) |
+| `Notification` | id, userId(받는 사람), kind, actorId(한 사람), targetType, targetId, commentId, createdAt | kind = `follow` \| `heart` \| `comment`. **앱이 쓰지 않는다** — follows · hearts · comments 의 트리거가 만들고 지운다. 하트 · 팔로우는 (받는 사람, 종류, 한 사람, 대상) 당 하나 |
+| `Announcement` | id, title, body, link, createdAt, deletedAt | 공지. 주인이 대시보드에서 넣는다 (앱에는 쓰는 권한이 없다). 모두에게 보인다 |
 | `Follow` | followerId, followingId, createdAt | |
 | `Block` | blockerId, blockedId, createdAt | 2단계 |
 

@@ -39,6 +39,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      announcements: {
+        Row: {
+          body: string | null
+          created_at: string
+          deleted_at: string | null
+          id: string
+          link: string | null
+          title: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          link?: string | null
+          title: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          link?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       blocks: {
         Row: {
           blocked_id: string
@@ -205,9 +232,9 @@ export type Database = {
         Row: {
           bookmark_count: number
           canvas_json: Json
+          comment_count: number
           created_at: string
           deleted_at: string | null
-          comment_count: number
           heart_count: number
           id: string
           image_url: string
@@ -216,9 +243,9 @@ export type Database = {
         Insert: {
           bookmark_count?: number
           canvas_json: Json
+          comment_count?: number
           created_at?: string
           deleted_at?: string | null
-          comment_count?: number
           heart_count?: number
           id?: string
           image_url: string
@@ -227,9 +254,9 @@ export type Database = {
         Update: {
           bookmark_count?: number
           canvas_json?: Json
+          comment_count?: number
           created_at?: string
           deleted_at?: string | null
-          comment_count?: number
           heart_count?: number
           id?: string
           image_url?: string
@@ -313,11 +340,11 @@ export type Database = {
           acquired_note: string | null
           bookmark_count: number
           category: string | null
+          comment_count: number
           created_at: string
           deleted_at: string | null
           description: string | null
           expires_at: string | null
-          comment_count: number
           heart_count: number
           id: string
           image_url: string
@@ -333,11 +360,11 @@ export type Database = {
           acquired_note?: string | null
           bookmark_count?: number
           category?: string | null
+          comment_count?: number
           created_at?: string
           deleted_at?: string | null
           description?: string | null
           expires_at?: string | null
-          comment_count?: number
           heart_count?: number
           id?: string
           image_url: string
@@ -353,11 +380,11 @@ export type Database = {
           acquired_note?: string | null
           bookmark_count?: number
           category?: string | null
+          comment_count?: number
           created_at?: string
           deleted_at?: string | null
           description?: string | null
           expires_at?: string | null
-          comment_count?: number
           heart_count?: number
           id?: string
           image_url?: string
@@ -379,6 +406,61 @@ export type Database = {
           },
           {
             foreignKeyName: "items_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          actor_id: string
+          comment_id: string | null
+          created_at: string
+          id: string
+          kind: string
+          target_id: string | null
+          target_type: string | null
+          user_id: string
+        }
+        Insert: {
+          actor_id: string
+          comment_id?: string | null
+          created_at?: string
+          id?: string
+          kind: string
+          target_id?: string | null
+          target_type?: string | null
+          user_id: string
+        }
+        Update: {
+          actor_id?: string
+          comment_id?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          target_id?: string | null
+          target_type?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
@@ -438,6 +520,7 @@ export type Database = {
           handle: string
           id: string
           nickname: string
+          notifications_seen_at: string | null
           plan: string
           provider: string | null
         }
@@ -450,6 +533,7 @@ export type Database = {
           handle: string
           id: string
           nickname: string
+          notifications_seen_at?: string | null
           plan?: string
           provider?: string | null
         }
@@ -462,6 +546,7 @@ export type Database = {
           handle?: string
           id?: string
           nickname?: string
+          notifications_seen_at?: string | null
           plan?: string
           provider?: string | null
         }
@@ -474,6 +559,7 @@ export type Database = {
     Functions: {
       block_user: { Args: { target_id: string }; Returns: undefined }
       blocked_between: { Args: { other_id: string }; Returns: boolean }
+      has_unread_notifications: { Args: never; Returns: boolean }
       inventory_visible: { Args: { target_id: string }; Returns: boolean }
       is_email_registered: { Args: { p_email: string }; Returns: boolean }
       is_valid_categories: {
@@ -488,6 +574,7 @@ export type Database = {
           item_count: number
         }[]
       }
+      target_owner: { Args: { p_id: string; p_type: string }; Returns: string }
       used_slot_count: { Args: { p_inventory_id: string }; Returns: number }
     }
     Enums: {

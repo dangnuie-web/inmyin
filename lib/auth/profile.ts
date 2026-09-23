@@ -2,7 +2,8 @@ import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
-const PROFILE_COLUMNS = "id, handle, nickname, avatar_url, bio, plan, grid_columns";
+// created_at · notifications_seen_at 은 알림 화면이 "새것"을 가르는 기준
+const PROFILE_COLUMNS = "id, handle, nickname, avatar_url, bio, plan, grid_columns, created_at, notifications_seen_at";
 
 // 로그인한 사람과 그 사람의 프로필(users 행)을 가져온다 — 로그인 정보(user)까지 필요한 화면용 (가입 A-03, 설정 › 로그인 정보).
 // getUser 는 Supabase 에 한 번 물어보고 오므로 화면마다 쓰기엔 아깝다. 화면들은 아래의 requireProfile 을 쓴다.

@@ -4,6 +4,7 @@ import { ItemFeed } from "@/components/home/ItemFeed";
 import { toGridColumns } from "@/components/inventory/Slot";
 import { requireProfile } from "@/lib/auth/profile";
 import { getPopularCategories, getPublicItemFeed } from "@/lib/item/queries";
+import { hasUnreadNotifications } from "@/lib/notification/queries";
 
 export const metadata: Metadata = { title: "INMYIN" };
 
@@ -15,11 +16,11 @@ export default async function Home(props: PageProps<"/">) {
   const q = typeof searchParams.q === "string" ? searchParams.q : "";
   const category = typeof searchParams.category === "string" && searchParams.category ? searchParams.category : null;
 
-  const [items, categories] = await Promise.all([getPublicItemFeed({ q, category: category ?? undefined }), getPopularCategories()]);
+  const [items, categories, unread] = await Promise.all([getPublicItemFeed({ q, category: category ?? undefined }), getPopularCategories(), hasUnreadNotifications()]);
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col lg:max-w-web">
-      <HomeTabs current="items" />
+      <HomeTabs current="items" unread={unread} />
       <ItemFeed items={items} q={q} category={category} categories={categories} columns={toGridColumns(profile.grid_columns)} />
     </div>
   );
