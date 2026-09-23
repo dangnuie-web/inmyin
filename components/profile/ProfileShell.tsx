@@ -1,8 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { FollowCounts } from "@/components/follow/FollowCounts";
-import { SoonButton } from "@/components/profile/SoonButton";
-import { otherInventoriesPath, otherItemsPath } from "@/lib/profile/paths";
+import { otherInventoriesPath, otherItemsPath, otherPostsPath } from "@/lib/profile/paths";
 import { Avatar } from "./Avatar";
 
 export type ProfileShellTab = "inventory" | "items" | "inmyin";
@@ -37,7 +36,7 @@ export function ProfileShell({
   actions,
   children,
 }: ProfileShellProps) {
-  const tabs: { id: ProfileShellTab; label: string; href?: string }[] = [
+  const tabs: { id: ProfileShellTab; label: string; href: string }[] = [
     {
       id: "inventory",
       label: "INVENTORY",
@@ -48,8 +47,11 @@ export function ProfileShell({
       label: "ITEM",
       href: mine ? "/my/items" : otherItemsPath(person.handle),
     },
-    // INMYIN 게시물은 3단계
-    { id: "inmyin", label: "INMYIN" },
+    {
+      id: "inmyin",
+      label: "INMYIN",
+      href: mine ? "/my/inmyin" : otherPostsPath(person.handle),
+    },
   ];
 
   return (
@@ -78,24 +80,14 @@ export function ProfileShell({
           className="mt-9 flex items-end gap-14 border-b border-border px-3 text-title font-bold"
         >
           {tabs.map((entry) =>
-            entry.href ? (
-              <Link
-                key={entry.id}
-                href={entry.href}
-                aria-current={entry.id === tab ? "page" : undefined}
-                className={`-mb-px border-b-2 pb-4 ${entry.id === tab ? "border-ink text-ink" : "border-transparent text-ink-muted hover:text-ink"}`}
-              >
-                {entry.label}
-              </Link>
-            ) : (
-              <SoonButton
-                key={entry.id}
-                notice="INMYIN 게시물은 3단계에서 만들어요."
-                className="-mb-px border-b-2 border-transparent pb-4 text-ink-muted hover:text-ink"
-              >
-                {entry.label}
-              </SoonButton>
-            ),
+            <Link
+              key={entry.id}
+              href={entry.href}
+              aria-current={entry.id === tab ? "page" : undefined}
+              className={`-mb-px border-b-2 pb-4 ${entry.id === tab ? "border-ink text-ink" : "border-transparent text-ink-muted hover:text-ink"}`}
+            >
+              {entry.label}
+            </Link>,
           )}
         </nav>
       </div>

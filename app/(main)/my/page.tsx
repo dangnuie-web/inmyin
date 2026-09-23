@@ -79,10 +79,15 @@ export default async function MyProfilePage() {
         <section>
           <div className="flex h-16 items-center px-5">
             <SectionTitle title="INMYIN" note={`게시물 ${stats.postCount}`} />
-            {/* 에디터(M-09)로. 게시물 목록은 3단계 뒤 항목 */}
-            <Link href="/my/inmyin/new" className="ml-auto rounded-md bg-ink px-2.5 text-label font-bold text-white active:opacity-80">
-              만들기
-            </Link>
+            {/* 더보기 → 내 INMYIN 목록, 만들기 → 에디터(M-09) */}
+            <span className="ml-auto flex gap-1.5">
+              <Link href="/my/inmyin" className="rounded-md border border-ink bg-white px-2.5 text-label font-bold text-ink active:opacity-60">
+                더보기
+              </Link>
+              <Link href="/my/inmyin/new" className="rounded-md bg-ink px-2.5 text-label font-bold text-white active:opacity-80">
+                만들기
+              </Link>
+            </span>
           </div>
           {stats.recentPosts.length > 0 ? <RecentPosts posts={stats.recentPosts} /> : <EmptyNote>아직 게시물이 없어요. 만들기를 눌러 첫 INMYIN 을 올려 보세요.</EmptyNote>}
         </section>

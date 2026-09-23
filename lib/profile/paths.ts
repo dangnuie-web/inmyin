@@ -26,3 +26,8 @@ export function otherInventoryPath(handle: string, inventoryId: string, options:
 export function otherItemsPath(handle: string) {
   return `/u/${handle}/items`;
 }
+
+// 타유저의 INMYIN 목록. 내 것은 /my/inmyin
+export function otherPostsPath(handle: string) {
+  return `/u/${handle}/inmyin`;
+}

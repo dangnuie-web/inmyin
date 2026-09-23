@@ -84,3 +84,33 @@ export async function getPostDetail(postId: string): Promise<PostDetail | null> 
     hotspots: data.post_items.flatMap((area) => (area.items ? [{ itemId: area.items.id, name: area.items.name, description: area.items.description, x: area.x, y: area.y, w: area.w, h: area.h }] : [])),
   };
 }
+
+const POST_SELECT = "id, title, image_url, created_at, users!inner(handle, nickname, avatar_url)";
+
+function toFeedPost(post: { id: string; title: string; image_url: string; created_at: string; users: { handle: string; nickname: string; avatar_url: string | null } }): FeedPost {
+  return { id: post.id, title: post.title, imageUrl: post.image_url, createdAt: post.created_at, author: { handle: post.users.handle, nickname: post.users.nickname, avatarUrl: post.users.avatar_url } };
+}
+
+// 어떤 사람의 게시물 전부, 최신순 (프로필의 INMYIN 목록 — 내 것 · 남의 것 공용). 지워진 것 · 차단 사이는 DB 규칙이 뺀다
+export async function getUserPosts(userId: string): Promise<FeedPost[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("inmyin_posts").select(POST_SELECT).eq("user_id", userId).is("deleted_at", null).order("created_at", { ascending: false });
+  if (error) throw error;
+  return data.map(toFeedPost);
+}
+
+// 내가 북마크한 게시물, 최근에 누른 순 (Bookmark 탭의 INMYIN 갈래 V-02). 그사이 지워진 것은 DB 규칙이 빼 준다
+export async function getMyBookmarkedPosts(userId: string): Promise<FeedPost[]> {
+  const supabase = await createClient();
+  const { data: bookmarks, error: bookmarksError } = await supabase.from("bookmarks").select("target_id").eq("user_id", userId).eq("target_type", "post").order("created_at", { ascending: false });
+  if (bookmarksError) throw bookmarksError;
+  if (bookmarks.length === 0) return [];
+  const ids = bookmarks.map((bookmark) => bookmark.target_id);
+  const { data, error } = await supabase.from("inmyin_posts").select(POST_SELECT).in("id", ids).is("deleted_at", null);
+  if (error) throw error;
+  const byId = new Map(data.map((post) => [post.id, post]));
+  return ids.flatMap((id) => {
+    const post = byId.get(id);
+    return post ? [toFeedPost(post)] : [];
+  });
+}

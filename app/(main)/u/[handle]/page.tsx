@@ -5,7 +5,7 @@ import { VisibleInventoryList } from "@/components/inventory/VisibleInventoryLis
 import { FollowCounts } from "@/components/follow/FollowCounts";
 import { Avatar } from "@/components/profile/Avatar";
 import { OtherProfileActions, OtherProfileCorner } from "@/components/profile/OtherProfileActions";
-import { EmptyNote, RecentItems, SectionTitle } from "@/components/profile/ProfileParts";
+import { EmptyNote, RecentItems, RecentPosts, SectionTitle } from "@/components/profile/ProfileParts";
 import { ProfileShell } from "@/components/profile/ProfileShell";
 import { BackHeader } from "@/components/ui/BackHeader";
 import { Icon } from "@/components/ui/Icon";
@@ -13,7 +13,7 @@ import { requireProfile } from "@/lib/auth/profile";
 import { HANDLE_PATTERN } from "@/lib/auth/rules";
 import { hasBlocked } from "@/lib/block/queries";
 import { isFollowing } from "@/lib/follow/queries";
-import { otherInventoriesPath, otherItemsPath } from "@/lib/profile/paths";
+import { otherInventoriesPath, otherItemsPath, otherPostsPath } from "@/lib/profile/paths";
 import { getPublicProfile, getVisibleInventories } from "@/lib/profile/public-queries";
 
 export const metadata: Metadata = { title: "프로필 · INMYIN" };
@@ -74,10 +74,13 @@ export default async function OtherProfilePage(props: PageProps<"/u/[handle]">) 
         </section>
 
         <section>
-          <div className="flex h-16 items-center pl-5">
+          <div className="flex h-16 items-center px-5">
             <SectionTitle title="INMYIN" note={`게시물 ${person.postCount}`} />
+            <Link href={otherPostsPath(person.handle)} className="ml-auto rounded-md bg-ink px-2.5 text-label font-bold text-white active:opacity-80">
+              더보기
+            </Link>
           </div>
-          <EmptyNote>아직 게시물이 없어요.</EmptyNote>
+          {person.recentPosts.length > 0 ? <RecentPosts posts={person.recentPosts} /> : <EmptyNote>아직 게시물이 없어요.</EmptyNote>}
         </section>
         </div>
 
