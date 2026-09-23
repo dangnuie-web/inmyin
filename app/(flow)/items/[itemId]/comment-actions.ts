@@ -5,6 +5,7 @@ import { requireProfile } from "@/lib/auth/profile";
 import type { FormState } from "@/lib/auth/rules";
 import type { CommentTarget } from "@/lib/comment/queries";
 import { COMMENT_MAX } from "@/lib/comment/rules";
+import { postPath } from "@/lib/inmyin/paths";
 import { itemPath } from "@/lib/inventory/paths";
 import { createClient } from "@/lib/supabase/server";
 
@@ -27,7 +28,7 @@ export async function addComment(targetType: CommentTarget, targetId: string, bo
     .single();
   if (error) return { error: "잠시 후 다시 시도해 주세요." };
 
-  if (targetType === "item") revalidatePath(itemPath(targetId));
+  revalidatePath(targetType === "item" ? itemPath(targetId) : postPath(targetId));
   return { id: data.id, createdAt: data.created_at };
 }
 
@@ -40,6 +41,6 @@ export async function deleteComment(commentId: string, targetType: CommentTarget
   const { error } = await supabase.from("comments").update({ deleted_at: new Date().toISOString() }).eq("id", commentId).is("deleted_at", null);
   if (error) return { error: "잠시 후 다시 시도해 주세요." };
 
-  if (targetType === "item") revalidatePath(itemPath(targetId));
+  revalidatePath(targetType === "item" ? itemPath(targetId) : postPath(targetId));
   return {};
 }

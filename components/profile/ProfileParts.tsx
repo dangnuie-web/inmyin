@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { postPath } from "@/lib/inmyin/paths";
 import { itemPath } from "@/lib/inventory/paths";
 import type { ProfileItem, ProfilePost } from "@/lib/profile/queries";
 
@@ -39,15 +40,15 @@ export function RecentItems({ items }: { items: ProfileItem[] }) {
   );
 }
 
-// 프로필 INMYIN 줄의 게시물 카드 — 4:5 이미지, 한 화면에 셋. 누르면 상세(H-04)로 가는 것은 그 화면을 만들 때 붙인다
+// 프로필 INMYIN 줄의 게시물 카드 — 4:5 이미지, 한 화면에 셋. 누르면 상세(H-04)
 export function RecentPosts({ posts }: { posts: ProfilePost[] }) {
   return (
     <ul className="flex gap-2.5 overflow-x-auto px-5 [scrollbar-width:none]">
       {posts.map((post) => (
         <li key={post.id} className="shrink-0 basis-[calc((100%-1.25rem)/3)]">
-          <div className="relative aspect-[4/5] overflow-hidden rounded-md border border-border bg-white" aria-label={post.title}>
-            <Image src={post.imageUrl} alt={post.title} fill sizes="120px" unoptimized className="object-cover" />
-          </div>
+          <Link href={postPath(post.id)} aria-label={post.title} className="relative block aspect-[4/5] overflow-hidden rounded-md border border-border bg-white active:opacity-80">
+            <Image src={post.imageUrl} alt="" fill sizes="120px" unoptimized className="object-cover" />
+          </Link>
         </li>
       ))}
     </ul>

@@ -97,7 +97,7 @@ app/
   (auth)/           로그인, 회원가입
   (main)/
     page.tsx        Home › 아이템
-    inmyin/         Home › INMYIN
+    inmyin/         Home › INMYIN 목록 (상세는 (flow)/inmyin/[postId])
     discover/       Home › 발견
     u/[handle]/     타유저 프로필
     my/             My (프로필, 설정, 인벤토리)
@@ -108,7 +108,7 @@ components/
   ui/               버튼, 인풋 등 원자 단위
   inventory/        인벤토리 격자, 칸, 아이템 카드
   item/             아이템 등록 플로우
-  inmyin/           캔버스 에디터 (Editor · Canvas(Konva) · Background · ItemPicker · AddSheet(스티커 · 사진 · 텍스트 · 배경) · ColorField · PreviewScreen · PostForm)
+  inmyin/           캔버스 에디터 (Editor · Canvas(Konva) · Background · ItemPicker · AddSheet(스티커 · 사진 · 텍스트 · 배경) · ColorField · PreviewScreen · PostForm) · 게시물 카드 · 라벨 이미지
   heart/ bookmark/  하트 · 책갈피 버튼 (제목 줄의 [하트 · 하트 수 · 댓글 · 댓글 수 · 북마크])
   comment/          댓글 목록 + 입력칸, 제목 줄의 말풍선 · 댓글 수
   notification/     알림 줄, 본 시각 기록
@@ -119,7 +119,7 @@ lib/
   background-removal.ts
   design-tokens.ts  globals.css 의 토큰을 서버에서 읽는다 — CSS 를 못 읽는 매니페스트 · 메타 태그용
   ranking.ts        인기·추천 정렬
-  inmyin/           캔버스 저장 형태(canvas.ts) · 스티커(stickers.ts) · 글꼴(fonts.ts) · 사진 모양(photo-shape.ts) · 포스팅 규칙(rules.ts) · 저장소 올리기(upload.ts)
+  inmyin/           캔버스 저장 형태(canvas.ts) · 스티커(stickers.ts) · 글꼴(fonts.ts) · 사진 모양(photo-shape.ts) · 포스팅 규칙(rules.ts) · 저장소 올리기(upload.ts) · 게시물 조회(queries.ts) · 주소(paths.ts)
 scripts/
   app-icon.mjs      정해진 아이콘 SVG 로 PWA 아이콘 4종 + favicon 을 만든다 (npm run app-icon)
 docs/

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireProfile } from "@/lib/auth/profile";
 import type { FormState } from "@/lib/auth/rules";
 import type { HeartTarget } from "@/lib/heart/queries";
+import { postPath } from "@/lib/inmyin/paths";
 import { itemPath } from "@/lib/inventory/paths";
 import { createClient } from "@/lib/supabase/server";
 
@@ -23,6 +24,6 @@ export async function setHeart(targetType: HeartTarget, targetId: string, hearte
   // 23505 = 이미 누른 것을 또 켰다 (두 번 눌렀거나 다른 기기에서). 그대로 켜진 것이니 괜찮다
   if (error && error.code !== "23505") return { error: "잠시 후 다시 시도해 주세요." };
 
-  if (targetType === "item") revalidatePath(itemPath(targetId));
+  revalidatePath(targetType === "item" ? itemPath(targetId) : postPath(targetId));
   return {};
 }

@@ -1,13 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
 
 type Person = { id: string; handle: string; nickname: string; avatarUrl: string | null };
-type ItemCard = { id: string; name: string; imageUrl: string };
+// 하트 · 댓글이 달린 것 — 아이템 또는 INMYIN 게시물
+export type NotificationTarget = { kind: "item" | "post"; id: string; name: string; imageUrl: string };
 
 // 알림 한 줄. 누가 무엇을 했는지 종류별로 다르다 — 공지는 사람이 아니라 주인이 쓴 글
 export type Notification =
   | { id: string; kind: "follow"; createdAt: string; actor: Person }
-  | { id: string; kind: "heart"; createdAt: string; actor: Person; item: ItemCard }
-  | { id: string; kind: "comment"; createdAt: string; actor: Person; item: ItemCard; body: string }
+  | { id: string; kind: "heart"; createdAt: string; actor: Person; target: NotificationTarget }
+  | { id: string; kind: "comment"; createdAt: string; actor: Person; target: NotificationTarget; body: string }
   | { id: string; kind: "announcement"; createdAt: string; title: string; body: string | null; link: string | null };
 
 const NOTIFICATION_LIMIT = 100;
@@ -37,14 +38,18 @@ export async function getNotifications(userId: string): Promise<Notification[]> 
   if (notificationsResult.error) throw notificationsResult.error;
   if (announcementsResult.error) throw announcementsResult.error;
 
-  // 아직 아이템만 있다 (INMYIN 게시물은 3단계)
+  // 하트 · 댓글이 달린 아이템과 게시물의 썸네일. 지워진 것은 안 온다 → 그 알림은 뺀다
   const itemIds = notificationsResult.data.flatMap((row) => (row.target_type === "item" && row.target_id ? [row.target_id] : []));
-  const items = new Map<string, ItemCard>();
-  if (itemIds.length > 0) {
-    const { data, error } = await supabase.from("items").select("id, name, image_url").in("id", itemIds).is("deleted_at", null);
-    if (error) throw error;
-    for (const item of data) items.set(item.id, { id: item.id, name: item.name, imageUrl: item.image_url });
-  }
+  const postIds = notificationsResult.data.flatMap((row) => (row.target_type === "post" && row.target_id ? [row.target_id] : []));
+  const targets = new Map<string, NotificationTarget>();
+  const [itemsResult, postsResult] = await Promise.all([
+    itemIds.length > 0 ? supabase.from("items").select("id, name, image_url").in("id", itemIds).is("deleted_at", null) : null,
+    postIds.length > 0 ? supabase.from("inmyin_posts").select("id, title, image_url").in("id", postIds).is("deleted_at", null) : null,
+  ]);
+  if (itemsResult?.error) throw itemsResult.error;
+  if (postsResult?.error) throw postsResult.error;
+  for (const item of itemsResult?.data ?? []) targets.set(item.id, { kind: "item", id: item.id, name: item.name, imageUrl: item.image_url });
+  for (const post of postsResult?.data ?? []) targets.set(post.id, { kind: "post", id: post.id, name: post.title, imageUrl: post.image_url });
 
   const rows: Notification[] = [];
   for (const row of notificationsResult.data) {
@@ -53,10 +58,10 @@ export async function getNotifications(userId: string): Promise<Notification[]> 
       rows.push({ id: row.id, kind: "follow", createdAt: row.created_at, actor });
       continue;
     }
-    const item = row.target_id ? items.get(row.target_id) : undefined;
-    if (!item) continue;
-    if (row.kind === "heart") rows.push({ id: row.id, kind: "heart", createdAt: row.created_at, actor, item });
-    else if (row.comment) rows.push({ id: row.id, kind: "comment", createdAt: row.created_at, actor, item, body: row.comment.body });
+    const target = row.target_id ? targets.get(row.target_id) : undefined;
+    if (!target) continue;
+    if (row.kind === "heart") rows.push({ id: row.id, kind: "heart", createdAt: row.created_at, actor, target });
+    else if (row.comment) rows.push({ id: row.id, kind: "comment", createdAt: row.created_at, actor, target, body: row.comment.body });
   }
   for (const row of announcementsResult.data) {
     rows.push({ id: row.id, kind: "announcement", createdAt: row.created_at, title: row.title, body: row.body, link: row.link });

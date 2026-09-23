@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { FollowButton } from "@/components/follow/FollowButton";
 import { Avatar } from "@/components/profile/Avatar";
 import { Icon } from "@/components/ui/Icon";
+import { postPath } from "@/lib/inmyin/paths";
 import { itemPath } from "@/lib/inventory/paths";
 import type { Notification } from "@/lib/notification/queries";
 import { profilePath } from "@/lib/profile/paths";
@@ -53,18 +54,20 @@ export function NotificationRow({ notification, unread, followingIds }: Notifica
     );
   }
 
-  const href = itemPath(notification.item.id);
+  const { target } = notification;
+  const href = target.kind === "item" ? itemPath(target.id) : postPath(target.id);
   const thumb = (
     <Link href={href} className="relative size-11 shrink-0 overflow-hidden rounded-md bg-gray-1 active:opacity-60">
-      <Image src={notification.item.imageUrl} alt={notification.item.name} fill sizes="44px" unoptimized className="object-cover" />
+      <Image src={target.imageUrl} alt={target.name} fill sizes="44px" unoptimized className="object-cover" />
     </Link>
   );
   const preview = notification.kind === "comment" ? (notification.body.length > COMMENT_PREVIEW ? `${notification.body.slice(0, COMMENT_PREVIEW)}…` : notification.body) : null;
+  const what = target.kind === "item" ? "아이템" : "INMYIN";
 
   return (
     <Shell href={href} unread={unread} lead={<Avatar url={actor.avatarUrl} size={36} />} trailing={thumb}>
       <p className="text-label">
-        {who}님이 {notification.kind === "heart" ? "회원님의 아이템에 하트를 눌렀어요" : <>댓글을 남겼어요: {preview}</>}
+        {who}님이 {notification.kind === "heart" ? `회원님의 ${what}에 하트를 눌렀어요` : <>회원님의 {what}에 댓글을 남겼어요: {preview}</>}
       </p>
       <p className="text-caption">{time}</p>
     </Shell>
