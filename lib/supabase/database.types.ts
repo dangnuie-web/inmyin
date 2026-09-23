@@ -112,7 +112,7 @@ export type Database = {
           deleted_at: string | null
           id: string
           image_url: string
-          like_count: number
+          bookmark_count: number
           user_id: string
         }
         Insert: {
@@ -121,7 +121,7 @@ export type Database = {
           deleted_at?: string | null
           id?: string
           image_url: string
-          like_count?: number
+          bookmark_count?: number
           user_id: string
         }
         Update: {
@@ -130,7 +130,7 @@ export type Database = {
           deleted_at?: string | null
           id?: string
           image_url?: string
-          like_count?: number
+          bookmark_count?: number
           user_id?: string
         }
         Relationships: [
@@ -218,7 +218,7 @@ export type Database = {
           image_url: string
           inventory_id: string
           is_public: boolean
-          like_count: number
+          bookmark_count: number
           name: string
           quantity: number
           raw_image_url: string
@@ -236,7 +236,7 @@ export type Database = {
           image_url: string
           inventory_id: string
           is_public?: boolean
-          like_count?: number
+          bookmark_count?: number
           name: string
           quantity?: number
           raw_image_url: string
@@ -254,7 +254,7 @@ export type Database = {
           image_url?: string
           inventory_id?: string
           is_public?: boolean
-          like_count?: number
+          bookmark_count?: number
           name?: string
           quantity?: number
           raw_image_url?: string
@@ -278,7 +278,7 @@ export type Database = {
           },
         ]
       }
-      likes: {
+      bookmarks: {
         Row: {
           created_at: string
           target_id: string
@@ -299,7 +299,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "likes_user_id_fkey"
+            foreignKeyName: "bookmarks_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"

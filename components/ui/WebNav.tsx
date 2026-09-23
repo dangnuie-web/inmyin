@@ -5,14 +5,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 // 웹(1024px 이상)의 상단 메뉴 — 하단 탭 대신. 이름과 갈 곳은 하단 탭과 같다 (BottomTab). 고른 메뉴에 밑줄.
-// 피그마 웹 화면의 "Community · My · Save"를 앱 이름대로 Home · My · Like 로 읽었다
+// 피그마 웹 화면의 "Community · My · Save"를 앱 이름대로 Home · My · Bookmark 로 읽었다
 const MENU = [
   { href: "/", label: "Home" },
   { href: "/my", label: "My" },
-  { href: "/like", label: "Like" },
+  { href: "/bookmark", label: "Bookmark" },
 ];
 
-// /my/settings 처럼 더 깊이 들어가도 그 메뉴가 켜져 있어야 한다. My · Like 에 속하지 않는 주소(/u/…, /items/…)는 모두 Home
+// /my/settings 처럼 더 깊이 들어가도 그 메뉴가 켜져 있어야 한다. My · Bookmark 에 속하지 않는 주소(/u/…, /items/…)는 모두 Home
 function activeHref(pathname: string) {
   const entry = MENU.find(({ href }) => href !== "/" && (pathname === href || pathname.startsWith(`${href}/`)));
   return entry?.href ?? "/";

@@ -1,13 +1,13 @@
 import type { CollectedItem } from "@/lib/item/queries";
 import { createClient } from "@/lib/supabase/server";
 
-export type LikeTarget = "item" | "post";
+export type BookmarkTarget = "item" | "post";
 
-// 내가 이것을 좋아했는지. 누가 무엇을 좋아했는지는 본인만 볼 수 있어서(RLS) 내 것만 물어볼 수 있다
-export async function hasLiked(userId: string, targetType: LikeTarget, targetId: string): Promise<boolean> {
+// 내가 이것을 북마크했는지. 누가 무엇을 북마크했는지는 본인만 볼 수 있어서(RLS) 내 것만 물어볼 수 있다
+export async function hasBookmarked(userId: string, targetType: BookmarkTarget, targetId: string): Promise<boolean> {
   const supabase = await createClient();
   const { count, error } = await supabase
-    .from("likes")
+    .from("bookmarks")
     .select("target_id", { count: "exact", head: true })
     .eq("user_id", userId)
     .eq("target_type", targetType)
@@ -19,21 +19,21 @@ export async function hasLiked(userId: string, targetType: LikeTarget, targetId:
 // 한 번에 물어볼 아이템 id 수. 주소에 id 를 나열해서 묻기 때문에 너무 많으면 주소가 길어 잘린다
 const ITEM_CHUNK = 200;
 
-// 내가 좋아요한 아이템들, 최근에 누른 순 (Like 탭 V-01). 개수 제한은 없다.
-// 좋아요 표는 아이템 표를 직접 가리키지 않아서(게시물과 공용) 좋아요를 먼저 읽고 그 아이템들을 200개씩 나눠 다시 읽는다 —
+// 내가 북마크한 아이템들, 최근에 누른 순 (Bookmark 탭 V-01). 개수 제한은 없다.
+// 북마크 표는 아이템 표를 직접 가리키지 않아서(게시물과 공용) 북마크를 먼저 읽고 그 아이템들을 200개씩 나눠 다시 읽는다 —
 // 그사이 비공개가 되거나 지워진 것은 DB 규칙이 빼 준다
-export async function getMyLikedItems(userId: string): Promise<CollectedItem[]> {
+export async function getMyBookmarkedItems(userId: string): Promise<CollectedItem[]> {
   const supabase = await createClient();
-  const { data: likes, error: likesError } = await supabase
-    .from("likes")
+  const { data: bookmarks, error: bookmarksError } = await supabase
+    .from("bookmarks")
     .select("target_id")
     .eq("user_id", userId)
     .eq("target_type", "item")
     .order("created_at", { ascending: false });
-  if (likesError) throw likesError;
-  if (likes.length === 0) return [];
+  if (bookmarksError) throw bookmarksError;
+  if (bookmarks.length === 0) return [];
 
-  const ids = likes.map((like) => like.target_id);
+  const ids = bookmarks.map((bookmark) => bookmark.target_id);
   const chunks = Array.from({ length: Math.ceil(ids.length / ITEM_CHUNK) }, (_, i) => ids.slice(i * ITEM_CHUNK, (i + 1) * ITEM_CHUNK));
   const results = await Promise.all(
     chunks.map((chunk) =>
@@ -57,4 +57,3 @@ export async function getMyLikedItems(userId: string): Promise<CollectedItem[]> 
       : [];
   });
 }
-

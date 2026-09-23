@@ -20,7 +20,7 @@ type ItemCollectionProps = {
   columns: GridColumns;
   // 아이템이 하나도 없을 때의 글자. 화면마다 다르다 (내 것 · 남의 것 · 좋아요)
   emptyText: string;
-  // "최근 추가순 | 오래된 순" 정렬을 보여줄지 (Like 탭). items 는 최근 것부터 온다고 본다
+  // "최근 추가순 | 오래된 순" 정렬을 보여줄지 (Bookmark 탭). items 는 최근 것부터 온다고 본다
   sortable?: boolean;
 };
 

@@ -4,19 +4,19 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { gridColumnsClass, gridFor, SlotCell, toGridColumns } from "@/components/inventory/Slot";
 import { ItemMenu } from "@/components/item/ItemMenu";
+import { BookmarkButton } from "@/components/bookmark/BookmarkButton";
 import { FollowButton } from "@/components/follow/FollowButton";
-import { LikeButton } from "@/components/like/LikeButton";
 import { Avatar } from "@/components/profile/Avatar";
 import { BackHeader } from "@/components/ui/BackHeader";
 import { HeaderMini } from "@/components/ui/HeaderMini";
 import { requireProfile } from "@/lib/auth/profile";
+import { hasBookmarked } from "@/lib/bookmark/queries";
 import { inventoryPath } from "@/lib/inventory/paths";
 import { getMyInventoryDetail, type SlotEntry } from "@/lib/inventory/queries";
 import { getItemDetail, getVisibleInventoryEntries } from "@/lib/item/queries";
 import { formatShortDate } from "@/lib/item/rules";
 import { isFollowing } from "@/lib/follow/queries";
 import { profilePath } from "@/lib/profile/paths";
-import { hasLiked } from "@/lib/like/queries";
 
 export const metadata: Metadata = { title: "아이템 · INMYIN" };
 
@@ -24,7 +24,7 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{
 
 // 아이템 상세. 어디서 왔는지로 모양이 정해진다:
 //   내 인벤토리(M-04)에서 온 내 아이템 = M-14 — 닫으면 그 인벤토리로, ⋮ 메뉴로 수정 · 삭제, 아래는 같은 인벤토리의 칸들
-//   홈 피드(H-01)에서 왔거나 남의 아이템 = H-02 — 작성자 줄 · 팔로우 · 하트. 홈에서 왔으면 제목 · 내용에서 끝난다
+//   홈 피드(H-01)에서 왔거나 남의 아이템 = H-02 — 작성자 줄 · 팔로우 · 북마크. 홈에서 왔으면 제목 · 내용에서 끝난다
 //   (홈으로 돌아가면 이어서 볼 수 있다), 프로필 · 인벤토리에서 왔으면 아래에 같은 인벤토리의 공개 아이템들.
 //   홈에서 연 내 아이템도 남의 것과 똑같이 보인다 — 내가 올린 것이 남에게 어떻게 보이는지 그대로 보려고
 // 주소는 둘 다 /items/[id]. 하단 탭이 없는 화면이라 (flow) 묶음에 둔다
@@ -66,9 +66,9 @@ export default async function ItemDetailPage(props: PageProps<"/items/[itemId]">
   // ---- 홈에서 왔거나 남의 아이템 (H-02) ----
   // 아래의 칸들: 프로필 · 인벤토리에서 왔으면 그 사람 인벤토리의 공개 아이템. 홈에서 왔으면 없다 —
   // "이것보다 먼저 올라온 것"만 쌓이는 건 이상하고, 홈으로 돌아가면 이어서 볼 수 있다
-  const [nearby, liked, following] = await Promise.all([
+  const [nearby, bookmarked, following] = await Promise.all([
     fromHome ? [] : getVisibleInventoryEntries(item.inventoryId),
-    hasLiked(profile.id, "item", item.id),
+    hasBookmarked(profile.id, "item", item.id),
     isMine ? false : isFollowing(profile.id, item.owner.id),
   ]);
 
@@ -96,8 +96,8 @@ export default async function ItemDetailPage(props: PageProps<"/items/[itemId]">
       <section className="mt-6 px-5">
         <div className="flex items-center justify-between gap-4">
           <h2 className="min-w-0 truncate text-title font-bold">{item.name}</h2>
-          {/* 북마크는 없다 — 좋아요 하나뿐 (CLAUDE.md) */}
-          <LikeButton targetType="item" targetId={item.id} liked={liked} count={item.likeCount} />
+          {/* 오른쪽은 [하트 · 하트 수 · 북마크] 순서. 하트는 다음 항목에서 붙는다 */}
+          <BookmarkButton targetType="item" targetId={item.id} bookmarked={bookmarked} />
         </div>
         <Description item={item} facts={facts} />
       </section>

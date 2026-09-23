@@ -4,15 +4,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { TabIcon, type TabIconName } from "./TabIcon";
 
-// 순서는 피그마 그대로 — Home 이 가운데
+// 순서는 피그마 그대로 — Home 이 가운데. 왼쪽은 원래 Like 였는데 북마크로 바뀌었다
 const TABS: { href: string; label: string; icon: TabIconName }[] = [
-  { href: "/like", label: "Like", icon: "like" },
+  { href: "/bookmark", label: "Bookmark", icon: "bookmark" },
   { href: "/", label: "Home", icon: "home" },
   { href: "/my", label: "My", icon: "my" },
 ];
 
 // /my/settings 처럼 더 깊이 들어가도 그 탭이 켜져 있어야 한다.
-// My · Like 에 속하지 않는 주소(/inmyin, /discover, /u/…)는 모두 Home 이다.
+// My · Bookmark 에 속하지 않는 주소(/inmyin, /discover, /u/…)는 모두 Home 이다.
 function activeHref(pathname: string) {
   const tab = TABS.find(
     ({ href }) => href !== "/" && (pathname === href || pathname.startsWith(`${href}/`)),

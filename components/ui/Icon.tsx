@@ -81,8 +81,17 @@ const ICONS = {
       </>
     ),
   },
-  // 아이템 모아보기(M-13) 검색칸의 돋보기
-  // 좋아요. 하단 탭 Like 와 같은 하트를 작게 쓴다 (scale 0.5 = 24px). 눌렀으면 fill 을 채운다
+  // 북마크. 하단 탭 Bookmark 와 같은 책갈피를 작게 쓴다 (scale 0.5 = 24px). 눌렀으면 fill 을 채운다.
+  // 임시 그림이다 — 주인이 디자인해 주면 TabIcon.tsx 의 bookmark 와 같이 바꾼다
+  bookmark: {
+    size: 47,
+    body: <path d="M13 4H34C36.2091 4 38 5.79086 38 8V42.5L23.5 32.5L9 42.5V8C9 5.79086 10.7909 4 13 4Z" stroke="currentColor" strokeWidth="3" strokeLinejoin="round" />,
+  },
+  bookmarkFilled: {
+    size: 47,
+    body: <path d="M13 4H34C36.2091 4 38 5.79086 38 8V42.5L23.5 32.5L9 42.5V8C9 5.79086 10.7909 4 13 4Z" fill="currentColor" stroke="currentColor" strokeWidth="3" strokeLinejoin="round" />,
+  },
+  // 하트 — 게시물에 반응하는 것. 작게 쓴다 (scale 0.5 = 24px). 눌렀으면 fill 을 채운다
   heart: {
     size: 47,
     body: (

@@ -54,7 +54,7 @@ export type CollectedItem = {
   quantity: number;
   category: string | null;
   inventoryName: string;
-  // 누구 것인지. 여러 사람의 것이 섞이는 곳(Like 탭)에서만 채운다 — 리스트의 줄에 "닉네임 · 인벤토리"로 보인다
+  // 누구 것인지. 여러 사람의 것이 섞이는 곳(Bookmark 탭)에서만 채운다 — 리스트의 줄에 "닉네임 · 인벤토리"로 보인다
   ownerNickname?: string;
 };
 
@@ -125,7 +125,6 @@ export async function getPopularCategories(limit = 12): Promise<string[]> {
 export type AnyItemDetail = ItemDetail & {
   // "2026-09-22T…". 작성자 줄의 날짜이자, 피드에서 이 아이템 근처의 것을 찾는 기준
   createdAt: string;
-  likeCount: number;
   owner: { id: string; handle: string; nickname: string; avatarUrl: string | null };
 };
 
@@ -133,7 +132,7 @@ export async function getItemDetail(itemId: string): Promise<AnyItemDetail | nul
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("items")
-    .select("id, inventory_id, name, description, image_url, category, quantity, acquired_note, expires_at, is_public, created_at, like_count, users!inner(id, handle, nickname, avatar_url)")
+    .select("id, inventory_id, name, description, image_url, category, quantity, acquired_note, expires_at, is_public, created_at, users!inner(id, handle, nickname, avatar_url)")
     .eq("id", itemId)
     .is("deleted_at", null)
     .maybeSingle();
@@ -152,7 +151,6 @@ export async function getItemDetail(itemId: string): Promise<AnyItemDetail | nul
     expiresAt: data.expires_at,
     isPublic: data.is_public,
     createdAt: data.created_at,
-    likeCount: data.like_count,
     owner: { id: data.users.id, handle: data.users.handle, nickname: data.users.nickname, avatarUrl: data.users.avatar_url },
   };
 }

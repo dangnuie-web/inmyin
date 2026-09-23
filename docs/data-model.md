@@ -6,7 +6,7 @@
 User ──< Inventory ──< Item
  │           └──< Inventory (중첩)
  ├──< InmyinPost ──< PostItem >── Item
- ├──< Like
+ ├──< Bookmark
  ├──< Follow
  └──< Block
 ```
@@ -17,10 +17,10 @@ User ──< Inventory ──< Item
 | --- | --- | --- |
 | `User` | id, handle, nickname, avatarUrl, bio, plan, provider, gridColumns, createdAt, deletedAt | plan = `basic` \| `premium`. gridColumns = 격자 한 줄의 칸 수, 3 \| 4 (설정 M-02) |
 | `Inventory` | id, userId, name, categories, imageUrl, rawImageUrl, slotCount, isPublic, parentInventoryId, parentSlotIndex, order, createdAt, deletedAt | categories = 유저가 정한 태그 목록. 사진은 필수다 — 만들기가 항상 사진 고르기로 시작한다. isPublic 이 꺼지면 안의 아이템 · 담긴 인벤토리까지 남에게 숨는다 |
-| `Item` | id, userId, inventoryId, slotIndex, category, imageUrl, rawImageUrl, name, description, quantity, isPublic, acquiredNote, expiresAt, likeCount, createdAt, deletedAt | rawImageUrl = 배경제거 전 원본. acquiredNote = 획득날짜 칸. 날짜가 아니라 글자다 ("20살 생일", "26.09.22") |
-| `InmyinPost` | id, userId, imageUrl, canvasJson, likeCount, createdAt, deletedAt | |
+| `Item` | id, userId, inventoryId, slotIndex, category, imageUrl, rawImageUrl, name, description, quantity, isPublic, acquiredNote, expiresAt, bookmarkCount, createdAt, deletedAt | rawImageUrl = 배경제거 전 원본. acquiredNote = 획득날짜 칸. 날짜가 아니라 글자다 ("20살 생일", "26.09.22") |
+| `InmyinPost` | id, userId, imageUrl, canvasJson, bookmarkCount, createdAt, deletedAt | |
 | `PostItem` | postId, itemId, x, y, w, h | 게시물 ↔ 아이템 탭 영역 |
-| `Like` | userId, targetType, targetId, createdAt | targetType = `item` \| `post` |
+| `Bookmark` | userId, targetType, targetId, createdAt | targetType = `item` \| `post`. 모아 두는 것 — Bookmark 탭 · 플랜 한도 · 순위의 재료. 처음엔 `Like` 였고 이름만 바꿨다 |
 | `Follow` | followerId, followingId, createdAt | |
 | `Block` | blockerId, blockedId, createdAt | 2단계 |
 
@@ -31,7 +31,7 @@ User ──< Inventory ──< Item
 3. **이미 부모가 있는 인벤토리는 다른 곳에 담을 수 없다.** `parentInventoryId IS NULL` 인 것만 담기 대상. 한 줄로 이어지는 중첩은 **5겹까지**이고, 자기 자신이나 자기 안에 든 인벤토리 속으로 들어가는 순환은 DB 트리거가 막는다
 4. **`slotIndex` 는 자리 번호가 아니라 순서 번호다.** 화면은 `slotIndex` 순으로 빈틈 없이 줄 세워 그린다 — 그래서 중간 것을 지우면 뒤의 것들이 저절로 한 칸씩 당겨 붙는다. 새 아이템은 가장 큰 번호 + 1 을 받는다. **지웠다가 되살린 아이템은 옛 번호를 그대로 다시 쓴다** — 남은 것들의 번호가 그대로라서 원래 이웃들 사이로 돌아간다 (그 번호를 그사이 다른 것이 차지했으면 맨 뒤로). 꽉 찼는지는 번호가 아니라 **든 것의 개수**(아이템 수 + 담긴 인벤토리 수)를 `slotCount` 와 비교해 판단한다. `slotCount`는 플랜 상수에서 온다. (처음 만든 DB 트리거는 `slotIndex < slotCount` 를 검사한다 — 아이템 등록을 만들 때 개수 기준으로 바꾼다)
 5. **삭제는 `deletedAt` 기록.** 물리 삭제 금지 — 과거 INMYIN 게시물이 아이템을 참조한다
-6. **`likeCount`는 캐시.** 정확한 순위 집계는 `Like.createdAt` 기준으로 따로 한다
+6. **`bookmarkCount`는 캐시.** 화면에 보여주지 않고 순위에만 쓴다. 정확한 순위 집계는 `Bookmark.createdAt` 기준으로 따로 한다
 
 ## 카테고리는 인벤토리에 저장한다
 
@@ -54,23 +54,23 @@ export const RECOMMENDED_INVENTORIES = [
 
 ```ts
 export const PLANS = {
-  basic:   { maxInventories: 5,  slotCount: 25, maxLikes: 500 },
-  premium: { maxInventories: 20, slotCount: 50, maxLikes: 2000 },
+  basic:   { maxInventories: 5,  slotCount: 25, maxBookmarks: 500 },
+  premium: { maxInventories: 20, slotCount: 50, maxBookmarks: 2000 },
 } as const
 ```
 
 ## 순위 쿼리
 
-`lib/ranking.ts`.
+`lib/ranking.ts`. 인기는 **북마크 수**로 센다 — 하트는 가벼운 반응이라 순위에 넣지 않는다.
 
 ```sql
 -- 인기: 최근 24시간
 SELECT target_id, count(*) AS score
-FROM "Like"
+FROM bookmarks
 WHERE target_type = 'post' AND created_at > now() - interval '24 hours'
 GROUP BY target_id ORDER BY score DESC;
 
--- 추천: 누적 좋아요 100 미만 유저 중, 최근 1시간
+-- 추천: 누적 북마크 100 미만 유저 중, 최근 1시간
 ```
 
 `RECOMMEND_THRESHOLD = 100` 을 상수로 둔다.

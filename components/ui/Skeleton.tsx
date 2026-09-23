@@ -6,7 +6,7 @@ function Block({ className }: { className: string }) {
   return <div aria-hidden className={`rounded-md bg-gray-2 ${className}`} />;
 }
 
-// 하단 탭이 있는 화면들(Home · Like · My)의 뼈대
+// 하단 탭이 있는 화면들(Home · Bookmark · My)의 뼈대
 export function TabScreenSkeleton() {
   return (
     <div role="status" aria-label="불러오는 중" className="mx-auto flex w-full max-w-md flex-1 animate-pulse flex-col px-5 pt-5">
