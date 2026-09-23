@@ -72,6 +72,35 @@ export type Database = {
           },
         ]
       }
+      bookmarks: {
+        Row: {
+          created_at: string
+          target_id: string
+          target_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          target_id: string
+          target_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          target_id?: string
+          target_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookmarks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       follows: {
         Row: {
           created_at: string
@@ -105,32 +134,64 @@ export type Database = {
           },
         ]
       }
-      inmyin_posts: {
+      hearts: {
         Row: {
-          canvas_json: Json
           created_at: string
-          deleted_at: string | null
-          id: string
-          image_url: string
-          bookmark_count: number
+          target_id: string
+          target_type: string
           user_id: string
         }
         Insert: {
-          canvas_json: Json
           created_at?: string
-          deleted_at?: string | null
-          id?: string
-          image_url: string
-          bookmark_count?: number
+          target_id: string
+          target_type: string
           user_id: string
         }
         Update: {
+          created_at?: string
+          target_id?: string
+          target_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hearts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inmyin_posts: {
+        Row: {
+          bookmark_count: number
+          canvas_json: Json
+          created_at: string
+          deleted_at: string | null
+          heart_count: number
+          id: string
+          image_url: string
+          user_id: string
+        }
+        Insert: {
+          bookmark_count?: number
+          canvas_json: Json
+          created_at?: string
+          deleted_at?: string | null
+          heart_count?: number
+          id?: string
+          image_url: string
+          user_id: string
+        }
+        Update: {
+          bookmark_count?: number
           canvas_json?: Json
           created_at?: string
           deleted_at?: string | null
+          heart_count?: number
           id?: string
           image_url?: string
-          bookmark_count?: number
           user_id?: string
         }
         Relationships: [
@@ -209,16 +270,17 @@ export type Database = {
       items: {
         Row: {
           acquired_note: string | null
+          bookmark_count: number
           category: string | null
           created_at: string
           deleted_at: string | null
           description: string | null
           expires_at: string | null
+          heart_count: number
           id: string
           image_url: string
           inventory_id: string
           is_public: boolean
-          bookmark_count: number
           name: string
           quantity: number
           raw_image_url: string
@@ -227,16 +289,17 @@ export type Database = {
         }
         Insert: {
           acquired_note?: string | null
+          bookmark_count?: number
           category?: string | null
           created_at?: string
           deleted_at?: string | null
           description?: string | null
           expires_at?: string | null
+          heart_count?: number
           id?: string
           image_url: string
           inventory_id: string
           is_public?: boolean
-          bookmark_count?: number
           name: string
           quantity?: number
           raw_image_url: string
@@ -245,16 +308,17 @@ export type Database = {
         }
         Update: {
           acquired_note?: string | null
+          bookmark_count?: number
           category?: string | null
           created_at?: string
           deleted_at?: string | null
           description?: string | null
           expires_at?: string | null
+          heart_count?: number
           id?: string
           image_url?: string
           inventory_id?: string
           is_public?: boolean
-          bookmark_count?: number
           name?: string
           quantity?: number
           raw_image_url?: string
@@ -271,35 +335,6 @@ export type Database = {
           },
           {
             foreignKeyName: "items_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      bookmarks: {
-        Row: {
-          created_at: string
-          target_id: string
-          target_type: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          target_id: string
-          target_type: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          target_id?: string
-          target_type?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "bookmarks_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"

@@ -6,6 +6,7 @@ import { gridColumnsClass, gridFor, SlotCell, toGridColumns } from "@/components
 import { ItemMenu } from "@/components/item/ItemMenu";
 import { BookmarkButton } from "@/components/bookmark/BookmarkButton";
 import { FollowButton } from "@/components/follow/FollowButton";
+import { HeartButton } from "@/components/heart/HeartButton";
 import { Avatar } from "@/components/profile/Avatar";
 import { BackHeader } from "@/components/ui/BackHeader";
 import { HeaderMini } from "@/components/ui/HeaderMini";
@@ -13,6 +14,7 @@ import { requireProfile } from "@/lib/auth/profile";
 import { hasBookmarked } from "@/lib/bookmark/queries";
 import { inventoryPath } from "@/lib/inventory/paths";
 import { getMyInventoryDetail, type SlotEntry } from "@/lib/inventory/queries";
+import { hasHearted } from "@/lib/heart/queries";
 import { getItemDetail, getVisibleInventoryEntries } from "@/lib/item/queries";
 import { formatShortDate } from "@/lib/item/rules";
 import { isFollowing } from "@/lib/follow/queries";
@@ -48,14 +50,18 @@ export default async function ItemDetailPage(props: PageProps<"/items/[itemId]">
 
   // ---- 내 인벤토리에서 온 내 아이템 (M-14) ----
   if (asOwner) {
-    const inventory = await getMyInventoryDetail(profile.id, item.inventoryId);
+    const [inventory, hearted] = await Promise.all([getMyInventoryDetail(profile.id, item.inventoryId), hasHearted(profile.id, "item", item.id)]);
     if (!inventory) notFound();
     return (
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col pb-[max(2.5rem,env(safe-area-inset-bottom))]">
         <HeaderMini icon="close" href={inventoryPath(inventory.id)} title="아이템" action={<ItemMenu itemId={item.id} inventoryId={item.inventoryId} />} />
         <Photo item={item} className="mx-5 mt-3 bg-gray-1" />
         <section className="mt-10 px-5">
-          <h2 className="text-title font-bold">{item.name}</h2>
+          <div className="flex items-center justify-between gap-4">
+            <h2 className="min-w-0 truncate text-title font-bold">{item.name}</h2>
+            {/* 내 아이템에도 하트 · 하트 수 — 누가 얼마나 반응했는지 보려고. 북마크는 없다 (내 것을 모을 일이 없다) */}
+            <HeartButton targetType="item" targetId={item.id} hearted={hearted} count={item.heartCount} />
+          </div>
           <Description item={item} facts={facts} />
         </section>
         <Grid entries={inventory.entries} currentId={item.id} className={gridFor(inventory.slotCount, toGridColumns(profile.grid_columns)).className} />
@@ -66,8 +72,9 @@ export default async function ItemDetailPage(props: PageProps<"/items/[itemId]">
   // ---- 홈에서 왔거나 남의 아이템 (H-02) ----
   // 아래의 칸들: 프로필 · 인벤토리에서 왔으면 그 사람 인벤토리의 공개 아이템. 홈에서 왔으면 없다 —
   // "이것보다 먼저 올라온 것"만 쌓이는 건 이상하고, 홈으로 돌아가면 이어서 볼 수 있다
-  const [nearby, bookmarked, following] = await Promise.all([
+  const [nearby, hearted, bookmarked, following] = await Promise.all([
     fromHome ? [] : getVisibleInventoryEntries(item.inventoryId),
+    hasHearted(profile.id, "item", item.id),
     hasBookmarked(profile.id, "item", item.id),
     isMine ? false : isFollowing(profile.id, item.owner.id),
   ]);
@@ -96,8 +103,11 @@ export default async function ItemDetailPage(props: PageProps<"/items/[itemId]">
       <section className="mt-6 px-5">
         <div className="flex items-center justify-between gap-4">
           <h2 className="min-w-0 truncate text-title font-bold">{item.name}</h2>
-          {/* 오른쪽은 [하트 · 하트 수 · 북마크] 순서. 하트는 다음 항목에서 붙는다 */}
-          <BookmarkButton targetType="item" targetId={item.id} bookmarked={bookmarked} />
+          {/* 오른쪽은 [하트 · 하트 수 · 북마크] 순서 (CLAUDE.md). 하트는 반응, 북마크는 모으기 */}
+          <div className="flex shrink-0 items-center gap-4">
+            <HeartButton targetType="item" targetId={item.id} hearted={hearted} count={item.heartCount} />
+            <BookmarkButton targetType="item" targetId={item.id} bookmarked={bookmarked} />
+          </div>
         </div>
         <Description item={item} facts={facts} />
       </section>
