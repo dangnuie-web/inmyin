@@ -4,7 +4,8 @@ import type Konva from "konva";
 import type { KonvaEventObject } from "konva/lib/Node";
 import { useEffect, useRef, useState } from "react";
 import { Image as KonvaImage, Layer, Stage, Transformer } from "react-konva";
-import { CANVAS_WIDTH, type CanvasObject } from "@/lib/inmyin/canvas";
+import { CANVAS_WIDTH, type CanvasBackground, type CanvasObject } from "@/lib/inmyin/canvas";
+import { Background } from "./Background";
 import { useImage } from "./useImage";
 
 // 고른 것의 화면 위 자리 (px). 에디터가 이 위에 × 버튼과 순서 메뉴를 얹는다
@@ -14,6 +15,7 @@ export type OverlayRect = { x: number; y: number; width: number; height: number 
 const MIN_SIZE = 60;
 
 type CanvasProps = {
+  background: CanvasBackground;
   objects: CanvasObject[];
   // 화면에 그리는 크기 (px). 부모가 4:5 로 맞춰서 준다
   width: number;
@@ -32,7 +34,7 @@ type CanvasProps = {
 // INMYIN 캔버스 (M-09). 그림은 1080×1350 기준 좌표로 들고 있고, Stage 를 통째로 줄여서 화면에 맞춘다.
 // 누르면 고르기, 끌면 옮기기, 모서리 손잡이로 키우기, 위의 손잡이로 돌리기 — 전부 Konva 가 한다.
 // 브라우저에서만 도는 부품이라 Editor 가 dynamic(ssr: false) 로 부른다
-export function Canvas({ objects, width, height, selectedId, onPress, onTap, onChange, onOverlay }: CanvasProps) {
+export function Canvas({ background, objects, width, height, selectedId, onPress, onTap, onChange, onOverlay }: CanvasProps) {
   const stageRef = useRef<Konva.Stage>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
   const nodes = useRef(new Map<string, Konva.Image>());
@@ -53,7 +55,7 @@ export function Canvas({ objects, width, height, selectedId, onPress, onTap, onC
     onOverlay({ x: rect.x * scale, y: rect.y * scale, width: rect.width * scale, height: rect.height * scale });
   }, [selectedId, objects, scale, onOverlay, loadedCount]);
 
-  // 빈 곳을 누르면 고른 것을 푼다
+  // 빈 곳(바닥)을 누르면 고른 것을 푼다 — 바닥은 눌림을 받지 않아서(listening=false) 그때의 target 은 Stage 다
   function onStagePress(event: KonvaEventObject<MouseEvent | TouchEvent>) {
     if (event.target === event.target.getStage()) onPress(null);
   }
@@ -61,6 +63,7 @@ export function Canvas({ objects, width, height, selectedId, onPress, onTap, onC
   return (
     <Stage ref={stageRef} width={width} height={height} scaleX={scale} scaleY={scale} onMouseDown={onStagePress} onTouchStart={onStagePress}>
       <Layer>
+        <Background background={background} />
         {objects.map((object) => (
           <CanvasImage
             key={object.id}

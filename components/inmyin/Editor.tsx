@@ -5,16 +5,17 @@ import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { SoonButton } from "@/components/profile/SoonButton";
 import { HeaderMini } from "@/components/ui/HeaderMini";
+import { Icon } from "@/components/ui/Icon";
 import { Toast } from "@/components/ui/Toast";
 import type { GridColumns } from "@/components/inventory/Slot";
 import { resizeImage } from "@/lib/image/resize";
-import { CANVAS_WIDTH, fitCanvas, MAX_OBJECTS, placeNew, type CanvasObject } from "@/lib/inmyin/canvas";
+import { CANVAS_WIDTH, emptyDocument, fitCanvas, MAX_OBJECTS, placeNew, type CanvasBackground, type CanvasObject } from "@/lib/inmyin/canvas";
 import { stickerSrc } from "@/lib/inmyin/stickers";
 import type { PackingInventory, SlotEntry } from "@/lib/inventory/queries";
 // Canvas.tsx 에서 값을 가져오면 Konva 가 서버 묶음에 딸려 온다 — 타입만 가져온다
 import type { OverlayRect } from "./Canvas";
+import { AddSheet, type AddTab } from "./AddSheet";
 import { ItemPicker } from "./ItemPicker";
-import { StickerSheet } from "./StickerSheet";
 import { loadImageSize } from "./useImage";
 
 // 캔버스 라이브러리(Konva)는 브라우저에서만 돈다 — 서버에서는 그리지 않고 브라우저에서 불러온다
@@ -25,14 +26,16 @@ const HISTORY_LIMIT = 50;
 // 갤러리 사진은 캔버스 폭까지만 줄여서 올린다 — 폰 사진 원본은 너무 크다
 const PHOTO_MAX_SIDE = CANVAS_WIDTH;
 
-// 헤더 오른쪽의 버튼들. 그림은 피그마에서 받은 파일 (public/icons/editor)
+// 헤더 오른쪽의 버튼들. 그림은 피그마에서 받은 파일 (public/icons/editor). 스티커 · 사진은 ＋ 판 안으로 들어갔다 —
+// 아이콘을 더 늘리지 않는다 (인스타 스토리처럼 ＋ 하나)
 const TOOLS = {
   undo: { icon: "undo", label: "되돌리기" },
-  sticker: { icon: "sticker", label: "스티커" },
-  photo: { icon: "photo", label: "사진 올리기" },
   capture: { icon: "capture", label: "이미지 만들기" },
   broom: { icon: "broom", label: "전부 지우기" },
 } as const;
+
+// 캔버스의 모습 하나 — 되돌리기는 이것을 통째로 기억한다
+type Snapshot = { background: CanvasBackground; objects: CanvasObject[] };
 
 type EditorProps = {
   inventories: PackingInventory[];
@@ -43,12 +46,15 @@ type EditorProps = {
 // 캔버스 위의 것은 누르면 골라지고(테두리 · 손잡이 · ×), 이미 고른 것을 다시 누르면 앞뒤 순서 메뉴가 뜬다.
 // 모든 변화는 되돌리기 기록에 쌓인다 — 전부 지우기도 되돌릴 수 있어서 따로 묻지 않는다
 export function Editor({ inventories, columns }: EditorProps) {
-  const [objects, setObjects] = useState<CanvasObject[]>([]);
-  const [history, setHistory] = useState<CanvasObject[][]>([]);
+  const [{ background, objects }, setSnapshot] = useState<Snapshot>(() => {
+    const { background, objects } = emptyDocument();
+    return { background, objects };
+  });
+  const [history, setHistory] = useState<Snapshot[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [overlay, setOverlay] = useState<OverlayRect | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [sheet, setSheet] = useState<"stickers" | null>(null);
+  const [sheet, setSheet] = useState<AddTab | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const hideNotice = useCallback(() => setNotice(null), []);
   const photoInput = useRef<HTMLInputElement>(null);
@@ -69,15 +75,25 @@ export function Editor({ inventories, columns }: EditorProps) {
 
   // 바꾸기 전의 모습을 기록에 쌓고 바꾼다
   function apply(next: CanvasObject[]) {
-    setHistory((current) => [...current.slice(-(HISTORY_LIMIT - 1)), objects]);
-    setObjects(next);
+    setHistory((current) => [...current.slice(-(HISTORY_LIMIT - 1)), { background, objects }]);
+    setSnapshot({ background, objects: next });
+    lastWasBackground.current = false;
+  }
+
+  // 배경은 견본을 연달아 누르며 고르므로, 연이은 배경 바꾸기는 되돌리기 한 걸음으로 묶는다 (첫 번만 기록에 쌓는다)
+  const lastWasBackground = useRef(false);
+  function applyBackground(next: CanvasBackground) {
+    if (!lastWasBackground.current) setHistory((current) => [...current.slice(-(HISTORY_LIMIT - 1)), { background, objects }]);
+    lastWasBackground.current = true;
+    setSnapshot({ background: next, objects });
   }
 
   function undo() {
     const previous = history[history.length - 1];
     if (!previous) return;
     setHistory((current) => current.slice(0, -1));
-    setObjects(previous);
+    setSnapshot(previous);
+    lastWasBackground.current = false;
     setSelectedId(null);
     setMenuOpen(false);
   }
@@ -145,6 +161,7 @@ export function Editor({ inventories, columns }: EditorProps) {
     setMenuOpen(false);
   }
 
+  // 물건만 지운다 — 배경은 남는다 (배경은 ＋ › 배경에서 바꾼다)
   function clearAll() {
     if (objects.length === 0) return;
     apply([]);
@@ -158,13 +175,15 @@ export function Editor({ inventories, columns }: EditorProps) {
   const toolbar = (
     <div className="flex items-center gap-4">
       <ToolButton tool="undo" onClick={undo} disabled={history.length === 0} />
-      <ToolButton tool="sticker" onClick={() => setSheet("stickers")} />
-      <ToolButton tool="photo" onClick={() => photoInput.current?.click()} />
+      {/* ＋ — 스티커 · 사진 · 텍스트 · 배경이 든 판. 피그마의 plus 아이콘을 헤더 아이콘 크기(24)로 */}
+      <button type="button" onClick={() => setSheet("stickers")} aria-label="더하기" className="flex size-6 items-center justify-center active:opacity-60">
+        <Icon name="plusBold" />
+      </button>
+      <ToolButton tool="broom" onClick={clearAll} disabled={objects.length === 0} />
       {/* 이미지 만들기(M-10)는 다음 항목 */}
       <SoonButton notice="이미지 만들기는 다음 항목에서 만들어요." className="active:opacity-60">
         <ToolIcon tool="capture" />
       </SoonButton>
-      <ToolButton tool="broom" onClick={clearAll} disabled={objects.length === 0} />
     </div>
   );
 
@@ -178,7 +197,7 @@ export function Editor({ inventories, columns }: EditorProps) {
         <div ref={box} className="relative flex min-h-0 flex-1 items-center justify-center px-5 py-3">
           {size.width > 0 && (
             <div className="relative shadow-[0_0_0_1px_var(--color-border)]" style={{ width: size.width, height: size.height }}>
-              <Canvas objects={objects} width={size.width} height={size.height} selectedId={selectedId} onPress={press} onTap={tap} onChange={change} onOverlay={setOverlay} />
+              <Canvas background={background} objects={objects} width={size.width} height={size.height} selectedId={selectedId} onPress={press} onTap={tap} onChange={change} onOverlay={setOverlay} />
 
               {objects.length === 0 && (
                 <p className="pointer-events-none absolute inset-0 flex items-center justify-center px-8 text-center text-label text-ink-muted">
@@ -234,7 +253,20 @@ export function Editor({ inventories, columns }: EditorProps) {
           event.target.value = "";
         }}
       />
-      {sheet === "stickers" && <StickerSheet onPick={addSticker} onClose={() => setSheet(null)} />}
+      {sheet && (
+        <AddSheet
+          tab={sheet}
+          onTab={setSheet}
+          background={background}
+          onBackground={applyBackground}
+          onSticker={addSticker}
+          onPhoto={() => {
+            setSheet(null);
+            photoInput.current?.click();
+          }}
+          onClose={() => setSheet(null)}
+        />
+      )}
       <Toast message={notice} onDone={hideNotice} />
     </main>
   );

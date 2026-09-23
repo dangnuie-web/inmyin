@@ -24,15 +24,24 @@ export type CanvasObject = {
   rotation: number;
 };
 
+// 캔버스 바닥. 단색 · 그라디언트(선형 · 원형 · 하트) · 패턴(코드로 그린다 — 그림 파일이 없다)
+export type CanvasBackground =
+  | { kind: "color"; color: string }
+  | { kind: "gradient"; shape: "linear" | "radial" | "heart"; from: string; to: string; angle: number }
+  | { kind: "pattern"; pattern: "dots" | "stripes" | "grid" | "checker"; color: string; ink: string };
+
 export type CanvasDocument = {
   version: 1;
   width: typeof CANVAS_WIDTH;
   height: typeof CANVAS_HEIGHT;
+  background: CanvasBackground;
   objects: CanvasObject[];
 };
 
+export const WHITE = "#ffffff";
+
 export function emptyDocument(): CanvasDocument {
-  return { version: 1, width: CANVAS_WIDTH, height: CANVAS_HEIGHT, objects: [] };
+  return { version: 1, width: CANVAS_WIDTH, height: CANVAS_HEIGHT, background: { kind: "color", color: WHITE }, objects: [] };
 }
 
 // 그림의 원래 비율을 지키며 기본 크기로 캔버스 가운데에 놓는다. 이미 여러 개가 있으면 조금씩 비껴 놓아 겹쳐 안 보이는 일을 막는다
