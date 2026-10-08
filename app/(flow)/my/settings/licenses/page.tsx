@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { HeaderMini } from "@/components/ui/HeaderMini";
-import { OPEN_SOURCE_LICENSES, SOURCE_URL } from "@/lib/licenses";
+import { FLATICON_URL, ICON_CREDITS, OPEN_SOURCE_LICENSES, SOURCE_URL } from "@/lib/licenses";
 
 export const metadata: Metadata = { title: "오픈소스 라이선스 · INMYIN" };
 
@@ -20,7 +20,7 @@ export default function LicensesPage() {
         <span className="min-w-0 truncate">INMYIN 소스코드</span>
         <span className="shrink-0 text-caption text-ink-muted">AGPL-3.0</span>
       </a>
-      <ul className="mt-2 flex flex-col px-5 pb-10">
+      <ul className="mt-2 flex flex-col px-5">
         {OPEN_SOURCE_LICENSES.map(({ name, license, url }) => (
           <li key={name}>
             <a
@@ -31,6 +31,21 @@ export default function LicensesPage() {
             >
               <span className="min-w-0 truncate">{name}</span>
               <span className="shrink-0 text-caption text-ink-muted">{license}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+      {/* 에디터 아이콘의 출처 (Flaticon 무료 라이선스는 작가마다 한 줄 표시가 필요하다) */}
+      <ul className="flex flex-col gap-1 px-5 pt-6 pb-10 text-caption text-ink-muted">
+        {ICON_CREDITS.map(({ author, url }) => (
+          <li key={author}>
+            Icon made by{" "}
+            <a href={url} target="_blank" rel="noreferrer" className="underline">
+              {author}
+            </a>{" "}
+            from{" "}
+            <a href={FLATICON_URL} target="_blank" rel="noreferrer" className="underline">
+              www.flaticon.com
             </a>
           </li>
         ))}
