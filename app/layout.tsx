@@ -1,7 +1,7 @@
 import { SerwistProvider } from "@serwist/turbopack/react";
 import type { Metadata, Viewport } from "next";
-import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
 import "./globals.css";
+import { wantedSans } from "./fonts/wanted-sans";
 import { Splash, SplashSwitch } from "@/components/Splash";
 import { colorToken } from "@/lib/design-tokens";
 import { IPHONE_SCREENS, splashFileName } from "@/lib/splash";
@@ -42,7 +42,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     // suppressHydrationWarning: 스플래시 스크립트가 React 보다 먼저 html 에 class · style 을 붙인다 (components/Splash.tsx)
-    <html lang="ko" className="h-full antialiased" suppressHydrationWarning>
+    <html lang="ko" className={`${wantedSans.variable} h-full antialiased`} suppressHydrationWarning>
       <body className="min-h-full flex flex-col">
         {/* 홈 화면 앱으로 열 때 잠깐 뜨는 화면. 스크립트가 판보다 먼저 와야 판이 그려지기 전에 켤지 정해진다 */}
         <SplashSwitch />

@@ -35,7 +35,11 @@ export function gridColumnsClass(columns: GridColumns) {
 // 개수 배지 "× n". 하나뿐이면 그리지 않는다
 function QuantityBadge({ quantity, className }: { quantity: number; className: string }) {
   if (quantity <= 1) return null;
-  return <span className={`rounded-full px-2 text-caption ${className}`}>× {quantity}</span>;
+  return (
+    <span className={`rounded-full px-2 text-caption ${className}`}>
+      × <span className="num">{quantity}</span>
+    </span>
+  );
 }
 
 function SlotImage({ entry, sizes }: { entry: SlotEntry; sizes: string }) {

@@ -58,7 +58,7 @@ export function FollowListsModal({ handle, initialTab, onClose }: { handle: stri
               aria-pressed={entry.tab === tab}
               className={`-mb-px flex flex-1 flex-col items-center gap-0.5 border-b-2 pt-1 pb-2 ${entry.tab === tab ? "border-ink text-ink" : "border-transparent text-ink-muted"}`}
             >
-              <span className="text-body">{entry.count.toLocaleString("ko-KR")}</span>
+              <span className="num text-body">{entry.count.toLocaleString("ko-KR")}</span>
               <span className="text-caption">{entry.label}</span>
             </button>
           ))}

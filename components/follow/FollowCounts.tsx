@@ -25,10 +25,10 @@ export function FollowCounts({ handle, followerCount, followingCount }: FollowCo
     <>
       <p className="flex gap-2.5 text-label">
         <Link href={followsPath(handle, "followers")} onClick={(event) => open(event, "followers")} className="active:opacity-60">
-          팔로워 {followerCount.toLocaleString("ko-KR")}
+          팔로워 <span className="num">{followerCount.toLocaleString("ko-KR")}</span>
         </Link>
         <Link href={followsPath(handle, "following")} onClick={(event) => open(event, "following")} className="active:opacity-60">
-          팔로잉 {followingCount.toLocaleString("ko-KR")}
+          팔로잉 <span className="num">{followingCount.toLocaleString("ko-KR")}</span>
         </Link>
       </p>
       {modalTab && <FollowListsModal handle={handle} initialTab={modalTab} onClose={() => setModalTab(null)} />}

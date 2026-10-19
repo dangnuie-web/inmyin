@@ -7,11 +7,12 @@
 // 피그마 S-00 스플래시(웹)의 로고 · In my inventory · 흩어진 점과 별. 0단계 결정대로 흑백 — 보라 점은 검정, 별은 회색.
 // 시안의 물건 · 말풍선 · 버튼은 랜딩(/welcome) 몫이라 여기엔 없다
 
-// 로고(public/logo.svg)와 그 아래 "In my inventory". 랜딩 첫머리와 같은 크기 (h-16 · gap-3 · text-title).
+// 로고(public/logo.svg)와 그 아래 "In my inventory". 랜딩 첫머리(폰)와 같은 크기 (h-16 · gap-3 · 22px · 자간 −0.01em).
+// 글자는 22px · 400 · 자간 −0.01em — 본문 폰트 Wanted Sans 에서 로고 폭과 맞춘 값 (2026-10-19 본문 폰트 비교판 1안). letterSpacing 은 em
 // 로고는 높이로 맞춘다 — y 꼬리가 아래로 내려가서 너비로 맞추면 글자가 들쭉날쭉해진다. aspect 는 너비 ÷ 높이 (logo.svg 의 viewBox)
 export const SPLASH_LOGO = { src: "/logo.svg", height: 64, aspect: 53.64 / 17.85 };
 export const SPLASH_GAP = 12;
-export const SPLASH_SUBTITLE = { text: "In my inventory", size: 20, lineHeight: 1.3 };
+export const SPLASH_SUBTITLE = { text: "In my inventory", size: 22, lineHeight: 1.3, letterSpacing: -0.01 };
 
 // 점 · 별의 크기와 색 토큰
 export const SPLASH_DOT = { size: 8, color: "ink" };

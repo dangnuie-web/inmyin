@@ -1,4 +1,5 @@
 import { Dancing_Script, Do_Hyeon, Gaegu, Gowun_Batang, Great_Vibes, Jua, Nanum_Pen_Script, Pacifico } from "next/font/google";
+import { wantedSans } from "@/app/fonts/wanted-sans";
 
 // 에디터 텍스트의 글꼴. 전부 구글 폰트의 SIL OFL 1.1 — 상업적으로 써도 된다.
 // next/font 가 빌드 때 받아서 우리 서버에서 내보내므로 사용자의 폰이 구글에 접속하지 않고, 어느 기기에서나 같은 글꼴로 그려진다.
@@ -15,9 +16,10 @@ const pacifico = Pacifico({ weight: "400", subsets: ["latin"], display: "swap", 
 
 export type TextFontId = (typeof TEXT_FONTS)[number]["id"];
 
-// family — 캔버스(Konva)에 주는 글꼴 이름. className — 판의 글꼴 칩과 미리보기에 입힌다
+// family — 캔버스(Konva)에 주는 글꼴 이름. className — 판의 글꼴 칩과 미리보기에 입힌다.
+// "기본"은 앱 본문과 같은 Wanted Sans (2026-10-19 Pretendard 에서 바꿈). id 는 이미 저장된 캔버스(lib/inmyin/canvas.ts)가 쓰고 있어 "pretendard" 그대로 둔다
 export const TEXT_FONTS = [
-  { id: "pretendard", label: "기본", family: "Pretendard Variable, Pretendard, sans-serif", className: "" },
+  { id: "pretendard", label: "기본", family: wantedSans.style.fontFamily, className: "" },
   { id: "jua", label: "주아", family: jua.style.fontFamily, className: jua.className },
   { id: "dohyeon", label: "도현", family: doHyeon.style.fontFamily, className: doHyeon.className },
   { id: "nanumpen", label: "나눔손글씨", family: nanumPen.style.fontFamily, className: nanumPen.className },

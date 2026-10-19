@@ -12,6 +12,7 @@ import { COMMENT_MAX } from "@/lib/comment/rules";
 import { profilePath } from "@/lib/profile/paths";
 import { COMMENT_INPUT_ID, COMMENT_SECTION_ID } from "./CommentCount";
 import { timeAgo } from "@/lib/time";
+import { NumText } from "@/components/ui/NumText";
 
 type Row = Comment & {
   // 서버의 답을 기다리는 중 (방금 쓴 것). 살짝 흐리게 보인다
@@ -79,7 +80,7 @@ export function CommentSection({ targetType, targetId, comments, me, ownerId }: 
     <>
       {/* id 는 제목 줄의 말풍선(CommentCount)이 여기로 내려올 때 쓴다 */}
       <section id={COMMENT_SECTION_ID} className="mt-12 scroll-mt-4">
-        <h3 className="px-5 text-body font-bold">{rows.length > 0 ? `댓글 ${rows.length}` : "댓글"}</h3>
+        <h3 className="px-5 text-body font-bold">{rows.length > 0 ? <NumText text={`댓글 ${rows.length}`} /> : "댓글"}</h3>
         {rows.length === 0 ? (
           <p className="mt-3 px-5 text-caption text-ink-muted">첫 댓글을 남겨 보세요.</p>
         ) : (

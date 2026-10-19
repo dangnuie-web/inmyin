@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { postPath } from "@/lib/inmyin/paths";
 import { itemPath } from "@/lib/inventory/paths";
 import type { ProfileItem, ProfilePost } from "@/lib/profile/queries";
+import { NumText } from "@/components/ui/NumText";
 
 // 내 프로필(M-01)과 타유저 프로필(H-06)이 같이 쓰는 조각들
 
@@ -15,7 +16,9 @@ export function SectionTitle({ title, note }: { title: string; note: string }) {
   return (
     <h2 className="flex items-baseline gap-3 text-link font-bold">
       {title}
-      <span className="text-caption font-normal">{note}</span>
+      <span className="text-caption font-normal">
+        <NumText text={note} />
+      </span>
     </h2>
   );
 }

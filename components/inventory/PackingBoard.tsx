@@ -9,6 +9,7 @@ import type { PackingInventory, SlotEntry } from "@/lib/inventory/queries";
 import { withSubjectParticle } from "@/lib/korean";
 import { InventoryStrip } from "./InventoryStrip";
 import { gridFor, type GridColumns, PackingSlotCell } from "./Slot";
+import { NumText } from "@/components/ui/NumText";
 
 // 넘어온 칸이 "톡" 하고 나타나는 동안. globals.css 의 slot-pop 보다 길어야 한다
 const ARRIVAL_MS = 1600;
@@ -152,7 +153,7 @@ function PackingHalf({ inventories, inventory, entries, otherId, arrivedId, onOp
       </ul>
 
       <p className="pointer-events-none absolute inset-x-0 bottom-2 mx-auto w-fit rounded-full bg-white px-3 py-0.5 text-label font-bold">
-        {entries.length}/{inventory.slotCount}
+        <NumText text={`${entries.length}/${inventory.slotCount}`} />
       </p>
     </section>
   );

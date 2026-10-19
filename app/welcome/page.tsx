@@ -18,7 +18,8 @@ export default function WelcomePage() {
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col items-center px-5 pt-16 pb-10 lg:max-w-web lg:pt-24 lg:pb-16">
         <h1 className="flex flex-col items-center gap-3 lg:gap-5">
           <Image src="/logo.svg" alt="INMYIN" width={193} height={64} priority className="h-16 w-auto lg:h-28" />
-          <span className="text-title lg:text-4xl">In my inventory</span>
+          {/* 22px · 웹 38px, 자간 −0.01em — 본문 폰트 Wanted Sans 에서 로고 폭과 맞춘 값 (2026-10-19 비교판 1안). 줄 높이는 전과 같게 */}
+          <span className="text-[22px]/[1.3] tracking-[-0.01em] lg:text-[38px]/10">In my inventory</span>
         </h1>
 
         {/* 가방에서 아이템이 튀어나와 칸에 꽂히는 연출 (그림 · 움직임 값은 lib/landing/scene.ts) */}

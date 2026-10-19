@@ -9,6 +9,7 @@ import { CategoryTag } from "@/components/ui/CategoryTag";
 import { ChipRow } from "@/components/ui/ChipRow";
 import type { InventoryView } from "@/lib/inventory/paths";
 import type { PackingInventory, SlotEntry } from "@/lib/inventory/queries";
+import { NumText } from "@/components/ui/NumText";
 
 type ItemPickerProps = {
   inventories: PackingInventory[];
@@ -88,7 +89,7 @@ export function ItemPicker({ inventories, columns, placedItemIds, onPick }: Item
       )}
 
       <p className="pointer-events-none absolute inset-x-0 bottom-2 mx-auto w-fit rounded-full bg-white px-3 py-0.5 text-label font-bold">
-        {items.length}/{inventory.slotCount}
+        <NumText text={`${items.length}/${inventory.slotCount}`} />
       </p>
     </section>
   );

@@ -51,7 +51,7 @@ export function HeartButton({ targetType, targetId, hearted: initialHearted, cou
         className={`flex shrink-0 items-center gap-1.5 text-title font-bold transition-transform active:scale-90 ${hearted ? "text-primary" : "text-ink"}`}
       >
         <Icon name={hearted ? "heartFilled" : "heart"} scale={0.5} />
-        <span className="text-ink">{count}</span>
+        <span className="num text-ink">{count}</span>
       </button>
       <Toast message={notice} onDone={hideNotice} />
     </>

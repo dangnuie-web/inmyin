@@ -1,5 +1,6 @@
 import { PostCard } from "./PostCard";
 import type { FeedPost } from "@/lib/inmyin/queries";
+import { NumText } from "@/components/ui/NumText";
 
 // 게시물 카드 격자 — 폰 2열, 웹 5열 (H-03 · 프로필의 INMYIN 목록 · Bookmark 탭의 INMYIN 갈래 공용)
 export function PostGrid({ posts, emptyText, note }: { posts: FeedPost[]; emptyText: string; note?: string }) {
@@ -13,7 +14,11 @@ export function PostGrid({ posts, emptyText, note }: { posts: FeedPost[]; emptyT
           </li>
         ))}
       </ul>
-      {note && <p className="mb-6 text-center text-label font-bold">{note}</p>}
+      {note && (
+        <p className="mb-6 text-center text-label font-bold">
+          <NumText text={note} />
+        </p>
+      )}
     </>
   );
 }

@@ -8,7 +8,6 @@ export const OPEN_SOURCE_LICENSES = [
   { name: "React", license: "MIT", url: "https://github.com/facebook/react" },
   { name: "Tailwind CSS", license: "MIT", url: "https://github.com/tailwindlabs/tailwindcss" },
   { name: "Supabase JS · SSR", license: "MIT", url: "https://github.com/supabase/supabase-js" },
-  { name: "Pretendard", license: "SIL OFL 1.1", url: "https://github.com/orioncactus/pretendard" },
   { name: "ONNX Runtime Web", license: "MIT", url: "https://github.com/microsoft/onnxruntime" },
   // AGPL — 그래서 INMYIN 의 소스코드도 공개한다 (SOURCE_URL). 다른 배경제거로 갈아타면 그때 다시 정한다
   { name: "@imgly/background-removal", license: "AGPL-3.0", url: "https://github.com/imgly/background-removal-js" },
@@ -20,6 +19,8 @@ export const OPEN_SOURCE_LICENSES = [
   { name: "Noto Color Emoji", license: "Apache-2.0", url: "https://github.com/googlefonts/noto-emoji" },
   // 에디터 텍스트의 글꼴 (lib/inmyin/fonts.ts). 구글 폰트에서 받아 우리 서버에서 내보낸다
   { name: "주아 · 도현 · 나눔손글씨 · 개구 · 고운바탕 · Dancing Script · Great Vibes · Pacifico", license: "SIL OFL 1.1", url: "https://fonts.google.com" },
+  // 본문 글꼴 (app/fonts — 저장소에 파일과 라이선스 원문 WantedSans-OFL.txt 를 같이 둔다)
+  { name: "Wanted Sans", license: "SIL OFL 1.1", url: "https://github.com/wanteddev/wanted-sans" },
 ] as const;
 
 // 에디터 헤더의 아이콘 그림 (public/icons/editor). Flaticon 무료 라이선스라 출처 표시가 꼭 있어야 한다 —

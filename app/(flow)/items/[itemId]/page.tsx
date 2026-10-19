@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -22,6 +23,7 @@ import { getItemDetail, getVisibleInventoryEntries } from "@/lib/item/queries";
 import { formatShortDate } from "@/lib/item/rules";
 import { isFollowing } from "@/lib/follow/queries";
 import { profilePath } from "@/lib/profile/paths";
+import { NumText } from "@/components/ui/NumText";
 
 export const metadata: Metadata = { title: "아이템 · INMYIN" };
 
@@ -50,7 +52,7 @@ export default async function ItemDetailPage(props: PageProps<"/items/[itemId]">
 
   const facts = [
     { label: "획득날짜", value: item.acquiredNote },
-    { label: "유통기한", value: item.expiresAt && `${formatShortDate(item.expiresAt)} 까지` },
+    { label: "유통기한", value: item.expiresAt && <NumText text={`${formatShortDate(item.expiresAt)} 까지`} /> },
   ].filter((fact) => fact.value);
   // 댓글 목록에서 "나"를 그릴 때 (방금 쓴 댓글을 서버의 답보다 먼저 보여준다)
   const me = profile && { id: profile.id, handle: profile.handle, nickname: profile.nickname, avatarUrl: profile.avatar_url };
@@ -109,7 +111,7 @@ export default async function ItemDetailPage(props: PageProps<"/items/[itemId]">
           <span className="flex min-w-0 flex-1 flex-col gap-1">
             <span className="truncate text-body font-bold">{item.owner.nickname}</span>
             {/* 등록한 날. 서버는 UTC 로 주므로 한국 날짜로 바꿔서 26.09.05 꼴로 */}
-            <span className="text-body">{formatShortDate(new Date(item.createdAt).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }))}</span>
+            <span className="num text-body">{formatShortDate(new Date(item.createdAt).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }))}</span>
           </span>
         </Link>
         {!isMine && <FollowButton userId={item.owner.id} following={following} guest={!profile} />}
@@ -138,7 +140,7 @@ export default async function ItemDetailPage(props: PageProps<"/items/[itemId]">
 }
 
 type Item = NonNullable<Awaited<ReturnType<typeof getItemDetail>>>;
-type Fact = { label: string; value: string | null };
+type Fact = { label: string; value: ReactNode };
 
 // 큰 정사각형 사진. 개수가 둘 이상이면 오른쪽 아래에 × n
 function Photo({ item, className }: { item: Item; className: string }) {
@@ -147,7 +149,9 @@ function Photo({ item, className }: { item: Item; className: string }) {
       {/* 올릴 때 이미 작게 줄여 둔 사진이라 Next 의 이미지 최적화를 거치지 않는다 */}
       <Image src={item.imageUrl} alt={item.name} fill sizes="(min-width: 448px) 400px, 90vw" unoptimized priority className="object-cover" />
       {item.quantity > 1 && (
-        <span className="absolute bottom-5.5 right-5 rounded-full bg-white px-3 text-link font-bold">× {item.quantity}</span>
+        <span className="absolute bottom-5.5 right-5 rounded-full bg-white px-3 text-link font-bold">
+          × <span className="num">{item.quantity}</span>
+        </span>
       )}
     </div>
   );

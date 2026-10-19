@@ -48,7 +48,7 @@ export function InventoryRow({ inventory, href }: { inventory: InventorySummary;
     >
       <InventoryPhoto inventory={inventory} />
       <p className="min-w-0 flex-1 truncate text-title font-bold">{inventory.name}</p>
-      <p className="text-caption">
+      <p className="num text-caption">
         {inventory.usedSlots}/{inventory.slotCount}
       </p>
     </Link>

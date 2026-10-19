@@ -56,7 +56,7 @@ export default async function PostDetailPage(props: PageProps<"/inmyin/[postId]"
           <Avatar url={post.author.avatarUrl} size={72} />
           <span className="flex min-w-0 flex-1 flex-col gap-1">
             <span className="truncate text-body font-bold">{post.author.nickname}</span>
-            <span className="text-body">{formatShortDate(new Date(post.createdAt).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }))}</span>
+            <span className="num text-body">{formatShortDate(new Date(post.createdAt).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }))}</span>
           </span>
         </Link>
         {!isMine && <FollowButton userId={post.author.id} following={following} guest={!profile} />}

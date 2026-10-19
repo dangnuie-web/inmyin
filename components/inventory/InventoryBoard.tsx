@@ -15,6 +15,7 @@ import type { InventorySummary, SlotEntry } from "@/lib/inventory/queries";
 import { InventoryPicker } from "./InventoryPicker";
 import { AddSlotCell, gridFor, type GridColumns, SLOT_ROW_CLASS, SlotRow, SlotRowThumb, UndoSlotCell, UndoSlotRow } from "./Slot";
 import { LongPressSlotCell, LongPressSlotRow, SwipeRow, type SwipeSide } from "./SlotGestures";
+import { NumText } from "@/components/ui/NumText";
 
 type MenuAnchor = "slot" | "floating" | null;
 
@@ -390,7 +391,7 @@ export function InventoryBoard({ inventoryId, inventories, addedId, deletedId, e
       {/* 화면 아래에 붙어 있는 줄 — 가운데 사용량, 오른쪽 플로팅 + */}
       <div className="pointer-events-none sticky bottom-0 mt-auto flex h-19 items-center justify-center pb-[env(safe-area-inset-bottom)]">
         <p className="pointer-events-auto rounded-full bg-white px-3 py-0.5 text-label font-bold">
-          {used}/{slotCount}
+          <NumText text={`${used}/${slotCount}`} />
         </p>
         {!isFull && !addSlotVisible && (
           <div className="pointer-events-auto absolute bottom-4 right-5.5">

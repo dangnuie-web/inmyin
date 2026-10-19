@@ -58,7 +58,7 @@ export function Splash() {
           loading="eager"
           style={{ width: "auto", height: SPLASH_LOGO.height }}
         />
-        <span style={{ fontSize: SPLASH_SUBTITLE.size, lineHeight: SPLASH_SUBTITLE.lineHeight }}>{SPLASH_SUBTITLE.text}</span>
+        <span style={{ fontSize: SPLASH_SUBTITLE.size, lineHeight: SPLASH_SUBTITLE.lineHeight, letterSpacing: `${SPLASH_SUBTITLE.letterSpacing}em` }}>{SPLASH_SUBTITLE.text}</span>
       </div>
     </div>
   );

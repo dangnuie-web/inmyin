@@ -17,7 +17,7 @@ export function UserBlock({ user, following, guest = false }: { user: DiscoverUs
           <Avatar url={user.avatarUrl} size={56} />
           <span className="flex min-w-0 flex-col">
             <span className="truncate text-body font-bold">{user.nickname}</span>
-            <span className="text-caption text-ink-muted">{formatShortDate(new Date(user.latestPostAt).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }))}</span>
+            <span className="num text-caption text-ink-muted">{formatShortDate(new Date(user.latestPostAt).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }))}</span>
           </span>
         </Link>
         <FollowButton userId={user.id} following={following} guest={guest} />

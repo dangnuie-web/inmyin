@@ -6,6 +6,14 @@ import { createSerwistRoute } from "@serwist/turbopack";
 export const { dynamic, dynamicParams, revalidate, generateStaticParams, GET } = createSerwistRoute({
   swSrc: "app/sw.ts",
   additionalPrecacheEntries: [{ url: "/offline", revision: process.env.NEXT_PUBLIC_BUILD_ID ?? null }],
+  // 미리 저장할 파일 — 앞의 둘은 Serwist 의 기본값 그대로. 기본값은 글꼴을 빼서, 본문 글꼴(app/fonts/wanted-sans.ts)만 더한다.
+  // 그래야 처음 연 뒤 바로 오프라인이 되어도 글꼴이 그대로다. 글꼴의 기본 저장 규칙(defaultCache)은 4개까지만 두는데,
+  // 에디터 글꼴 8종도 같은 칸을 써서 본문 글꼴이 밀려날 수 있다. 파일 이름에 내용 해시가 붙어 있어 바뀔 때만 다시 받는다
+  globPatterns: [
+    ".next/static/**/*.{js,css,html,ico,apng,png,avif,jpg,jpeg,jfif,pjpeg,pjp,gif,svg,webp,json,webmanifest}",
+    "public/**/*",
+    ".next/static/media/WantedSansVariable*.woff2",
+  ],
   // esbuild-wasm 대신 설치해 둔 esbuild(네이티브)를 쓴다 — 빠르고 Vercel 에서도 잘 돈다
   useNativeEsbuild: true,
   esbuildOptions: {

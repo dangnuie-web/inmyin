@@ -26,8 +26,11 @@ export function generateStaticParams() {
   return IPHONE_SCREENS.map((screen) => ({ size: splashFileName(screen) }));
 }
 
-// "In my inventory" 를 앱과 같은 Pretendard 로. next/og 는 woff2 를 못 읽어서 같은 패키지의 otf 를 쓴다
-const pretendard = readFile(join(process.cwd(), "node_modules/pretendard/dist/public/static/Pretendard-Regular.otf"));
+// "In my inventory" 를 앱과 같은 Wanted Sans 로. next/og 는 woff2 · 가변 폰트를 못 읽어서, 같은 폰트를 400 굵기 한 벌 · 영문 글자만 남긴 ttf 를 쓴다.
+// app/fonts/WantedSans-Regular-Latin.ttf — 40_자산/폰트/한글/WantedSansVariable.ttf 에서 fontTools 로 만들었다
+// (instancer 로 wght=400 고정 → subset 으로 U+0020–007E 만, 레이아웃 기능은 kern 만 남기고 GSUB 는 뺌 — next/og 가 못 읽는 표가 있다).
+// 글자를 바꾸면 영문 밖의 글자가 있는지 확인할 것
+const wantedSans = readFile(join(process.cwd(), "app/fonts/WantedSans-Regular-Latin.ttf"));
 const logo = readFile(join(process.cwd(), "public", SPLASH_LOGO.src)).then((svg) => `data:image/svg+xml;base64,${svg.toString("base64")}`);
 
 export async function GET(_request: Request, { params }: RouteContext<"/apple-splash/[size]">) {
@@ -76,9 +79,10 @@ export async function GET(_request: Request, { params }: RouteContext<"/apple-sp
           <img src={await logo} alt="" width={logoHeight * SPLASH_LOGO.aspect} height={logoHeight} />
           <span
             style={{
-              fontFamily: "Pretendard",
+              fontFamily: "Wanted Sans",
               fontSize: SPLASH_SUBTITLE.size * r,
               lineHeight: SPLASH_SUBTITLE.lineHeight,
+              letterSpacing: SPLASH_SUBTITLE.letterSpacing * SPLASH_SUBTITLE.size * r,
               color: colorToken("ink"),
             }}
           >
@@ -90,7 +94,7 @@ export async function GET(_request: Request, { params }: RouteContext<"/apple-sp
     {
       width,
       height,
-      fonts: [{ name: "Pretendard", data: await pretendard, weight: 400, style: "normal" }],
+      fonts: [{ name: "Wanted Sans", data: await wantedSans, weight: 400, style: "normal" }],
     },
   );
 }

@@ -43,7 +43,7 @@ export default async function FollowsPage(props: PageProps<"/u/[handle]/follows"
             aria-current={entry.tab === tab ? "page" : undefined}
             className={`-mx-0.5 border-b-2 px-0.5 pb-1 leading-none ${entry.tab === tab ? "border-ink" : "border-transparent active:opacity-60"}`}
           >
-            {entry.label} {entry.count}
+            {entry.label} <span className="num">{entry.count}</span>
           </Link>
         ))}
       </nav>

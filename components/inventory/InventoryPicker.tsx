@@ -49,7 +49,7 @@ export function InventoryPicker({ inventories, intoId, onPick, onClose }: Invent
                       <span className={`truncate text-title font-bold ${blocker ? "text-disabled" : ""}`}>{inventory.name}</span>
                       {blocker && <span className="truncate text-caption text-ink-muted">{blocker}</span>}
                     </span>
-                    <span className={`text-caption ${blocker ? "text-disabled" : ""}`}>
+                    <span className={`num text-caption ${blocker ? "text-disabled" : ""}`}>
                       {inventory.usedSlots}/{inventory.slotCount}
                     </span>
                   </button>

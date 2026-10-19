@@ -38,7 +38,7 @@ export function BottomTab() {
               <Link
                 href={href}
                 aria-current={isActive ? "page" : undefined}
-                className="flex flex-col items-center gap-1 text-caption text-ink"
+                className="flex flex-col items-center gap-1 text-caption font-medium text-ink"
               >
                 <TabIcon name={icon} active={isActive} />
                 {label}

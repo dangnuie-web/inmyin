@@ -17,7 +17,7 @@ export function CommentCount({ count }: { count: number }) {
   return (
     <button type="button" onClick={jump} aria-label={`댓글 ${count}개`} className="flex shrink-0 items-center gap-1.5 text-title font-bold text-ink transition-transform active:scale-90">
       <Icon name="comment" scale={0.5} />
-      <span>{count}</span>
+      <span className="num">{count}</span>
     </button>
   );
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { InventorySummary } from "@/lib/inventory/queries";
 import { InventoryList } from "./InventoryList";
+import { NumText } from "@/components/ui/NumText";
 
 type MyInventoriesSectionProps = {
   inventories: InventorySummary[];
@@ -18,7 +19,7 @@ export function MyInventoriesSection({ inventories, maxInventories, slotCount }:
       {/* 검정 알약 안의 작은 글자. 오른쪽 끝은 아래 줄들의 "n/25" 와 같은 20px 선 */}
       <p className="mt-4 flex justify-end pr-5">
         <span className="rounded-full bg-ink px-3 py-1 text-caption font-bold text-white">
-          TOTAL {usedTotal}/{maxInventories * slotCount}
+          <NumText text={`TOTAL ${usedTotal}/${maxInventories * slotCount}`} />
         </span>
       </p>
 

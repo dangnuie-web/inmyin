@@ -144,7 +144,7 @@ export function EmailCodeFields({ state, onEmailChange }: EmailCodeFieldsProps) 
           onChange={(e) => state.setCode(e.target.value.replace(/\D/g, ""))}
           trailing={
             !verified && (
-              <span className="text-body text-primary">{formatTime(state.secondsLeft)}</span>
+              <span className="num text-body text-primary">{formatTime(state.secondsLeft)}</span>
             )
           }
           action={
