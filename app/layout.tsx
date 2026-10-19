@@ -2,7 +2,9 @@ import { SerwistProvider } from "@serwist/turbopack/react";
 import type { Metadata, Viewport } from "next";
 import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
 import "./globals.css";
+import { Splash, SplashSwitch } from "@/components/Splash";
 import { colorToken } from "@/lib/design-tokens";
+import { IPHONE_SCREENS, splashFileName } from "@/lib/splash";
 
 export const metadata: Metadata = {
   applicationName: "INMYIN",
@@ -15,6 +17,12 @@ export const metadata: Metadata = {
     title: "INMYIN",
     // 상태 표시줄(시계 줄)을 흰 바탕에 검은 글자로. 화면은 그 아래부터 시작한다
     statusBarStyle: "default",
+    // 앱이 뜨는 동안의 그림(스플래시 S-00). 아이폰은 매니페스트로 만들지 않고, 화면 크기가 꼭 맞는 그림만 쓴다 — 기종마다 하나씩.
+    // 그림은 app/apple-splash 가 빌드할 때 만든다. 홈 화면에 추가할 때 받아 두는 것이라, 바꾸면 홈 화면 앱을 지우고 다시 추가해야 보인다
+    startupImage: IPHONE_SCREENS.map((screen) => ({
+      url: `/apple-splash/${splashFileName(screen)}`,
+      media: `(device-width: ${screen.width}px) and (device-height: ${screen.height}px) and (-webkit-device-pixel-ratio: ${screen.ratio}) and (orientation: portrait)`,
+    })),
   },
   // 아이폰 홈 화면 아이콘 (scripts/app-icon.mjs 가 만든다). 파일 방식(app/apple-icon.png)과 코드 방식을 섞으면
   // Next.js 가 파일 쪽을 무시하므로, 아이콘은 모두 코드 방식으로 적는다. favicon.ico 만은 특별 취급이라 파일 그대로
@@ -33,8 +41,12 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="ko" className="h-full antialiased">
+    // suppressHydrationWarning: 스플래시 스크립트가 React 보다 먼저 html 에 class · style 을 붙인다 (components/Splash.tsx)
+    <html lang="ko" className="h-full antialiased" suppressHydrationWarning>
       <body className="min-h-full flex flex-col">
+        {/* 홈 화면 앱으로 열 때 잠깐 뜨는 화면. 스크립트가 판보다 먼저 와야 판이 그려지기 전에 켤지 정해진다 */}
+        <SplashSwitch />
+        <Splash />
         {/* 서비스워커(app/sw.ts) 등록. 개발 중에는 끈다 — 고친 코드가 바로 보여야 하고, 오프라인 동작은 어차피 build + start 로 확인한다 */}
         <SerwistProvider swUrl="/serwist/sw.js" disable={process.env.NODE_ENV === "development"}>
           {children}

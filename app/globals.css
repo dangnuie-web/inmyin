@@ -126,3 +126,28 @@ body {
   color: var(--color-ink);
   font-family: var(--font-sans);
 }
+
+/* 스플래시(S-00) — components/Splash.tsx. 평소엔 꺼 두고, 홈 화면 앱으로 처음 열 때만 스크립트가 html 에 splash-on 을 붙인다.
+   잠깐 머문 뒤 흐려지며 사라지고, 다 사라지면 visibility: hidden 이라 아래 화면을 누를 수 있다 */
+.splash {
+  display: none;
+}
+
+.splash-on .splash {
+  display: block;
+  animation: splash-out var(--splash-fade) ease-out var(--splash-hold) forwards;
+}
+
+/* 움직임 줄이기 — 흐려지지 않고 같은 때에 바로 사라진다 */
+@media (prefers-reduced-motion: reduce) {
+  .splash-on .splash {
+    animation-duration: 1ms;
+  }
+}
+
+@keyframes splash-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
