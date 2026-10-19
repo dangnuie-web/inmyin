@@ -25,7 +25,7 @@ export function WebNav() {
     <header className="hidden border-b border-border bg-white lg:block">
       <nav aria-label="상단 메뉴" className="mx-auto flex h-19 max-w-web items-stretch gap-14 px-5">
         <Link href="/" aria-label="INMYIN 홈" className="flex items-center active:opacity-60">
-          <Image src="/logo.svg" alt="INMYIN" width={73} height={16} priority />
+          <Image src="/logo.svg" alt="INMYIN" width={84} height={28} priority />
         </Link>
         <ul className="flex items-stretch gap-14">
           {MENU.map(({ href, label }) => {

@@ -53,10 +53,10 @@ export function Splash() {
         <Image
           src={SPLASH_LOGO.src}
           alt=""
-          width={SPLASH_LOGO.width}
-          height={Math.round(SPLASH_LOGO.width * SPLASH_LOGO.aspect)}
+          width={Math.round(SPLASH_LOGO.height * SPLASH_LOGO.aspect)}
+          height={SPLASH_LOGO.height}
           loading="eager"
-          style={{ width: SPLASH_LOGO.width, height: "auto" }}
+          style={{ width: "auto", height: SPLASH_LOGO.height }}
         />
         <span style={{ fontSize: SPLASH_SUBTITLE.size, lineHeight: SPLASH_SUBTITLE.lineHeight }}>{SPLASH_SUBTITLE.text}</span>
       </div>

@@ -39,7 +39,7 @@ export async function GET(_request: Request, { params }: RouteContext<"/apple-sp
   const r = screen.ratio;
   const width = screen.width * r;
   const height = screen.height * r;
-  const logoWidth = SPLASH_LOGO.width * r;
+  const logoHeight = SPLASH_LOGO.height * r;
 
   return new ImageResponse(
     (
@@ -73,7 +73,7 @@ export async function GET(_request: Request, { params }: RouteContext<"/apple-sp
         {/* next/og 는 inset 을 몰라서 가운데 정렬은 바깥 판이 맡는다. 판 위의 점 · 별은 absolute 라 흐름에서 빠진다 */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: SPLASH_GAP * r }}>
           {/* eslint-disable-next-line @next/next/no-img-element -- next/og 안의 그림은 <img> 로 넣는다 */}
-          <img src={await logo} alt="" width={logoWidth} height={logoWidth * SPLASH_LOGO.aspect} />
+          <img src={await logo} alt="" width={logoHeight * SPLASH_LOGO.aspect} height={logoHeight} />
           <span
             style={{
               fontFamily: "Pretendard",

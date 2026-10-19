@@ -21,7 +21,7 @@ export default async function LoginPage({
     <div className="flex flex-1 flex-col">
       <div className="my-auto flex flex-col gap-12 pb-24">
         <h1 className="flex justify-center">
-          <Image src="/logo.svg" alt="INMYIN" width={146} height={31} priority />
+          <Image src="/logo.svg" alt="INMYIN" width={132} height={44} priority />
         </h1>
 
         <div className="flex flex-col gap-3">

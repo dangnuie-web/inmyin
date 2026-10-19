@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function OfflinePage() {
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-8 px-5 pb-10 pt-20 text-center">
-      <Image src="/logo.svg" alt="INMYIN" width={146} height={31} priority />
+      <Image src="/logo.svg" alt="INMYIN" width={132} height={44} priority />
       <div className="flex flex-col gap-2">
         <h1 className="text-title font-bold">인터넷이 연결되어 있지 않아요</h1>
         <p className="text-body text-ink-muted">연결되면 다시 시도해 주세요. 저장해 둔 내 물건은 그대로 있어요.</p>

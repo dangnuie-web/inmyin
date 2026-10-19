@@ -10,14 +10,14 @@ export const metadata: Metadata = {
 };
 
 // 랜딩 — 로그인 안 한 사람이 / 에 오면 보이는 첫 화면 (문지기 lib/supabase/proxy.ts 가 / 를 여기로 바꿔 보여준다. 주소창은 / 그대로).
-// 피그마 S-00 스플래시(웹)를 바탕으로, 0단계 결정대로 흑백 — 보라 점 · 별은 빼고 말풍선은 검은 테두리. 색은 물건 사진만 낸다.
+// 피그마 S-00 스플래시(웹)를 바탕으로, 0단계 결정대로 흑백 — 보라 점 · 별은 빼고 말풍선은 칸과 같은 연회색 채움. 색은 물건 사진만 낸다.
 // 폰이 기본이고 웹(1024px 이상)은 같은 것을 크게. 로그인한 사람이 /welcome 을 열면 홈으로 보낸다 (문지기)
 export default function WelcomePage() {
   return (
     <main className="flex flex-1 flex-col">
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col items-center px-5 pt-16 pb-10 lg:max-w-web lg:pt-24 lg:pb-16">
         <h1 className="flex flex-col items-center gap-3 lg:gap-5">
-          <Image src="/logo.svg" alt="INMYIN" width={146} height={31} priority className="h-auto w-52 lg:w-110" />
+          <Image src="/logo.svg" alt="INMYIN" width={193} height={64} priority className="h-16 w-auto lg:h-28" />
           <span className="text-title lg:text-4xl">In my inventory</span>
         </h1>
 
