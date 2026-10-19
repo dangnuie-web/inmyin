@@ -8,7 +8,8 @@ import { profilePath } from "@/lib/profile/paths";
 import type { DiscoverUser } from "@/lib/ranking";
 
 // 발견 탭(H-05)의 한 사람 — 아바타 · 닉네임 · 최근에 올린 날 · 팔로우, 그 아래 최근 INMYIN 세 개 (피그마 H-05 웹)
-export function UserBlock({ user, following }: { user: DiscoverUser; following: boolean }) {
+// guest = 로그인 안 한 사람. 팔로우를 누르면 로그인으로 간다
+export function UserBlock({ user, following, guest = false }: { user: DiscoverUser; following: boolean; guest?: boolean }) {
   return (
     <section className="flex flex-col gap-3">
       <div className="flex items-center gap-4">
@@ -19,7 +20,7 @@ export function UserBlock({ user, following }: { user: DiscoverUser; following: 
             <span className="text-caption text-ink-muted">{formatShortDate(new Date(user.latestPostAt).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }))}</span>
           </span>
         </Link>
-        <FollowButton userId={user.id} following={following} />
+        <FollowButton userId={user.id} following={following} guest={guest} />
       </div>
       <ul className="grid grid-cols-3 gap-2">
         {user.posts.map((post) => (

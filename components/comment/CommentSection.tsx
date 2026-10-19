@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useState, useTransition, type FormEvent } from "react";
 import { addComment, deleteComment } from "@/app/(flow)/items/[itemId]/comment-actions";
+import { useLoginRedirect } from "@/components/auth/useLoginRedirect";
 import { SwipeRow } from "@/components/inventory/SlotGestures";
 import { Avatar } from "@/components/profile/Avatar";
 import { Toast } from "@/components/ui/Toast";
@@ -21,8 +22,9 @@ type CommentSectionProps = {
   targetType: CommentTarget;
   targetId: string;
   comments: Comment[];
-  // 보고 있는 사람. 방금 쓴 댓글을 서버의 답을 기다리지 않고 먼저 그릴 때 쓴다
-  me: Comment["author"];
+  // 보고 있는 사람. 방금 쓴 댓글을 서버의 답을 기다리지 않고 먼저 그릴 때 쓴다.
+  // null = 로그인 안 한 사람 — 목록은 보이고, 입력칸 자리에 "로그인하고 댓글 달기"가 온다
+  me: Comment["author"] | null;
   // 게시물 주인. 주인은 자기 게시물의 댓글을 모두 지울 수 있다
   ownerId: string;
 };
@@ -39,11 +41,12 @@ export function CommentSection({ targetType, targetId, comments, me, ownerId }: 
   // 밀어서 휴지통이 나와 있는 줄. 한 번에 한 줄만
   const [swiped, setSwiped] = useState<string | null>(null);
   const [, startTransition] = useTransition();
+  const goLogin = useLoginRedirect();
 
   function submit(event: FormEvent) {
     event.preventDefault();
     const body = text.trim();
-    if (!body) return;
+    if (!body || !me) return;
     const tempId = `pending-${Date.now()}`;
     setRows((current) => [...current, { id: tempId, body, createdAt: new Date().toISOString(), author: me, pending: true }]);
     setText("");
@@ -82,12 +85,12 @@ export function CommentSection({ targetType, targetId, comments, me, ownerId }: 
         ) : (
           <ul className="mt-2">
             {rows.map((comment) => {
-              const canDelete = !comment.pending && (comment.author.id === me.id || ownerId === me.id);
+              const canDelete = me !== null && !comment.pending && (comment.author.id === me.id || ownerId === me.id);
               return (
                 <li key={comment.id} className={comment.pending ? "opacity-50" : ""}>
                   {canDelete ? (
                     <SwipeRow open={swiped === comment.id ? "delete" : null} onOpenChange={(side) => setSwiped(side ? comment.id : null)} onDelete={() => remove(comment)}>
-                      <CommentRow comment={comment} isMe={comment.author.id === me.id} />
+                      <CommentRow comment={comment} isMe={comment.author.id === me?.id} />
                     </SwipeRow>
                   ) : (
                     <CommentRow comment={comment} isMe={false} />
@@ -99,22 +102,31 @@ export function CommentSection({ targetType, targetId, comments, me, ownerId }: 
         )}
       </section>
 
-      {/* 화면 맨 아래에 붙는 입력칸. 아래 여백은 아이폰 홈 막대 영역과 기본 여백 중 큰 쪽 (하단 탭과 같은 규칙) */}
-      <form onSubmit={submit} className="sticky bottom-0 mt-6 flex items-center gap-3 border-t border-border bg-white px-5 pt-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))]">
-        <input
-          id={COMMENT_INPUT_ID}
-          value={text}
-          onChange={(event) => setText(event.target.value)}
-          maxLength={COMMENT_MAX}
-          placeholder="댓글 달기…"
-          aria-label="댓글"
-          enterKeyHint="send"
-          className="h-11 min-w-0 flex-1 rounded-full bg-gray-2 px-4 text-label outline-none placeholder:text-ink-muted"
-        />
-        <button type="submit" disabled={!text.trim()} className="shrink-0 text-label font-bold text-point active:opacity-60 disabled:text-disabled">
-          게시
-        </button>
-      </form>
+      {/* 화면 맨 아래에 붙는 입력칸. 아래 여백은 아이폰 홈 막대 영역과 기본 여백 중 큰 쪽 (하단 탭과 같은 규칙).
+          로그인 안 한 사람에게는 같은 자리 · 같은 모양의 칸이 로그인으로 보내는 버튼이 된다 (제목 줄의 말풍선을 누르면 여기로 온다) */}
+      {me === null ? (
+        <div className="sticky bottom-0 mt-6 flex items-center border-t border-border bg-white px-5 pt-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))]">
+          <button id={COMMENT_INPUT_ID} type="button" onClick={goLogin} className="flex h-11 min-w-0 flex-1 items-center rounded-full bg-gray-2 px-4 text-left text-label text-ink-muted active:opacity-60">
+            로그인하고 댓글 달기
+          </button>
+        </div>
+      ) : (
+        <form onSubmit={submit} className="sticky bottom-0 mt-6 flex items-center gap-3 border-t border-border bg-white px-5 pt-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))]">
+          <input
+            id={COMMENT_INPUT_ID}
+            value={text}
+            onChange={(event) => setText(event.target.value)}
+            maxLength={COMMENT_MAX}
+            placeholder="댓글 달기…"
+            aria-label="댓글"
+            enterKeyHint="send"
+            className="h-11 min-w-0 flex-1 rounded-full bg-gray-2 px-4 text-label outline-none placeholder:text-ink-muted"
+          />
+          <button type="submit" disabled={!text.trim()} className="shrink-0 text-label font-bold text-point active:opacity-60 disabled:text-disabled">
+            게시
+          </button>
+        </form>
+      )}
       <Toast message={notice} onDone={hideNotice} />
     </>
   );

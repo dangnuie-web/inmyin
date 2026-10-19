@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
+import { loginPath } from "@/lib/auth/paths";
 
 // Home 안의 세 갈래 — 아이템(H-01) · INMYIN(H-03) · 발견(H-05)
 const TABS = [
@@ -16,13 +17,17 @@ type HomeTabsProps = {
   current: (typeof TABS)[number]["id"];
   // 안 본 알림이 있으면 종에 빨간 점
   unread: boolean;
+  // 로그인 안 한 사람 — "아이템" 갈래는 없고(로그인 전의 / 는 랜딩이다) 종 자리에 "로그인"
+  guest?: boolean;
 };
 
 // 오른쪽 끝의 종은 알림 화면(/notifications)으로. 갈래 줄과 같은 줄에 두어 홈을 열자마자 보인다 (폰 · 웹 같은 자리)
-export function HomeTabs({ current, unread }: HomeTabsProps) {
+export function HomeTabs({ current, unread, guest = false }: HomeTabsProps) {
+  const tabs = guest ? TABS.filter((tab) => tab.id !== "items") : TABS;
+  const currentHref = TABS.find((tab) => tab.id === current)?.href;
   return (
     <nav aria-label="Home 갈래" className="flex items-end gap-9 px-5 pt-5 text-body font-bold text-ink">
-      {TABS.map((tab) =>
+      {tabs.map((tab) =>
         tab.id === current ? (
           <span key={tab.id} aria-current="page" className={`${TAB_CLASS} border-ink`}>
             {tab.label}
@@ -33,10 +38,16 @@ export function HomeTabs({ current, unread }: HomeTabsProps) {
           </Link>
         ),
       )}
-      <Link href="/notifications" aria-label={unread ? "알림 (새 알림 있음)" : "알림"} className="relative ml-auto -mb-1 active:opacity-60">
-        <Icon name="bell" />
-        {unread && <span aria-hidden className="absolute -top-0.5 right-0 size-2 rounded-full bg-primary" />}
-      </Link>
+      {guest ? (
+        <Link href={loginPath(currentHref)} className={`${TAB_CLASS} ml-auto border-transparent active:opacity-60`}>
+          로그인
+        </Link>
+      ) : (
+        <Link href="/notifications" aria-label={unread ? "알림 (새 알림 있음)" : "알림"} className="relative ml-auto -mb-1 active:opacity-60">
+          <Icon name="bell" />
+          {unread && <span aria-hidden className="absolute -top-0.5 right-0 size-2 rounded-full bg-primary" />}
+        </Link>
+      )}
     </nav>
   );
 }

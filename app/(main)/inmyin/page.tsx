@@ -4,7 +4,7 @@ import { HomeTabs } from "@/components/home/HomeTabs";
 import { PostCard } from "@/components/inmyin/PostCard";
 import { CategoryTag } from "@/components/ui/CategoryTag";
 import { ChipRow } from "@/components/ui/ChipRow";
-import { requireProfile } from "@/lib/auth/profile";
+import { getViewer } from "@/lib/auth/profile";
 import { postFeedPath, type PostSort } from "@/lib/inmyin/paths";
 import { getPostFeed } from "@/lib/inmyin/queries";
 import { getPopularCategories } from "@/lib/item/queries";
@@ -19,18 +19,19 @@ const SORTS: { id: PostSort; label: string }[] = [
 
 // H-03 · Home › INMYIN 목록. 모든 사람의 게시물을 카드로. 카테고리(게시물에 든 아이템의 태그)와 정렬은 주소(?category=&sort=)에 실어 서버가 거른다.
 // 피그마 웹은 카테고리를 동그란 사진 칩으로 그렸지만, 폰의 H-01 과 같은 칩(CategoryTag)으로 맞췄다 — 태그마다 대표 사진이 없다
+// 로그인 없이도 열린다 (구경)
 export default async function InmyinFeedPage(props: PageProps<"/inmyin">) {
-  await requireProfile();
+  const profile = await getViewer();
   const searchParams = await props.searchParams;
   const category = typeof searchParams.category === "string" && searchParams.category ? searchParams.category : null;
   const sort: PostSort = searchParams.sort === "popular" ? "popular" : "latest";
 
-  const [posts, categories, unread] = await Promise.all([getPostFeed({ category, sort }), getPopularCategories(), hasUnreadNotifications()]);
+  const [posts, categories, unread] = await Promise.all([getPostFeed({ category, sort }), getPopularCategories(), profile ? hasUnreadNotifications() : false]);
   const chips = category && !categories.includes(category) ? [category, ...categories] : categories;
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col lg:max-w-web">
-      <HomeTabs current="inmyin" unread={unread} />
+      <HomeTabs current="inmyin" unread={unread} guest={!profile} />
 
       <div className="mt-5 flex items-center gap-2.5 pl-5">
         <ChipRow>

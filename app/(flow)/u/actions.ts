@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireProfile } from "@/lib/auth/profile";
+import { getViewer, requireProfile } from "@/lib/auth/profile";
 import { HANDLE_PATTERN, type FormState } from "@/lib/auth/rules";
 import { getFollowLists, getMyFollowingIds } from "@/lib/follow/queries";
 import { createClient } from "@/lib/supabase/server";
@@ -55,11 +55,12 @@ export async function unblockUser(userId: string): Promise<FormState> {
   return {};
 }
 
-// 팔로워 · 팔로잉 목록을 모달(M-12a, 웹)에 채울 때. 화면(M-12)과 같은 조회를 쓴다
+// 팔로워 · 팔로잉 목록을 모달(M-12a, 웹)에 채울 때. 화면(M-12)과 같은 조회를 쓴다.
+// 로그인 안 한 사람도 구경할 수 있다 (guest — 줄의 팔로우 버튼을 누르면 로그인으로)
 export async function loadFollowLists(handle: string) {
-  const profile = await requireProfile();
+  const profile = await getViewer();
   if (!HANDLE_PATTERN.test(handle)) return null;
-  const [lists, myFollowing] = await Promise.all([getFollowLists(handle), getMyFollowingIds(profile.id)]);
+  const [lists, myFollowing] = await Promise.all([getFollowLists(handle), profile ? getMyFollowingIds(profile.id) : new Set<string>()]);
   if (!lists) return null;
-  return { ...lists, myFollowingIds: [...myFollowing], myId: profile.id };
+  return { ...lists, myFollowingIds: [...myFollowing], myId: profile?.id ?? null, guest: !profile };
 }

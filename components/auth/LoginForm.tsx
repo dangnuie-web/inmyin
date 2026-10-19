@@ -8,11 +8,13 @@ import { Input } from "@/components/ui/Input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { useFormSubmit } from "./useFormSubmit";
 
-export function LoginForm() {
+// next = 로그인한 뒤 돌아올 주소 (구경하다 하트 · 팔로우를 눌러 온 경우)
+export function LoginForm({ next }: { next?: string | null }) {
   const { state, pending, onSubmit } = useFormSubmit(signInWithEmail);
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
+      {next && <input type="hidden" name="next" value={next} />}
       <Input
         name="email"
         type="email"

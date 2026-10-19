@@ -9,7 +9,7 @@ import { EmptyNote, RecentItems, RecentPosts, SectionTitle } from "@/components/
 import { ProfileShell } from "@/components/profile/ProfileShell";
 import { BackHeader } from "@/components/ui/BackHeader";
 import { Icon } from "@/components/ui/Icon";
-import { requireProfile } from "@/lib/auth/profile";
+import { getViewer } from "@/lib/auth/profile";
 import { HANDLE_PATTERN } from "@/lib/auth/rules";
 import { hasBlocked } from "@/lib/block/queries";
 import { isFollowing } from "@/lib/follow/queries";
@@ -21,20 +21,21 @@ export const metadata: Metadata = { title: "프로필 · INMYIN" };
 // H-06 · 타유저 프로필. 내 프로필(M-01)과 같은 틀 — 위쪽 버튼이 팔로우 · 프로필 공유이고, 줄들은 그 사람의 화면(H-07 · 모아보기)으로 간다.
 // 보이는 것만 센다 (비공개는 DB 규칙이 뺀다). 내 아이디를 열면 내 프로필로
 export default async function OtherProfilePage(props: PageProps<"/u/[handle]">) {
-  const profile = await requireProfile();
+  // 로그인 없이도 열린다 (구경) — 그때는 팔로우를 누르면 로그인으로, ⋮(차단) 메뉴는 없다
+  const profile = await getViewer();
   const { handle } = await props.params;
   if (!HANDLE_PATTERN.test(handle)) notFound();
-  if (handle === profile.handle) redirect("/my");
+  if (handle === profile?.handle) redirect("/my");
 
   const person = await getPublicProfile(handle);
   if (!person) notFound();
-  const [inventories, following, blocked] = await Promise.all([getVisibleInventories(person.id), isFollowing(profile.id, person.id), hasBlocked(profile.id, person.id)]);
+  const [inventories, following, blocked] = await Promise.all([getVisibleInventories(person.id), profile ? isFollowing(profile.id, person.id) : false, profile ? hasBlocked(profile.id, person.id) : false]);
 
   const shellProps = {
     person,
     mine: false,
-    corner: <OtherProfileCorner userId={person.id} blocked={blocked} />,
-    actions: <OtherProfileActions userId={person.id} handle={person.handle} nickname={person.nickname} following={following} blocked={blocked} />,
+    corner: <OtherProfileCorner userId={person.id} blocked={blocked} guest={!profile} />,
+    actions: <OtherProfileActions userId={person.id} handle={person.handle} nickname={person.nickname} following={following} blocked={blocked} guest={!profile} />,
   };
 
   return (
@@ -42,7 +43,7 @@ export default async function OtherProfilePage(props: PageProps<"/u/[handle]">) 
       {/* 폰: 프로필 줄 · 버튼 · 세 줄(INVENTORY › ITEM › INMYIN) */}
         <div className="flex flex-1 flex-col pb-6 lg:hidden">
         {/* ⋮ 메뉴 — 차단하기 / 차단 해제. 차단했으면 아래의 숫자와 목록은 DB 규칙 때문에 비어 보인다 */}
-        <BackHeader title="PROFILE" action={<OtherProfileCorner userId={person.id} blocked={blocked} />} />
+        <BackHeader title="PROFILE" action={<OtherProfileCorner userId={person.id} blocked={blocked} guest={!profile} />} />
 
         <section className="flex items-center gap-8.5 px-5 pt-1">
           <Avatar url={person.avatarUrl} size={98} />
@@ -55,7 +56,7 @@ export default async function OtherProfilePage(props: PageProps<"/u/[handle]">) 
         {person.bio && <p className="mt-4 break-keep px-5 text-label">{person.bio}</p>}
 
         <div className="mt-6 flex gap-1 px-5">
-          <OtherProfileActions userId={person.id} handle={person.handle} nickname={person.nickname} following={following} blocked={blocked} />
+          <OtherProfileActions userId={person.id} handle={person.handle} nickname={person.nickname} following={following} blocked={blocked} guest={!profile} />
         </div>
 
         <Link href={otherInventoriesPath(person.handle)} className="mt-8.5 flex h-15.5 items-center border-y border-gray-3 px-5 active:opacity-60">

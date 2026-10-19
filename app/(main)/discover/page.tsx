@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { UserBlock } from "@/components/discover/UserBlock";
 import { HomeTabs } from "@/components/home/HomeTabs";
-import { requireProfile } from "@/lib/auth/profile";
+import { getViewer } from "@/lib/auth/profile";
 import { getMyFollowingIds } from "@/lib/follow/queries";
 import { hasUnreadNotifications } from "@/lib/notification/queries";
 import { getDiscoverUsers, RECOMMEND_THRESHOLD, type DiscoverMode } from "@/lib/ranking";
@@ -15,17 +15,22 @@ const MODES: { id: DiscoverMode; label: string }[] = [
 ];
 
 // H-05 · Home › 발견. 사람을 찾는 탭 — 추천(누적 북마크 100 미만인 사람 중 최근 1시간 북마크 순) · 인기(최근 24시간 북마크 순).
-// 줄마다 그 사람의 최근 INMYIN 세 개와 팔로우 버튼. 순서는 DB 함수(discover_users)가 정한다 — 점수가 같으면 최근에 올린 사람 먼저
+// 줄마다 그 사람의 최근 INMYIN 세 개와 팔로우 버튼. 순서는 DB 함수(discover_users)가 정한다 — 점수가 같으면 최근에 올린 사람 먼저.
+// 로그인 없이도 열린다 — 랜딩의 "유저 인벤토리 보기"가 여기로 온다. 팔로우를 누르면 로그인으로
 export default async function DiscoverPage(props: PageProps<"/discover">) {
-  const profile = await requireProfile();
+  const profile = await getViewer();
   const searchParams = await props.searchParams;
   const mode: DiscoverMode = searchParams.mode === "popular" ? "popular" : "recommend";
 
-  const [users, followingIds, unread] = await Promise.all([getDiscoverUsers(mode), getMyFollowingIds(profile.id), hasUnreadNotifications()]);
+  const [users, followingIds, unread] = await Promise.all([
+    getDiscoverUsers(mode),
+    profile ? getMyFollowingIds(profile.id) : new Set<string>(),
+    profile ? hasUnreadNotifications() : false,
+  ]);
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col lg:max-w-web">
-      <HomeTabs current="discover" unread={unread} />
+      <HomeTabs current="discover" unread={unread} guest={!profile} />
 
       {/* 피그마 H-05: 오른쪽 끝에 추천 | 인기 */}
       <p className="mt-5 flex justify-end gap-1 px-5 text-label">
@@ -47,7 +52,7 @@ export default async function DiscoverPage(props: PageProps<"/discover">) {
         <ul className="mt-4 grid gap-10 px-5 pb-10 lg:grid-cols-2 lg:gap-x-6">
           {users.map((user) => (
             <li key={user.id}>
-              <UserBlock user={user} following={followingIds.has(user.id)} />
+              <UserBlock user={user} following={followingIds.has(user.id)} guest={!profile} />
             </li>
           ))}
         </ul>

@@ -1,6 +1,6 @@
 "use server";
 
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -12,6 +12,7 @@ import {
   PASSWORD_MIN,
   type FormState,
 } from "@/lib/auth/rules";
+import { NEXT_COOKIE, safeNext } from "@/lib/auth/paths";
 import { TERMS, termFieldName } from "@/lib/terms";
 
 const PROVIDERS = ["google", "kakao"] as const;
@@ -44,7 +45,8 @@ export async function signInWithEmail(_prev: FormState, formData: FormData): Pro
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) return { error: authErrorMessage(error.code) };
 
-  redirect("/");
+  // 구경하다 로그인하러 왔으면 그 화면으로 돌아간다
+  redirect(safeNext(formData.get("next")) ?? "/");
 }
 
 // A-01 · 구글·카카오 로그인. 각 회사의 로그인 창으로 보낸다.
@@ -52,6 +54,13 @@ export async function signInWithEmail(_prev: FormState, formData: FormData): Pro
 export async function signInWithProvider(formData: FormData) {
   const provider = text(formData, "provider") as Provider;
   if (!PROVIDERS.includes(provider)) redirect("/login?error=oauth");
+
+  // 돌아올 주소는 쿠키에 잠깐 맡겨 둔다 — 로그인 창의 돌아오는 주소(redirectTo)에 붙이면 Supabase 의 허용 주소 목록과 어긋날 수 있다.
+  // /auth/callback 이 꺼내 쓰고 지운다
+  const next = safeNext(formData.get("next"));
+  const cookieStore = await cookies();
+  if (next) cookieStore.set(NEXT_COOKIE, next, { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: 600 });
+  else cookieStore.delete(NEXT_COOKIE);
 
   const origin = (await headers()).get("origin");
   const supabase = await createClient();

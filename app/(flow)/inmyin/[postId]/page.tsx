@@ -10,7 +10,7 @@ import { PostImage } from "@/components/inmyin/PostImage";
 import { PostMenu } from "@/components/inmyin/PostMenu";
 import { Avatar } from "@/components/profile/Avatar";
 import { BackHeader } from "@/components/ui/BackHeader";
-import { requireProfile } from "@/lib/auth/profile";
+import { getViewer } from "@/lib/auth/profile";
 import { hasBookmarked } from "@/lib/bookmark/queries";
 import { getComments } from "@/lib/comment/queries";
 import { isFollowing } from "@/lib/follow/queries";
@@ -24,22 +24,23 @@ export const metadata: Metadata = { title: "INMYIN" };
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 // H-04 · Home › INMYIN 상세. 아이템 상세(H-02)와 같은 틀 — 작성자 줄 · 이미지(아이템 라벨 = 탭 영역) · 제목 [하트 · 댓글 · 북마크] · 내용 · 댓글.
-// 목록(H-03) · 프로필의 카드에서 온다. 하단 탭이 없는 화면이라 (flow) 묶음에 둔다
+// 목록(H-03) · 프로필의 카드에서 온다. 하단 탭이 없는 화면이라 (flow) 묶음에 둔다.
+// 로그인 없이도 열린다 (구경) — 하트 · 북마크 · 팔로우 · 댓글을 누르면 로그인으로
 export default async function PostDetailPage(props: PageProps<"/inmyin/[postId]">) {
-  const profile = await requireProfile();
+  const profile = await getViewer();
   const { postId } = await props.params;
   if (!UUID_PATTERN.test(postId)) notFound();
 
   // 지워진 게시물 · 차단 사이의 게시물은 DB 규칙(RLS)이 돌려주지 않아서 없는 것이 된다
   const post = await getPostDetail(postId);
   if (!post) notFound();
-  const isMine = post.author.id === profile.id;
-  const me = { id: profile.id, handle: profile.handle, nickname: profile.nickname, avatarUrl: profile.avatar_url };
+  const isMine = post.author.id === profile?.id;
+  const me = profile && { id: profile.id, handle: profile.handle, nickname: profile.nickname, avatarUrl: profile.avatar_url };
 
   const [hearted, bookmarked, following, comments] = await Promise.all([
-    hasHearted(profile.id, "post", post.id),
-    hasBookmarked(profile.id, "post", post.id),
-    isMine ? false : isFollowing(profile.id, post.author.id),
+    profile ? hasHearted(profile.id, "post", post.id) : false,
+    profile ? hasBookmarked(profile.id, "post", post.id) : false,
+    !profile || isMine ? false : isFollowing(profile.id, post.author.id),
     getComments("post", post.id),
   ]);
 
@@ -58,7 +59,7 @@ export default async function PostDetailPage(props: PageProps<"/inmyin/[postId]"
             <span className="text-body">{formatShortDate(new Date(post.createdAt).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }))}</span>
           </span>
         </Link>
-        {!isMine && <FollowButton userId={post.author.id} following={following} />}
+        {!isMine && <FollowButton userId={post.author.id} following={following} guest={!profile} />}
       </div>
 
       <div className="mt-5 px-5">
@@ -70,9 +71,9 @@ export default async function PostDetailPage(props: PageProps<"/inmyin/[postId]"
           <h2 className="min-w-0 truncate text-title font-bold">{post.title}</h2>
           {/* [하트 · 하트 수 · 댓글 · 댓글 수 · 북마크] (CLAUDE.md) */}
           <div className="flex shrink-0 items-center gap-4">
-            <HeartButton targetType="post" targetId={post.id} hearted={hearted} count={post.heartCount} />
+            <HeartButton targetType="post" targetId={post.id} hearted={hearted} count={post.heartCount} guest={!profile} />
             <CommentCount count={post.commentCount} />
-            <BookmarkButton targetType="post" targetId={post.id} bookmarked={bookmarked} />
+            <BookmarkButton targetType="post" targetId={post.id} bookmarked={bookmarked} guest={!profile} />
           </div>
         </div>
         {post.description && <p className="mt-4 whitespace-pre-line break-keep text-label">{post.description}</p>}

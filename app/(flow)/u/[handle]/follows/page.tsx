@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { FollowButton } from "@/components/follow/FollowButton";
 import { Avatar } from "@/components/profile/Avatar";
 import { BackHeader } from "@/components/ui/BackHeader";
-import { requireProfile } from "@/lib/auth/profile";
+import { getViewer } from "@/lib/auth/profile";
 import { HANDLE_PATTERN } from "@/lib/auth/rules";
 import { getFollowLists, getMyFollowingIds, type UserCard } from "@/lib/follow/queries";
 import { followsPath, profilePath, type FollowTab } from "@/lib/profile/paths";
@@ -14,12 +14,13 @@ export const metadata: Metadata = { title: "팔로워 · INMYIN" };
 // M-12 · 팔로워 · 팔로잉 목록. 내 것도 남의 것도 같은 화면 — 프로필의 숫자를 누르면 온다.
 // 줄마다 팔로우 버튼이 있어서 여기서 바로 걸고 풀 수 있다. 나 자신의 줄에는 버튼이 없다
 export default async function FollowsPage(props: PageProps<"/u/[handle]/follows">) {
-  const profile = await requireProfile();
+  // 로그인 없이도 열린다 (구경) — 그때는 팔로우를 누르면 로그인으로
+  const profile = await getViewer();
   const { handle } = await props.params;
   if (!HANDLE_PATTERN.test(handle)) notFound();
   const tab: FollowTab = (await props.searchParams).tab === "following" ? "following" : "followers";
 
-  const [lists, myFollowing] = await Promise.all([getFollowLists(handle), getMyFollowingIds(profile.id)]);
+  const [lists, myFollowing] = await Promise.all([getFollowLists(handle), profile ? getMyFollowingIds(profile.id) : new Set<string>()]);
   if (!lists) notFound();
   const people = tab === "followers" ? lists.followers : lists.following;
 
@@ -54,7 +55,7 @@ export default async function FollowsPage(props: PageProps<"/u/[handle]/follows"
       ) : (
         <ul className="mt-4 flex flex-col">
           {people.map((person) => (
-            <PersonRow key={person.id} person={person} isMe={person.id === profile.id} following={myFollowing.has(person.id)} />
+            <PersonRow key={person.id} person={person} isMe={person.id === profile?.id} following={myFollowing.has(person.id)} guest={!profile} />
           ))}
         </ul>
       )}
@@ -63,7 +64,7 @@ export default async function FollowsPage(props: PageProps<"/u/[handle]/follows"
 }
 
 // 한 줄 — 사진 · 닉네임 · @아이디 · 팔로우 버튼. 사진과 이름을 누르면 그 사람의 프로필(H-06)
-function PersonRow({ person, isMe, following }: { person: UserCard; isMe: boolean; following: boolean }) {
+function PersonRow({ person, isMe, following, guest }: { person: UserCard; isMe: boolean; following: boolean; guest: boolean }) {
   return (
     <li className="flex h-16 items-center gap-3 px-5">
       <Link href={isMe ? "/my" : profilePath(person.handle)} className="flex min-w-0 flex-1 items-center gap-3 active:opacity-60">
@@ -73,7 +74,7 @@ function PersonRow({ person, isMe, following }: { person: UserCard; isMe: boolea
           <span className="truncate text-caption text-ink-muted">@{person.handle}</span>
         </span>
       </Link>
-      {!isMe && <FollowButton userId={person.id} following={following} size="sm" />}
+      {!isMe && <FollowButton userId={person.id} following={following} size="sm" guest={guest} />}
     </li>
   );
 }

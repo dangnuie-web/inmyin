@@ -72,7 +72,7 @@ export function FollowListsModal({ handle, initialTab, onClose }: { handle: stri
           ) : people.length === 0 ? (
             <li className="p-6 text-center text-caption text-ink-muted">{tab === "followers" ? "아직 팔로워가 없어요." : "아직 팔로우한 사람이 없어요."}</li>
           ) : (
-            people.map((person) => <Row key={person.id} person={person} isMe={person.id === lists.myId} following={lists.myFollowingIds.includes(person.id)} onClose={onClose} />)
+            people.map((person) => <Row key={person.id} person={person} isMe={person.id === lists.myId} following={lists.myFollowingIds.includes(person.id)} guest={lists.guest} onClose={onClose} />)
           )}
         </ul>
       </div>
@@ -80,7 +80,7 @@ export function FollowListsModal({ handle, initialTab, onClose }: { handle: stri
   );
 }
 
-function Row({ person, isMe, following, onClose }: { person: UserCard; isMe: boolean; following: boolean; onClose: () => void }) {
+function Row({ person, isMe, following, guest, onClose }: { person: UserCard; isMe: boolean; following: boolean; guest: boolean; onClose: () => void }) {
   return (
     <li className="flex h-15 items-center gap-3 px-4">
       <Link href={isMe ? "/my" : profilePath(person.handle)} onClick={onClose} className="flex min-w-0 flex-1 items-center gap-3 active:opacity-60">
@@ -90,7 +90,7 @@ function Row({ person, isMe, following, onClose }: { person: UserCard; isMe: boo
           <span className="truncate text-label font-bold">{person.nickname}</span>
         </span>
       </Link>
-      {!isMe && <FollowButton userId={person.id} following={following} size="sm" />}
+      {!isMe && <FollowButton userId={person.id} following={following} size="sm" guest={guest} />}
     </li>
   );
 }

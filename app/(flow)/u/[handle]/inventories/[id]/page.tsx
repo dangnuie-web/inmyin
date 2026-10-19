@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { InventoryStrip } from "@/components/inventory/InventoryStrip";
-import { gridFor, SlotCell, SlotRow, toGridColumns } from "@/components/inventory/Slot";
+import { DEFAULT_GRID_COLUMNS, gridFor, SlotCell, SlotRow, toGridColumns } from "@/components/inventory/Slot";
 import { ViewToggle } from "@/components/inventory/ViewToggle";
 import { OtherProfileActions, OtherProfileCorner } from "@/components/profile/OtherProfileActions";
 import { ProfileShell } from "@/components/profile/ProfileShell";
 import { BackHeader } from "@/components/ui/BackHeader";
 import { CategoryTag } from "@/components/ui/CategoryTag";
 import { ChipRow } from "@/components/ui/ChipRow";
-import { requireProfile } from "@/lib/auth/profile";
+import { getViewer } from "@/lib/auth/profile";
 import { HANDLE_PATTERN } from "@/lib/auth/rules";
 import { hasBlocked } from "@/lib/block/queries";
 import { isFollowing } from "@/lib/follow/queries";
@@ -25,10 +25,11 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{
 // 이지만 + 칸 · 길게 누르기 · 밀기 · 짐싸기가 없다. 비공개 아이템은 칸째로 빠지고 나머지가 당겨 붙는다 (DB 규칙).
 // 칸을 누르면 아이템은 상세(H-02 모양), 담긴 인벤토리는 그 인벤토리(이 화면)
 export default async function OtherInventoryPage(props: PageProps<"/u/[handle]/inventories/[id]">) {
-  const profile = await requireProfile();
+  // 로그인 없이도 열린다 (구경) — 그때는 팔로우를 누르면 로그인으로, ⋮(차단) 메뉴는 없다
+  const profile = await getViewer();
   const { handle, id } = await props.params;
   if (!HANDLE_PATTERN.test(handle) || !UUID_PATTERN.test(id)) notFound();
-  if (handle === profile.handle) redirect(inventoryPath(id));
+  if (handle === profile?.handle) redirect(inventoryPath(id));
   const searchParams = await props.searchParams;
 
   const person = await getPublicProfile(handle);
@@ -36,8 +37,8 @@ export default async function OtherInventoryPage(props: PageProps<"/u/[handle]/i
   const [inventory, inventories, following, blocked] = await Promise.all([
     getVisibleInventoryDetail(person.id, id),
     getVisibleInventories(person.id),
-    isFollowing(profile.id, person.id),
-    hasBlocked(profile.id, person.id),
+    profile ? isFollowing(profile.id, person.id) : false,
+    profile ? hasBlocked(profile.id, person.id) : false,
   ]);
   if (!inventory) notFound();
 
@@ -54,8 +55,8 @@ export default async function OtherInventoryPage(props: PageProps<"/u/[handle]/i
       person={person}
       mine={false}
       tab="inventory"
-      corner={<OtherProfileCorner userId={person.id} blocked={blocked} />}
-      actions={<OtherProfileActions userId={person.id} handle={person.handle} nickname={person.nickname} following={following} blocked={blocked} />}
+      corner={<OtherProfileCorner userId={person.id} blocked={blocked} guest={!profile} />}
+      actions={<OtherProfileActions userId={person.id} handle={person.handle} nickname={person.nickname} following={following} blocked={blocked} guest={!profile} />}
     >
       <div className="lg:hidden">
         <BackHeader title="INVENTORY" />
@@ -78,7 +79,7 @@ export default async function OtherInventoryPage(props: PageProps<"/u/[handle]/i
       {entries.length === 0 ? (
         <p className="mt-16 break-keep px-5 text-center text-label text-ink-muted">{category ? "이 카테고리에는 아직 없어요." : "공개된 아이템이 아직 없어요."}</p>
       ) : view === "grid" ? (
-        <ul className={`mt-6 grid gap-3.5 px-5 lg:grid-cols-7 ${gridFor(inventory.slotCount, toGridColumns(profile.grid_columns)).className}`}>
+        <ul className={`mt-6 grid gap-3.5 px-5 lg:grid-cols-7 ${gridFor(inventory.slotCount, profile ? toGridColumns(profile.grid_columns) : DEFAULT_GRID_COLUMNS).className}`}>
           {entries.map((entry) => (
             <li key={entry.id}>
               <SlotCell entry={entry} href={hrefFor(entry)} />

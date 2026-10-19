@@ -2,6 +2,7 @@
 
 import { useCallback, useState, useTransition } from "react";
 import { setFollow } from "@/app/(flow)/u/actions";
+import { useLoginRedirect } from "@/components/auth/useLoginRedirect";
 import { Toast } from "@/components/ui/Toast";
 
 type FollowButtonProps = {
@@ -10,19 +11,23 @@ type FollowButtonProps = {
   following: boolean;
   // 목록의 줄에서는 작게
   size?: "md" | "sm";
+  // 로그인 안 한 사람 — 누르면 로그인 화면으로 (돌아올 주소를 들고)
+  guest?: boolean;
 };
 
 const SIZES = { md: "h-8 px-3.5 text-label", sm: "h-7 px-3 text-caption" };
 
 // 팔로우 / 팔로잉 버튼 (H-02 작성자 줄, M-12 목록, H-06). 누르면 화면부터 바뀌고 서버에 저장한다 — 실패하면 되돌리고 알린다.
 // 아직 안 걸었으면 검정 "팔로우", 걸었으면 흰 바탕 테두리 "팔로잉" — 누르면 푼다
-export function FollowButton({ userId, following: initial, size = "md" }: FollowButtonProps) {
+export function FollowButton({ userId, following: initial, size = "md", guest = false }: FollowButtonProps) {
   const [following, setFollowing] = useState(initial);
   const [notice, setNotice] = useState<string | null>(null);
   const hideNotice = useCallback(() => setNotice(null), []);
   const [, startTransition] = useTransition();
+  const goLogin = useLoginRedirect();
 
   function toggle() {
+    if (guest) return goLogin();
     const next = !following;
     setFollowing(next);
     startTransition(async () => {

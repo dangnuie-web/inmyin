@@ -39,3 +39,13 @@ export async function requireProfile() {
   if (!profile) redirect("/onboarding");
   return profile;
 }
+
+// 로그인 없이도 열리는 구경 화면(발견 · INMYIN · 타유저 프로필 · 아이템 · INMYIN 상세)의 맨 위에서 부른다.
+// 로그인 전이면 null — 화면은 남의 공개된 것만 보여주고, 하트 · 북마크 · 팔로우 · 댓글은 누르면 로그인으로 보낸다.
+// 로그인은 했는데 프로필이 없으면 다른 화면처럼 A-03 으로. 무엇이 보이는지는 DB 규칙(RLS)이 정한다 — 로그인 전에는 공개된 것만 온다
+export async function getViewer() {
+  const { loggedIn, profile } = await getProfileByClaims();
+  if (!loggedIn) return null;
+  if (!profile) redirect("/onboarding");
+  return profile;
+}

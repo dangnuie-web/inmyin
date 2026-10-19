@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { gridColumnsClass, gridFor, SlotCell, toGridColumns } from "@/components/inventory/Slot";
+import { DEFAULT_GRID_COLUMNS, gridColumnsClass, gridFor, SlotCell, toGridColumns } from "@/components/inventory/Slot";
 import { ItemMenu } from "@/components/item/ItemMenu";
 import { BookmarkButton } from "@/components/bookmark/BookmarkButton";
 import { CommentCount } from "@/components/comment/CommentCount";
@@ -12,7 +12,7 @@ import { HeartButton } from "@/components/heart/HeartButton";
 import { Avatar } from "@/components/profile/Avatar";
 import { BackHeader } from "@/components/ui/BackHeader";
 import { HeaderMini } from "@/components/ui/HeaderMini";
-import { requireProfile } from "@/lib/auth/profile";
+import { getViewer } from "@/lib/auth/profile";
 import { hasBookmarked } from "@/lib/bookmark/queries";
 import { getComments } from "@/lib/comment/queries";
 import { inventoryPath } from "@/lib/inventory/paths";
@@ -32,9 +32,10 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{
 //   홈 피드(H-01)에서 왔거나 남의 아이템 = H-02 — 작성자 줄 · 팔로우 · 북마크. 홈에서 왔으면 제목 · 내용에서 끝난다
 //   (홈으로 돌아가면 이어서 볼 수 있다), 프로필 · 인벤토리에서 왔으면 아래에 같은 인벤토리의 공개 아이템들.
 //   홈에서 연 내 아이템도 남의 것과 똑같이 보인다 — 내가 올린 것이 남에게 어떻게 보이는지 그대로 보려고
-// 주소는 둘 다 /items/[id]. 하단 탭이 없는 화면이라 (flow) 묶음에 둔다
+// 주소는 둘 다 /items/[id]. 하단 탭이 없는 화면이라 (flow) 묶음에 둔다.
+// 로그인 없이도 열린다 (구경, H-02 모양) — 하트 · 북마크 · 팔로우 · 댓글을 누르면 로그인으로. 남의 비공개 아이템은 DB 규칙이 애초에 주지 않는다
 export default async function ItemDetailPage(props: PageProps<"/items/[itemId]">) {
-  const profile = await requireProfile();
+  const profile = await getViewer();
   const { itemId } = await props.params;
   if (!UUID_PATTERN.test(itemId)) notFound();
   // 홈 피드에서 왔는지 (?from=home). 피드의 검색어 · 카테고리도 같이 실려 오지만 지금은 쓰지 않는다 — 돌아갈 때 주소가 그대로라 홈이 알아서 이어 보여준다
@@ -43,18 +44,19 @@ export default async function ItemDetailPage(props: PageProps<"/items/[itemId]">
   // 남의 비공개 아이템은 DB 규칙(RLS)이 애초에 돌려주지 않아서 여기서 없는 것이 된다
   const item = await getItemDetail(itemId);
   if (!item) notFound();
-  const isMine = item.owner.id === profile.id;
+  const isMine = item.owner.id === profile?.id;
   const asOwner = isMine && !fromHome;
+  const columns = profile ? toGridColumns(profile.grid_columns) : DEFAULT_GRID_COLUMNS;
 
   const facts = [
     { label: "획득날짜", value: item.acquiredNote },
     { label: "유통기한", value: item.expiresAt && `${formatShortDate(item.expiresAt)} 까지` },
   ].filter((fact) => fact.value);
   // 댓글 목록에서 "나"를 그릴 때 (방금 쓴 댓글을 서버의 답보다 먼저 보여준다)
-  const me = { id: profile.id, handle: profile.handle, nickname: profile.nickname, avatarUrl: profile.avatar_url };
+  const me = profile && { id: profile.id, handle: profile.handle, nickname: profile.nickname, avatarUrl: profile.avatar_url };
 
   // ---- 내 인벤토리에서 온 내 아이템 (M-14) ----
-  if (asOwner) {
+  if (asOwner && profile) {
     const [inventory, hearted, comments] = await Promise.all([
       getMyInventoryDetail(profile.id, item.inventoryId),
       hasHearted(profile.id, "item", item.id),
@@ -77,7 +79,7 @@ export default async function ItemDetailPage(props: PageProps<"/items/[itemId]">
           </div>
           <Description item={item} facts={facts} />
         </section>
-        <Grid entries={inventory.entries} currentId={item.id} className={gridFor(inventory.slotCount, toGridColumns(profile.grid_columns)).className} />
+        <Grid entries={inventory.entries} currentId={item.id} className={gridFor(inventory.slotCount, columns).className} />
         <CommentSection targetType="item" targetId={item.id} comments={comments} me={me} ownerId={item.owner.id} />
       </main>
     );
@@ -88,9 +90,9 @@ export default async function ItemDetailPage(props: PageProps<"/items/[itemId]">
   // "이것보다 먼저 올라온 것"만 쌓이는 건 이상하고, 홈으로 돌아가면 이어서 볼 수 있다
   const [nearby, hearted, bookmarked, following, comments] = await Promise.all([
     fromHome ? [] : getVisibleInventoryEntries(item.inventoryId),
-    hasHearted(profile.id, "item", item.id),
-    hasBookmarked(profile.id, "item", item.id),
-    isMine ? false : isFollowing(profile.id, item.owner.id),
+    profile ? hasHearted(profile.id, "item", item.id) : false,
+    profile ? hasBookmarked(profile.id, "item", item.id) : false,
+    !profile || isMine ? false : isFollowing(profile.id, item.owner.id),
     getComments("item", item.id),
   ]);
 
@@ -110,7 +112,7 @@ export default async function ItemDetailPage(props: PageProps<"/items/[itemId]">
             <span className="text-body">{formatShortDate(new Date(item.createdAt).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }))}</span>
           </span>
         </Link>
-        {!isMine && <FollowButton userId={item.owner.id} following={following} />}
+        {!isMine && <FollowButton userId={item.owner.id} following={following} guest={!profile} />}
       </div>
 
       {/* 피그마 H-02: 흰 바탕에 옅은 테두리 */}
@@ -121,15 +123,15 @@ export default async function ItemDetailPage(props: PageProps<"/items/[itemId]">
           <h2 className="min-w-0 truncate text-title font-bold">{item.name}</h2>
           {/* 오른쪽은 [하트 · 하트 수 · 댓글 · 댓글 수 · 북마크] 순서 (CLAUDE.md). 하트는 반응, 북마크는 모으기 */}
           <div className="flex shrink-0 items-center gap-4">
-            <HeartButton targetType="item" targetId={item.id} hearted={hearted} count={item.heartCount} />
+            <HeartButton targetType="item" targetId={item.id} hearted={hearted} count={item.heartCount} guest={!profile} />
             <CommentCount count={item.commentCount} />
-            <BookmarkButton targetType="item" targetId={item.id} bookmarked={bookmarked} />
+            <BookmarkButton targetType="item" targetId={item.id} bookmarked={bookmarked} guest={!profile} />
           </div>
         </div>
         <Description item={item} facts={facts} />
       </section>
 
-      {nearby.length > 0 && <Grid entries={nearby} currentId={item.id} className={gridColumnsClass(toGridColumns(profile.grid_columns))} />}
+      {nearby.length > 0 && <Grid entries={nearby} currentId={item.id} className={gridColumnsClass(columns)} />}
       <CommentSection targetType="item" targetId={item.id} comments={comments} me={me} ownerId={item.owner.id} />
     </main>
   );

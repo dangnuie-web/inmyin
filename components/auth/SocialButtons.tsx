@@ -8,9 +8,11 @@ const PROVIDERS = [
 ] as const;
 
 // 구글·카카오 로그인 버튼. 어느 버튼을 눌렀는지는 name="provider" 값으로 서버에 전달된다.
-export function SocialButtons() {
+// next = 로그인한 뒤 돌아올 주소 (구경하다 하트 · 팔로우를 눌러 온 경우)
+export function SocialButtons({ next }: { next?: string | null }) {
   return (
     <form action={signInWithProvider} className="flex flex-col gap-7">
+      {next && <input type="hidden" name="next" value={next} />}
       {PROVIDERS.map((provider) => (
         <Button
           key={provider.id}
