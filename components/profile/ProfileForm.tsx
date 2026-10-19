@@ -3,11 +3,11 @@
 import { useRef, useState, useTransition, type FormEvent } from "react";
 import Image from "next/image";
 import { updateProfile } from "@/app/(flow)/my/edit/actions";
+import { PersonMark } from "@/components/profile/Avatar";
 import { Button } from "@/components/ui/Button";
 import { DarkInput } from "@/components/ui/DarkInput";
 import { FormError } from "@/components/ui/FormError";
 import { PhotoPreview } from "@/components/ui/PhotoPreview";
-import { TabIcon } from "@/components/ui/TabIcon";
 import { HANDLE_PATTERN, NICKNAME_MAX } from "@/lib/auth/rules";
 import { uploadAvatar } from "@/lib/image/upload";
 
@@ -59,7 +59,7 @@ export function ProfileForm({ userId, avatarUrl, ...initial }: ProfileFormProps)
           ) : avatarUrl ? (
             <Image src={avatarUrl} alt="" fill sizes="120px" unoptimized className="object-cover" />
           ) : (
-            <TabIcon name="my" active />
+            <PersonMark />
           )}
         </span>
         <span className="text-caption text-placeholder-dark">{photo || avatarUrl ? "사진 바꾸기" : "사진 추가"}</span>

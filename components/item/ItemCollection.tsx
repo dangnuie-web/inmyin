@@ -63,7 +63,7 @@ export function ItemCollection({ items, capacity, columns, emptyText, sortable =
               autoComplete="off"
               className="min-w-0 flex-1 bg-transparent text-body outline-none [&::-webkit-search-cancel-button]:appearance-none"
             />
-            <Icon name="search" className="shrink-0" />
+            <Icon name="search" scale={0.75} className="shrink-0" />
           </label>
         }
         chips={

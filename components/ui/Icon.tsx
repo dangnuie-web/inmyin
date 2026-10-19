@@ -81,24 +81,23 @@ const ICONS = {
       </>
     ),
   },
-  // 북마크. 하단 탭 Bookmark 와 같은 책갈피를 작게 쓴다 (scale 0.5 = 24px). 눌렀으면 fill 을 채운다.
-  // 임시 그림이다 — 주인이 디자인해 주면 TabIcon.tsx 의 bookmark 와 같이 바꾼다
+  // 북마크 · 알림 종 · 검색은 하단 탭과 같은 아이콘 세트 v01 (2026-10-20 무늬, components/ui/TabIcon.tsx 머리말). 24 칸 · 선 1.75
+  // 북마크 — 하단 탭 북마크와 같은 책갈피. 눌렀으면 채운다
   bookmark: {
-    size: 47,
-    body: <path d="M13 4H34C36.2091 4 38 5.79086 38 8V42.5L23.5 32.5L9 42.5V8C9 5.79086 10.7909 4 13 4Z" stroke="currentColor" strokeWidth="3" strokeLinejoin="round" />,
+    size: 24,
+    body: <path d="M6.5 4.25 H17.5 A1.75 1.75 0 0 1 19.25 6 V20 L12 15.25 L4.75 20 V6 A1.75 1.75 0 0 1 6.5 4.25 Z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />,
   },
   bookmarkFilled: {
-    size: 47,
-    body: <path d="M13 4H34C36.2091 4 38 5.79086 38 8V42.5L23.5 32.5L9 42.5V8C9 5.79086 10.7909 4 13 4Z" fill="currentColor" stroke="currentColor" strokeWidth="3" strokeLinejoin="round" />,
+    size: 24,
+    body: <path d="M6.5 4.25 H17.5 A1.75 1.75 0 0 1 19.25 6 V20 L12 15.25 L4.75 20 V6 A1.75 1.75 0 0 1 6.5 4.25 Z" fill="currentColor" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />,
   },
-  // 알림 종 (Home 갈래 줄 오른쪽 끝). 임시 그림 — 디자인이 오면 바꾼다
+  // 알림 종 (홈 갈래 줄 오른쪽 끝, 알림 줄의 동그라미 안). 아치 돔 몸통 + 추. 추는 늘 선만
   bell: {
     size: 24,
     body: (
       <>
-        <path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2v.5h-15v-.5l1.5-2Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
-        <path d="M10 20.5a2 2 0 0 0 4 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-        <path d="M12 3.5v1.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        <path d="M6.25 16.75 V11.5 A5.75 5.75 0 0 1 17.75 11.5 V16.75 L19 18.5 H5 Z" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M10.25 20.5 A1.75 1.75 0 0 0 13.75 20.5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
       </>
     ),
   },
@@ -138,12 +137,13 @@ const ICONS = {
       />
     ),
   },
+  // 검색 — 검색칸 오른쪽. 24 칸에 그려 18px 로 줄여 쓴다 (scale 0.75 → 선 1.3)
   search: {
-    size: 18,
+    size: 24,
     body: (
       <>
-        <circle cx="7.5" cy="7.5" r="5.5" stroke="currentColor" strokeWidth="1.8" />
-        <path d="M11.8 11.8L16.5 16.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        <circle cx="10.75" cy="10.75" r="6.5" stroke="currentColor" strokeWidth="1.75" />
+        <path d="M15.5 15.5 L20 20" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
       </>
     ),
   },

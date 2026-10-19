@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { InstallGuideAuto } from "@/components/InstallGuide";
 import { InventoryBoard } from "@/components/inventory/InventoryBoard";
+import { RememberInventory } from "@/components/inventory/RememberInventory";
 import { toGridColumns } from "@/components/inventory/Slot";
 import { InventoryStrip } from "@/components/inventory/InventoryStrip";
 import { ViewToggle } from "@/components/inventory/ViewToggle";
@@ -65,6 +66,7 @@ export default async function InventoryDetailPage(props: PageProps<"/my/inventor
       corner={<MyProfileCorner />}
       actions={<MyProfileActions handle={profile.handle} nickname={profile.nickname} />}
     >
+      <RememberInventory id={inventory.id} />
       <div className="lg:hidden">
         <HeaderMini icon="back" href="/my/inventories" title="INVENTORY" action={packing} />
       </div>

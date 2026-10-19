@@ -46,7 +46,7 @@ export function BookmarkButton({ targetType, targetId, bookmarked: initialBookma
         aria-label={bookmarked ? "북마크 해제" : "북마크"}
         className="flex shrink-0 items-center text-ink transition-transform active:scale-90"
       >
-        <Icon name={bookmarked ? "bookmarkFilled" : "bookmark"} scale={0.5} />
+        <Icon name={bookmarked ? "bookmarkFilled" : "bookmark"} />
       </button>
       <Toast message={notice} onDone={hideNotice} />
     </>

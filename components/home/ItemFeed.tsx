@@ -93,7 +93,7 @@ export function ItemFeed({ items, q, category, categories, columns }: ItemFeedPr
                 autoComplete="off"
                 className="min-w-0 flex-1 bg-transparent text-body outline-none [&::-webkit-search-cancel-button]:appearance-none"
               />
-              <Icon name="search" className={`shrink-0 ${pending ? "animate-pulse" : ""}`} />
+              <Icon name="search" scale={0.75} className={`shrink-0 ${pending ? "animate-pulse" : ""}`} />
             </label>
           }
           chips={
