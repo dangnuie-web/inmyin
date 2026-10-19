@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { HeaderMini } from "@/components/ui/HeaderMini";
 import { requireProfile } from "@/lib/auth/profile";
 import { PLANS } from "@/lib/plans";
+import { StickyTop } from "@/components/ui/StickyTop";
 
 export const metadata: Metadata = { title: "프리미엄 · INMYIN" };
 
@@ -11,7 +12,9 @@ export default async function PlanPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col">
-      <HeaderMini icon="back" href="/my/inventories" title="프리미엄" />
+      <StickyTop>
+        <HeaderMini icon="back" href="/my/inventories" title="프리미엄" />
+      </StickyTop>
       <div className="flex flex-1 flex-col items-center justify-center gap-2 px-5 text-center">
         <p className="text-title font-bold">프리미엄은 준비 중이에요</p>
         <p className="text-body text-ink-muted">

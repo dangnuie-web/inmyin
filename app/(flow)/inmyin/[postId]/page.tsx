@@ -18,6 +18,7 @@ import { hasHearted } from "@/lib/heart/queries";
 import { getPostDetail } from "@/lib/inmyin/queries";
 import { formatShortDate } from "@/lib/item/rules";
 import { profilePath } from "@/lib/profile/paths";
+import { StickyTop } from "@/components/ui/StickyTop";
 
 export const metadata: Metadata = { title: "INMYIN" };
 
@@ -48,7 +49,9 @@ export default async function PostDetailPage(props: PageProps<"/inmyin/[postId]"
     // 아래 여백은 댓글 입력칸이 맡는다
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col">
       {/* 내 게시물이면 ⋮ → 삭제하기 */}
-      <BackHeader icon="close" title="INMYIN" action={isMine ? <PostMenu postId={post.id} /> : undefined} />
+      <StickyTop>
+        <BackHeader icon="close" title="INMYIN" action={isMine ? <PostMenu postId={post.id} /> : undefined} />
+      </StickyTop>
 
       {/* 작성자 줄 (H-02 와 같다). 사진과 이름을 누르면 그 사람의 프로필 */}
       <div className="mt-4 flex items-center gap-5 px-5">

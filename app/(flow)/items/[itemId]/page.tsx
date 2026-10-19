@@ -24,6 +24,7 @@ import { formatShortDate } from "@/lib/item/rules";
 import { isFollowing } from "@/lib/follow/queries";
 import { profilePath } from "@/lib/profile/paths";
 import { NumText } from "@/components/ui/NumText";
+import { StickyTop } from "@/components/ui/StickyTop";
 
 export const metadata: Metadata = { title: "아이템 · INMYIN" };
 
@@ -68,7 +69,9 @@ export default async function ItemDetailPage(props: PageProps<"/items/[itemId]">
     return (
       // 아래 여백은 댓글 입력칸이 맡는다 (화면 맨 아래에 붙어 있다)
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col">
-        <HeaderMini icon="close" href={inventoryPath(inventory.id)} title="아이템" action={<ItemMenu itemId={item.id} inventoryId={item.inventoryId} />} />
+        <StickyTop>
+          <HeaderMini icon="close" href={inventoryPath(inventory.id)} title="아이템" action={<ItemMenu itemId={item.id} inventoryId={item.inventoryId} />} />
+        </StickyTop>
         <Photo item={item} className="mx-5 mt-3 bg-gray-1" />
         <section className="mt-10 px-5">
           <div className="flex items-center justify-between gap-4">
@@ -102,7 +105,9 @@ export default async function ItemDetailPage(props: PageProps<"/items/[itemId]">
     // 아래 여백은 댓글 입력칸이 맡는다 (화면 맨 아래에 붙어 있다)
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col">
       {/* 피드 · 프로필 등 어디서든 올 수 있어서 왔던 곳으로 돌아간다. 수정 · 삭제 메뉴는 없다 */}
-      <BackHeader icon="close" title="아이템" />
+      <StickyTop>
+        <BackHeader icon="close" title="아이템" />
+      </StickyTop>
 
       {/* 작성자 줄 (피그마 H-02). 사진과 이름을 누르면 그 사람의 프로필(H-06). 내 것이면 내 프로필 */}
       <div className="mt-4 flex items-center gap-5 px-5">

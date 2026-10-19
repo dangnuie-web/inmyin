@@ -8,6 +8,7 @@ import { requireProfile } from "@/lib/auth/profile";
 import { getMyItemCollection } from "@/lib/item/queries";
 import { planLimits } from "@/lib/plans";
 import { getMyProfileStats } from "@/lib/profile/queries";
+import { StickyTop } from "@/components/ui/StickyTop";
 
 export const metadata: Metadata = { title: "아이템 · INMYIN" };
 
@@ -25,9 +26,9 @@ export default async function MyItemsPage() {
       corner={<MyProfileCorner />}
       actions={<MyProfileActions handle={profile.handle} nickname={profile.nickname} />}
     >
-      <div className="lg:hidden">
+      <StickyTop phoneOnly>
         <HeaderMini icon="back" href="/my" title="아이템" />
-      </div>
+      </StickyTop>
       <main className="flex flex-1 flex-col lg:mx-5 lg:mt-4 lg:rounded-xl lg:bg-gray-1 lg:pt-6 lg:pb-4">
         <ItemCollection
           items={items}

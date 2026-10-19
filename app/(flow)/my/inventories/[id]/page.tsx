@@ -16,6 +16,7 @@ import { requireProfile } from "@/lib/auth/profile";
 import { inventoryPath, packingPath, type InventoryView } from "@/lib/inventory/paths";
 import { getMyInventories, getMyInventoryDetail } from "@/lib/inventory/queries";
 import { getMyProfileStats } from "@/lib/profile/queries";
+import { StickyTop } from "@/components/ui/StickyTop";
 
 export const metadata: Metadata = { title: "인벤토리 · INMYIN" };
 
@@ -67,9 +68,9 @@ export default async function InventoryDetailPage(props: PageProps<"/my/inventor
       actions={<MyProfileActions handle={profile.handle} nickname={profile.nickname} />}
     >
       <RememberInventory id={inventory.id} />
-      <div className="lg:hidden">
+      <StickyTop phoneOnly>
         <HeaderMini icon="back" href="/my/inventories" title="INVENTORY" action={packing} />
-      </div>
+      </StickyTop>
       <div className="hidden justify-end px-5 pt-4 lg:flex">{packing}</div>
 
       <main className="flex flex-1 flex-col lg:mx-5 lg:mt-4 lg:rounded-xl lg:bg-gray-1 lg:pb-4">

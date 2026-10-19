@@ -4,6 +4,7 @@ import { Avatar } from "@/components/profile/Avatar";
 import { HeaderMini } from "@/components/ui/HeaderMini";
 import { requireProfile } from "@/lib/auth/profile";
 import { getMyBlockedUsers } from "@/lib/block/queries";
+import { StickyTop } from "@/components/ui/StickyTop";
 
 export const metadata: Metadata = { title: "차단한 사용자 · INMYIN" };
 
@@ -14,7 +15,9 @@ export default async function BlockedUsersPage() {
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col pb-10">
-      <HeaderMini icon="back" href="/my/settings" title="차단한 사용자" />
+      <StickyTop>
+        <HeaderMini icon="back" href="/my/settings" title="차단한 사용자" />
+      </StickyTop>
       {people.length === 0 ? (
         <p className="mt-16 break-keep px-5 text-center text-label text-ink-muted">차단한 사용자가 없어요.</p>
       ) : (

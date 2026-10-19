@@ -6,6 +6,7 @@ import { HeaderMini } from "@/components/ui/HeaderMini";
 import { requireProfile } from "@/lib/auth/profile";
 import { getUserPosts } from "@/lib/inmyin/queries";
 import { getMyProfileStats } from "@/lib/profile/queries";
+import { StickyTop } from "@/components/ui/StickyTop";
 
 export const metadata: Metadata = { title: "INMYIN · INMYIN" };
 
@@ -22,9 +23,9 @@ export default async function MyPostsPage() {
       corner={<MyProfileCorner />}
       actions={<MyProfileActions handle={profile.handle} nickname={profile.nickname} />}
     >
-      <div className="lg:hidden">
+      <StickyTop phoneOnly>
         <HeaderMini icon="back" href="/my" title="INMYIN" />
-      </div>
+      </StickyTop>
       <main className="flex flex-1 flex-col lg:mx-5 lg:mt-4 lg:rounded-xl lg:bg-gray-1 lg:pt-6 lg:pb-4">
         <PostGrid posts={posts} emptyText="아직 INMYIN 이 없어요. 만들기를 눌러 첫 INMYIN 을 올려 보세요." note={`${posts.length}개`} />
       </main>

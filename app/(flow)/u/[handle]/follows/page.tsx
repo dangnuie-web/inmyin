@@ -8,6 +8,7 @@ import { getViewer } from "@/lib/auth/profile";
 import { HANDLE_PATTERN } from "@/lib/auth/rules";
 import { getFollowLists, getMyFollowingIds, type UserCard } from "@/lib/follow/queries";
 import { followsPath, profilePath, type FollowTab } from "@/lib/profile/paths";
+import { StickyTop } from "@/components/ui/StickyTop";
 
 export const metadata: Metadata = { title: "팔로워 · INMYIN" };
 
@@ -31,7 +32,9 @@ export default async function FollowsPage(props: PageProps<"/u/[handle]/follows"
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col pb-10">
-      <BackHeader title={lists.user.nickname} />
+      <StickyTop>
+        <BackHeader title={lists.user.nickname} />
+      </StickyTop>
 
       {/* 두 갈래. Home 의 갈래와 같은 모양 — 고른 쪽에만 밑줄 */}
       <nav aria-label="팔로워 · 팔로잉" className="flex items-end gap-9 px-5 pt-3 text-body font-bold text-ink">

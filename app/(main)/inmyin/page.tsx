@@ -9,6 +9,7 @@ import { postFeedPath, type PostSort } from "@/lib/inmyin/paths";
 import { getPostFeed } from "@/lib/inmyin/queries";
 import { getPopularCategories } from "@/lib/item/queries";
 import { hasUnreadNotifications } from "@/lib/notification/queries";
+import { StickyTop } from "@/components/ui/StickyTop";
 
 export const metadata: Metadata = { title: "INMYIN" };
 
@@ -31,7 +32,9 @@ export default async function InmyinFeedPage(props: PageProps<"/inmyin">) {
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col lg:max-w-web">
-      <HomeTabs current="inmyin" unread={unread} guest={!profile} />
+      <StickyTop>
+        <HomeTabs current="inmyin" unread={unread} guest={!profile} />
+      </StickyTop>
 
       <div className="mt-5 flex items-center gap-2.5 pl-5">
         <ChipRow>

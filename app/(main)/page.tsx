@@ -5,6 +5,7 @@ import { toGridColumns } from "@/components/inventory/Slot";
 import { requireProfile } from "@/lib/auth/profile";
 import { getPopularCategories, getPublicItemFeed } from "@/lib/item/queries";
 import { hasUnreadNotifications } from "@/lib/notification/queries";
+import { StickyTop } from "@/components/ui/StickyTop";
 
 export const metadata: Metadata = { title: "INMYIN" };
 
@@ -20,7 +21,9 @@ export default async function Home(props: PageProps<"/">) {
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col lg:max-w-web">
-      <HomeTabs current="items" unread={unread} />
+      <StickyTop>
+        <HomeTabs current="items" unread={unread} />
+      </StickyTop>
       <ItemFeed items={items} q={q} category={category} categories={categories} columns={toGridColumns(profile.grid_columns)} />
     </div>
   );

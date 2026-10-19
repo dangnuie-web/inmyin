@@ -5,6 +5,7 @@ import { HeaderMini } from "@/components/ui/HeaderMini";
 import { requireProfile } from "@/lib/auth/profile";
 import { getMyFollowingIds } from "@/lib/follow/queries";
 import { getNotifications } from "@/lib/notification/queries";
+import { StickyTop } from "@/components/ui/StickyTop";
 
 export const metadata: Metadata = { title: "알림 · INMYIN" };
 
@@ -19,7 +20,9 @@ export default async function NotificationsPage() {
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col lg:max-w-web">
       <MarkSeen />
-      <HeaderMini icon="back" href="/" title="알림" />
+      <StickyTop>
+        <HeaderMini icon="back" href="/" title="알림" />
+      </StickyTop>
       {notifications.length === 0 ? (
         <p className="mt-16 text-center text-body text-ink-muted">아직 알림이 없어요.</p>
       ) : (

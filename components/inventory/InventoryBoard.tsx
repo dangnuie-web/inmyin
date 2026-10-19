@@ -347,7 +347,7 @@ export function InventoryBoard({ inventoryId, inventories, addedId, deletedId, e
       ) : (
         <ul className="mt-3 flex flex-col border-t border-border">
           {shown.map((entry) => (
-            <li key={entry.id} id={slotElementId(entry.id)} className="relative">
+            <li key={entry.id} id={slotElementId(entry.id)} className={`relative ${SCROLL_MARGIN}`}>
               {entry.deleted ? (
                 <UndoSlotRow entry={entry} onUndo={undoDelete} />
               ) : entry.kind === "item" ? (
@@ -428,6 +428,9 @@ export function InventoryBoard({ inventoryId, inventories, addedId, deletedId, e
 }
 
 // 스크롤할 칸을 찾기 위한 이름표
+// 칸으로 스크롤할 때(?added= · 되돌리기 · 짐싸기 뒤) 위에 붙은 헤더 밑에 숨지 않게 — 폰은 헤더미니(64) + 상태 막대, 웹은 상단 바(76)
+const SCROLL_MARGIN = "scroll-mt-[calc(4rem+env(safe-area-inset-top))] lg:scroll-mt-24";
+
 function slotElementId(entryId: string) {
   return `slot-${entryId}`;
 }
@@ -455,7 +458,7 @@ function Grid({ entries, slotCount, columns: preferred, isFull, actionsFor, onAc
     // 웹은 7칸 고정 (피그마). 설정의 3/4칸은 폰에만
     <ul className={`mt-6 grid gap-3.5 px-5 lg:grid-cols-7 ${className}`}>
       {entries.map((entry, index) => (
-        <li key={entry.id} id={slotElementId(entry.id)} className="relative">
+        <li key={entry.id} id={slotElementId(entry.id)} className={`relative ${SCROLL_MARGIN}`}>
           {entry.deleted ? (
             <UndoSlotCell entry={entry} onUndo={onUndo} />
           ) : (

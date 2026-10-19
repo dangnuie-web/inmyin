@@ -9,6 +9,7 @@ import { SoonButton } from "@/components/profile/SoonButton";
 import { HeaderMini } from "@/components/ui/HeaderMini";
 import { requireProfile } from "@/lib/auth/profile";
 import { formatShortDate } from "@/lib/item/rules";
+import { StickyTop } from "@/components/ui/StickyTop";
 
 export const metadata: Metadata = { title: "설정 · INMYIN" };
 
@@ -21,7 +22,9 @@ export default async function SettingsPage() {
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col">
-      <HeaderMini icon="back" href="/my" title="설정" />
+      <StickyTop>
+        <HeaderMini icon="back" href="/my" title="설정" />
+      </StickyTop>
 
       <div className="flex flex-col px-5 pb-10">
         <Section title="멤버십">

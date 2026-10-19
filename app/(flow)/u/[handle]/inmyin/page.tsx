@@ -10,6 +10,7 @@ import { hasBlocked } from "@/lib/block/queries";
 import { isFollowing } from "@/lib/follow/queries";
 import { getUserPosts } from "@/lib/inmyin/queries";
 import { getPublicProfile } from "@/lib/profile/public-queries";
+import { StickyTop } from "@/components/ui/StickyTop";
 
 export const metadata: Metadata = { title: "INMYIN · INMYIN" };
 
@@ -33,9 +34,9 @@ export default async function OtherPostsPage(props: PageProps<"/u/[handle]/inmyi
       corner={<OtherProfileCorner userId={person.id} blocked={blocked} guest={!profile} />}
       actions={<OtherProfileActions userId={person.id} handle={person.handle} nickname={person.nickname} following={following} blocked={blocked} guest={!profile} />}
     >
-      <div className="lg:hidden">
+      <StickyTop phoneOnly>
         <BackHeader title="INMYIN" />
-      </div>
+      </StickyTop>
       <main className="flex flex-1 flex-col lg:mx-5 lg:mt-4 lg:rounded-xl lg:bg-gray-1 lg:pt-6 lg:pb-4">
         <PostGrid posts={posts} emptyText="아직 INMYIN 이 없어요." note={`${posts.length}개`} />
       </main>

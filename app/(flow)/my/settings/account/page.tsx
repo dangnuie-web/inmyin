@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { HeaderMini } from "@/components/ui/HeaderMini";
 import { getSessionProfile } from "@/lib/auth/profile";
 import { formatShortDate } from "@/lib/item/rules";
+import { StickyTop } from "@/components/ui/StickyTop";
 
 export const metadata: Metadata = { title: "로그인 정보 · INMYIN" };
 
@@ -24,7 +25,9 @@ export default async function AccountPage() {
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col">
-      <HeaderMini icon="back" href="/my/settings" title="로그인 정보" />
+      <StickyTop>
+        <HeaderMini icon="back" href="/my/settings" title="로그인 정보" />
+      </StickyTop>
       <dl className="mt-4 flex flex-col px-5">
         {rows.map(({ label, value }) => (
           <div key={label} className="flex h-12 items-center justify-between gap-4 border-b border-gray-3 text-body">

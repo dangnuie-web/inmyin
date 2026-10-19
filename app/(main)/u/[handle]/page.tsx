@@ -15,6 +15,7 @@ import { hasBlocked } from "@/lib/block/queries";
 import { isFollowing } from "@/lib/follow/queries";
 import { otherInventoriesPath, otherItemsPath, otherPostsPath } from "@/lib/profile/paths";
 import { getPublicProfile, getVisibleInventories } from "@/lib/profile/public-queries";
+import { StickyTop } from "@/components/ui/StickyTop";
 
 export const metadata: Metadata = { title: "프로필 · INMYIN" };
 
@@ -43,7 +44,9 @@ export default async function OtherProfilePage(props: PageProps<"/u/[handle]">) 
       {/* 폰: 프로필 줄 · 버튼 · 세 줄(INVENTORY › ITEM › INMYIN) */}
         <div className="flex flex-1 flex-col pb-6 lg:hidden">
         {/* ⋮ 메뉴 — 차단하기 / 차단 해제. 차단했으면 아래의 숫자와 목록은 DB 규칙 때문에 비어 보인다 */}
-        <BackHeader title="PROFILE" action={<OtherProfileCorner userId={person.id} blocked={blocked} guest={!profile} />} />
+        <StickyTop>
+          <BackHeader title="PROFILE" action={<OtherProfileCorner userId={person.id} blocked={blocked} guest={!profile} />} />
+        </StickyTop>
 
         <section className="flex items-center gap-8.5 px-5 pt-1">
           <Avatar url={person.avatarUrl} size={98} />

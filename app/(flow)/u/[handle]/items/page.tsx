@@ -10,6 +10,7 @@ import { HANDLE_PATTERN } from "@/lib/auth/rules";
 import { hasBlocked } from "@/lib/block/queries";
 import { isFollowing } from "@/lib/follow/queries";
 import { getPublicProfile, getVisibleItemCollection } from "@/lib/profile/public-queries";
+import { StickyTop } from "@/components/ui/StickyTop";
 
 export const metadata: Metadata = { title: "아이템 · INMYIN" };
 
@@ -33,9 +34,9 @@ export default async function OtherItemsPage(props: PageProps<"/u/[handle]/items
       corner={<OtherProfileCorner userId={person.id} blocked={blocked} guest={!profile} />}
       actions={<OtherProfileActions userId={person.id} handle={person.handle} nickname={person.nickname} following={following} blocked={blocked} guest={!profile} />}
     >
-      <div className="lg:hidden">
+      <StickyTop phoneOnly>
         <BackHeader title="아이템" />
-      </div>
+      </StickyTop>
       <main className="flex flex-1 flex-col lg:mx-5 lg:mt-4 lg:rounded-xl lg:bg-gray-1 lg:pt-6 lg:pb-4">
         <ItemCollection items={items} capacity={null} columns={profile ? toGridColumns(profile.grid_columns) : DEFAULT_GRID_COLUMNS} emptyText="공개된 아이템이 아직 없어요." />
       </main>

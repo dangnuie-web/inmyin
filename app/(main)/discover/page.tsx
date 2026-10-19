@@ -6,6 +6,7 @@ import { getViewer } from "@/lib/auth/profile";
 import { DISCOVER_PATH, loginPath } from "@/lib/auth/paths";
 import { getMyFollowingIds } from "@/lib/follow/queries";
 import { getDiscoverUsers, RECOMMEND_THRESHOLD, type DiscoverMode } from "@/lib/ranking";
+import { StickyTop } from "@/components/ui/StickyTop";
 
 export const metadata: Metadata = { title: "발견 · INMYIN" };
 
@@ -27,14 +28,16 @@ export default async function DiscoverPage(props: PageProps<"/discover">) {
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col lg:max-w-web">
       {/* 제목 줄 — 홈 갈래 줄과 같은 자리 · 크기 · 밑줄. 종은 없다(알림은 홈에서). 로그인 안 했으면 폰에서만 오른쪽 끝에 로그인 (웹은 상단 바에 있다) */}
-      <div className="flex items-end px-5 pt-5 text-body font-bold text-ink">
-        <h1 className={`${TAB_CLASS} border-ink`}>발견</h1>
-        {!profile && (
-          <Link href={loginPath(DISCOVER_PATH)} className={`${TAB_CLASS} ml-auto border-transparent active:opacity-60 lg:hidden`}>
-            로그인
-          </Link>
-        )}
-      </div>
+      <StickyTop>
+        <div className="flex items-end px-5 pt-5 text-body font-bold text-ink">
+          <h1 className={`${TAB_CLASS} border-ink`}>발견</h1>
+          {!profile && (
+            <Link href={loginPath(DISCOVER_PATH)} className={`${TAB_CLASS} ml-auto border-transparent active:opacity-60 lg:hidden`}>
+              로그인
+            </Link>
+          )}
+        </div>
+      </StickyTop>
 
       {/* 피그마 H-05: 오른쪽 끝에 추천 | 인기 */}
       <p className="mt-5 flex justify-end gap-1 px-5 text-label">

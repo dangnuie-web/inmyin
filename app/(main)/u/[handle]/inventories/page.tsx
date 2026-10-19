@@ -9,6 +9,7 @@ import { HANDLE_PATTERN } from "@/lib/auth/rules";
 import { hasBlocked } from "@/lib/block/queries";
 import { isFollowing } from "@/lib/follow/queries";
 import { getPublicProfile, getVisibleInventories } from "@/lib/profile/public-queries";
+import { StickyTop } from "@/components/ui/StickyTop";
 
 export const metadata: Metadata = { title: "인벤토리 · INMYIN" };
 
@@ -32,9 +33,9 @@ export default async function OtherInventoriesPage(props: PageProps<"/u/[handle]
       corner={<OtherProfileCorner userId={person.id} blocked={blocked} guest={!profile} />}
       actions={<OtherProfileActions userId={person.id} handle={person.handle} nickname={person.nickname} following={following} blocked={blocked} guest={!profile} />}
     >
-      <div className="lg:hidden">
+      <StickyTop phoneOnly>
         <BackHeader title="INVENTORY" />
-      </div>
+      </StickyTop>
       <VisibleInventoryList handle={handle} inventories={inventories} />
     </ProfileShell>
   );

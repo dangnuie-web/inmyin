@@ -7,6 +7,7 @@ import { requireProfile } from "@/lib/auth/profile";
 import { getMyInventories } from "@/lib/inventory/queries";
 import { planLimits } from "@/lib/plans";
 import { getMyProfileStats } from "@/lib/profile/queries";
+import { StickyTop } from "@/components/ui/StickyTop";
 
 export const metadata: Metadata = { title: "인벤토리 · INMYIN" };
 
@@ -25,9 +26,9 @@ export default async function InventoriesPage() {
       corner={<MyProfileCorner />}
       actions={<MyProfileActions handle={profile.handle} nickname={profile.nickname} />}
     >
-      <div className="lg:hidden">
+      <StickyTop phoneOnly>
         <HeaderMini icon="back" href="/my" title="INVENTORY" />
-      </div>
+      </StickyTop>
       <MyInventoriesSection inventories={inventories} maxInventories={maxInventories} slotCount={slotCount} />
     </ProfileShell>
   );

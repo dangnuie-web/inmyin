@@ -12,6 +12,7 @@ import { requireProfile } from "@/lib/auth/profile";
 import { getMyInventories } from "@/lib/inventory/queries";
 import { planLimits } from "@/lib/plans";
 import { getMyProfileStats } from "@/lib/profile/queries";
+import { StickyTop } from "@/components/ui/StickyTop";
 
 export const metadata: Metadata = { title: "프로필 · INMYIN" };
 
@@ -32,7 +33,9 @@ export default async function MyProfilePage() {
     >
       {/* 폰: 프로필 줄 · 버튼 · 세 줄(INVENTORY › ITEM › INMYIN) */}
       <div className="flex flex-1 flex-col pb-6 lg:hidden">
-        <HeaderMini icon="settings" href="/my/settings" title="PROFILE" />
+        <StickyTop>
+          <HeaderMini icon="settings" href="/my/settings" title="PROFILE" />
+        </StickyTop>
 
         <section className="flex items-center gap-8.5 px-5 pt-1">
           <Avatar url={profile.avatar_url} size={98} />

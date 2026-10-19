@@ -17,6 +17,7 @@ import type { SlotEntry } from "@/lib/inventory/queries";
 import { otherInventoryPath } from "@/lib/profile/paths";
 import { getPublicProfile, getVisibleInventories, getVisibleInventoryDetail } from "@/lib/profile/public-queries";
 import { NumText } from "@/components/ui/NumText";
+import { StickyTop } from "@/components/ui/StickyTop";
 
 export const metadata: Metadata = { title: "인벤토리 · INMYIN" };
 
@@ -59,9 +60,9 @@ export default async function OtherInventoryPage(props: PageProps<"/u/[handle]/i
       corner={<OtherProfileCorner userId={person.id} blocked={blocked} guest={!profile} />}
       actions={<OtherProfileActions userId={person.id} handle={person.handle} nickname={person.nickname} following={following} blocked={blocked} guest={!profile} />}
     >
-      <div className="lg:hidden">
+      <StickyTop phoneOnly>
         <BackHeader title="INVENTORY" />
-      </div>
+      </StickyTop>
       <main className="flex flex-1 flex-col lg:mx-5 lg:mt-4 lg:rounded-xl lg:bg-gray-1 lg:pb-4">
       <div className="mt-5">
         <InventoryStrip inventories={inventories} currentId={inventory.id} hrefFor={(inventoryId) => otherInventoryPath(handle, inventoryId, { view })} />
