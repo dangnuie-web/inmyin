@@ -28,8 +28,8 @@
   --color-disabled: var(--color-gray-3);
   --color-ink-muted: var(--color-gray-4);
 
-  /* 너비 — 웹(1024px 이상)의 내용 폭. 피그마 웹 화면의 가운데 기둥 */
-  --container-web: 930px;
+  /* 너비 — 웹(1024px 이상)의 내용 폭. 피그마 웹 화면의 가운데 기둥 930 → 1200, 2026-10-20 (1280 이상에서 격자 8칸) */
+  --container-web: 1200px;
 
   /* 모서리 */
   --radius-sm: 8px;

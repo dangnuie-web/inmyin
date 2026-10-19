@@ -2,12 +2,12 @@ import { PostCard } from "./PostCard";
 import type { FeedPost } from "@/lib/inmyin/queries";
 import { NumText } from "@/components/ui/NumText";
 
-// 게시물 카드 격자 — 폰 2열, 웹 5열 (H-03 · 프로필의 INMYIN 목록 · Bookmark 탭의 INMYIN 갈래 공용)
+// 게시물 카드 격자 — 폰 2열, 웹 5열(1280 이상 6열) (H-03 · 프로필의 INMYIN 목록 · Bookmark 탭의 INMYIN 갈래 공용)
 export function PostGrid({ posts, emptyText, note }: { posts: FeedPost[]; emptyText: string; note?: string }) {
   if (posts.length === 0) return <p className="mt-16 px-5 text-center text-body text-ink-muted">{emptyText}</p>;
   return (
     <>
-      <ul className="mt-4 grid grid-cols-2 gap-x-3.5 gap-y-6 px-5 pb-10 lg:grid-cols-5">
+      <ul className="mt-4 grid grid-cols-2 gap-x-3.5 gap-y-6 px-5 pb-10 lg:grid-cols-5 lg:gap-x-5 lg:gap-y-7 xl:grid-cols-6">
         {posts.map((post) => (
           <li key={post.id}>
             <PostCard post={post} />

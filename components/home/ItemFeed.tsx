@@ -112,8 +112,8 @@ export function ItemFeed({ items, q, category, categories, columns }: ItemFeedPr
           {isFiltered ? "찾는 아이템이 없어요." : "아직 공개된 아이템이 없어요. 내 인벤토리에 넣은 것이 여기에 모여요."}
         </p>
       ) : view === "grid" ? (
-        // 웹은 7칸 고정 (피그마). 설정의 3/4칸은 폰에만
-        <ul className={`mt-8 grid gap-3.5 px-5 lg:grid-cols-7 ${gridColumnsClass(columns)}`}>
+        // 웹은 7칸, 1280 이상(기둥 1200 이 다 찬 때)은 8칸 (2026-10-20). 설정의 3/4칸은 폰에만
+        <ul className={`mt-8 grid gap-3.5 px-5 lg:grid-cols-7 xl:grid-cols-8 ${gridColumnsClass(columns)}`}>
           {shown.map((item) => (
             <li key={item.id}>
               <SlotCell entry={toEntry(item)} href={itemPath(item.id, { from: "home", q, category })} />

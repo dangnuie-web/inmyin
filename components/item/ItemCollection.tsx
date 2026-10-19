@@ -94,7 +94,7 @@ export function ItemCollection({ items, capacity, columns, emptyText, sortable =
           {isFiltered ? "찾는 아이템이 없어요." : emptyText}
         </p>
       ) : view === "grid" ? (
-        <ul className={`mt-8 grid gap-3.5 px-5 lg:grid-cols-7 ${gridColumnsClass(columns)}`}>
+        <ul className={`mt-8 grid gap-3.5 px-5 lg:grid-cols-7 xl:grid-cols-8 ${gridColumnsClass(columns)}`}>
           {shown.map((item) => (
             <li key={item.id}>
               <SlotCell entry={toEntry(item)} />

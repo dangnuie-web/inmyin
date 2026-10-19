@@ -15,7 +15,8 @@ export const metadata: Metadata = {
 export default function WelcomePage() {
   return (
     <main className="flex flex-1 flex-col">
-      <div className="mx-auto flex w-full max-w-md flex-1 flex-col items-center px-5 pt-16 pb-10 lg:max-w-web lg:pt-24 lg:pb-16">
+      {/* 웹 기둥(max-w-web)이 930 → 1200 으로 넓어졌지만(2026-10-20) 랜딩은 그 결정의 범위가 아니라 전의 930 그대로 둔다 — 가방 연출의 칸 크기가 바뀌지 않게 */}
+      <div className="mx-auto flex w-full max-w-md flex-1 flex-col items-center px-5 pt-16 pb-10 lg:max-w-[930px] lg:pt-24 lg:pb-16">
         <h1 className="flex flex-col items-center gap-3 lg:gap-5">
           <Image src="/logo.svg" alt="INMYIN" width={193} height={64} priority className="h-16 w-auto lg:h-28" />
           {/* 22px · 웹 38px, 자간 −0.01em — 본문 폰트 Wanted Sans 에서 로고 폭과 맞춘 값 (2026-10-19 비교판 1안). 줄 높이는 전과 같게 */}
