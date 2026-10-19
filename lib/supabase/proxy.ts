@@ -5,9 +5,11 @@ import type { Database } from "./database.types";
 // 로그인 없이 볼 수 있는 주소. 2단계에서 피드와 타유저 프로필을 공개할 때 늘린다.
 // PWA 몫: 매니페스트 · 서비스워커(/serwist/sw.js) · 오프라인 화면은 브라우저가 로그인과 상관없이 가져간다 —
 // 로그인 화면으로 돌려보내면 앱 설치가 안 되거나 서비스워커가 로그인 화면을 저장해 버린다
-const PUBLIC_PATHS = ["/login", "/signup", "/reset-password", "/auth", "/design", "/manifest.webmanifest", "/serwist", "/offline", "/terms", "/privacy"];
-// 로그인한 사람에게는 필요 없는 주소
-const GUEST_ONLY_PATHS = ["/login", "/signup"];
+const PUBLIC_PATHS = ["/login", "/signup", "/reset-password", "/auth", "/design", "/manifest.webmanifest", "/serwist", "/offline", "/terms", "/privacy", "/welcome"];
+// 로그인한 사람에게는 필요 없는 주소 (/welcome = 랜딩)
+const GUEST_ONLY_PATHS = ["/login", "/signup", "/welcome"];
+// 로그인 안 한 사람이 / 에 오면 보여줄 랜딩. 주소창은 / 그대로 두고 내용만 바꿔 끼운다(rewrite)
+const LANDING_PATH = "/welcome";
 
 function matches(pathname: string, paths: string[]) {
   return paths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
@@ -43,6 +45,9 @@ export async function updateSession(request: NextRequest) {
   const isLoggedIn = Boolean(data?.claims);
   const { pathname } = request.nextUrl;
 
+  if (!isLoggedIn && pathname === "/") {
+    return rewriteTo(request, response, LANDING_PATH);
+  }
   if (!isLoggedIn && !matches(pathname, PUBLIC_PATHS)) {
     return redirectTo(request, response, "/login");
   }
@@ -69,4 +74,14 @@ function redirectTo(request: NextRequest, response: NextResponse, pathname: stri
   const redirect = NextResponse.redirect(url);
   response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
   return redirect;
+}
+
+// 주소는 그대로 두고 다른 화면을 보여줄 때도 갱신된 쿠키는 그대로 들고 간다
+function rewriteTo(request: NextRequest, response: NextResponse, pathname: string) {
+  const url = request.nextUrl.clone();
+  url.pathname = pathname;
+  url.search = "";
+  const rewrite = NextResponse.rewrite(url);
+  response.cookies.getAll().forEach((cookie) => rewrite.cookies.set(cookie));
+  return rewrite;
 }
