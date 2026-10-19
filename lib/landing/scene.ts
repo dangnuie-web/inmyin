@@ -55,8 +55,9 @@ export const LANDING_MOTION = {
   startDelay: 500,
   // 아이템 하나가 가방에서 칸까지 날아가는 시간
   flight: 760,
-  // 다음 아이템이 나오기까지의 간격
-  stagger: 220,
+  // 다음 아이템이 나오기까지의 간격 — 8개라 한 줄 다 나오는 데 길게 느껴져 220→160 (2026-10-19 당니님 의견).
+  // 160 은 가방 들썩임(bagHopTime 240)이 앞 들썩임의 꼬리(약 1px)에서 다시 시작하는 정도라 한 번씩 끊겨 보인다. 더 줄이면 들썩임이 떨림처럼 뭉개진다
+  stagger: 160,
   // 칸보다 이만큼 더 높이 솟았다가 내려앉는다 (포물선의 꼭대기)
   arcHeight: 70,
   // 가방 안에서 나올 때의 크기 (1 = 칸 크기)
@@ -68,8 +69,10 @@ export const LANDING_MOTION = {
   bagHop: 0.06,
   bagHopTime: 240,
   // 다 꽂힌 뒤 멈춰 있는 시간 → 사라졌다가 처음부터 다시
+  // 끝에 멈춘 시간이 너무 길다는 의견(2026-10-19)으로 hold 2800→1100, restGap 500→300. 한 바퀴 약 6.7초 → 4.4초
+  // (한 바퀴 = startDelay + 7 × stagger + flight + bounce + hold + fadeOut + restGap)
   repeat: true,
-  hold: 2800,
+  hold: 1100,
   fadeOut: 360,
-  restGap: 500,
+  restGap: 300,
 } as const;
