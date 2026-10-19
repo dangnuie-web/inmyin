@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { BagScene } from "@/components/landing/BagScene";
 import { DISCOVER_PATH, loginPath } from "@/lib/auth/paths";
 
 export const metadata: Metadata = {
@@ -20,7 +21,12 @@ export default function WelcomePage() {
           <span className="text-title lg:text-4xl">In my inventory</span>
         </h1>
 
-        <Bubble className="mt-10 lg:mt-14">
+        {/* 가방에서 아이템이 튀어나와 칸에 꽂히는 연출 (그림 · 움직임 값은 lib/landing/scene.ts) */}
+        <div className="mt-4 w-full lg:mt-6">
+          <BagScene />
+        </div>
+
+        <Bubble className="mt-5 lg:mt-6">
           내 아이템을 올리고
           <br />
           내 취향을 표현해 보자!
