@@ -54,8 +54,8 @@ export default function WelcomePage() {
 // 말풍선 — 흰 바탕에 검은 테두리, 위쪽 가운데에 꼬리 (가방을 가리킨다)
 function Bubble({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <p className={`relative rounded-md border-2 border-ink bg-white px-4 py-2.5 text-center text-label font-semibold break-keep ${className}`}>
-      <span aria-hidden className="absolute -top-[7px] left-1/2 size-3 -translate-x-1/2 rotate-45 border-t-2 border-l-2 border-ink bg-white" />
+    <p className={`relative rounded-md bg-gray-2 px-4 py-2.5 text-center text-label font-semibold break-keep ${className}`}>
+      <span aria-hidden className="absolute -top-1.5 left-1/2 size-3 -translate-x-1/2 rotate-45 rounded-[2px] bg-gray-2" />
       {children}
     </p>
   );
