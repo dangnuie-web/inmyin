@@ -38,8 +38,8 @@ export function BagScene() {
     function play() {
       stop();
       const bagBox = bag!.getBoundingClientRect();
-      // 아이템이 나오는 곳 — 가방 입구(위에서 1/4쯤)의 가운데
-      const mouth = { x: bagBox.left + bagBox.width / 2, y: bagBox.top + bagBox.height * 0.25 };
+      // 아이템이 나오는 곳 — 가방 입구(높이는 scene.ts 의 mouthY)의 가운데
+      const mouth = { x: bagBox.left + bagBox.width / 2, y: bagBox.top + bagBox.height * LANDING_BAG.mouthY };
 
       itemRefs.current.forEach((item, index) => {
         const inner = innerRefs.current[index];
@@ -155,7 +155,11 @@ export function BagScene() {
       </ul>
 
       {/* 가방은 칸들 앞(위 레이어)에 둬서 아이템이 가방 "안"에서 나오는 것처럼 보인다 */}
-      <div ref={bagRef} className="relative z-10 mt-12 aspect-[476/437] w-36 origin-bottom lg:mt-16 lg:w-52">
+      <div
+        ref={bagRef}
+        style={{ aspectRatio: `${LANDING_BAG.width} / ${LANDING_BAG.height}` }}
+        className="relative z-10 mt-12 w-36 origin-bottom lg:mt-16 lg:w-52"
+      >
         <Image src={LANDING_BAG.src} alt={LANDING_BAG.alt} fill sizes="(min-width: 1024px) 208px, 144px" unoptimized priority draggable={false} className="object-contain" />
       </div>
     </div>
