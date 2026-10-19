@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { Icon } from "@/components/ui/Icon";
 import { Toast } from "@/components/ui/Toast";
@@ -8,6 +9,7 @@ import {
   AUTO_DELAY_MS,
   autoAllowed,
   BAND_EVENT,
+  bandHiddenOn,
   bandPanelFor,
   bandSteps,
   canAutoGuide,
@@ -484,10 +486,12 @@ function bandSnapshot() {
 }
 
 // 화면 맨 위의 얇은 띠 — 아이폰 판의 "알겠어요"를 누르면 판이 이것으로 줄어든다 (lib/install-guide.ts 의 "안내 띠").
-// 루트 레이아웃의 맨 위, 화면 흐름 안에 놓여서 아래 화면을 덮지 않고 그만큼 밀어 내린다. 같은 탭 안에서는 화면을 옮겨도 남는다
+// 루트 레이아웃의 맨 위, 화면 흐름 안에 놓여서 아래 화면을 덮지 않고 그만큼 밀어 내린다. 같은 탭 안에서는 화면을 옮겨도 남는다.
+// 화면 높이에 꽉 맞춘 화면(촬영 · 에디터 · 짐싸기)에서는 잠깐 숨는다 — 기록은 그대로라 돌아오면 다시 보인다
 export function InstallGuideBand() {
   const panel = useSyncExternalStore(subscribeBand, bandSnapshot, () => null);
-  if (!panel) return null;
+  const pathname = usePathname();
+  if (!panel || bandHiddenOn(pathname)) return null;
 
   const steps = bandSteps(panel);
   return (

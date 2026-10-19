@@ -309,6 +309,20 @@ export function bandSteps(panel: BandPanel): StepPart[] {
     : [{ chip: "공유", icon: "share" }, ADD_TO_HOME];
 }
 
+// 띠를 숨기는 화면 — 화면 높이에 꽉 맞춘 화면이라 띠가 밀어 내리면 아래가 넘친다 (2026-10-20 당니님 결정).
+// 숨기기만 하고 기록은 그대로라, 다른 화면으로 돌아오면 다시 보인다
+//   촬영(M-06) · INMYIN 에디터 · 짐싸기
+export const BAND_HIDDEN_PATHS: RegExp[] = [
+  /^\/my\/inventories\/[^/]+\/items\/camera\/?$/,
+  /^\/my\/inventories\/new\/camera\/?$/,
+  /^\/my\/inmyin\/new\/?$/,
+  /^\/my\/inventories\/[^/]+\/packing\/?$/,
+];
+
+export function bandHiddenOn(pathname: string) {
+  return BAND_HIDDEN_PATHS.some((pattern) => pattern.test(pathname));
+}
+
 export function bandPanelFor(env: InstallEnv): BandPanel | null {
   return env.kind === "ios" ? env.panel : null;
 }
