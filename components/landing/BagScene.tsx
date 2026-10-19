@@ -11,13 +11,15 @@ import { LANDING_BAG, LANDING_COLUMNS, LANDING_ITEMS, LANDING_MOTION as M } from
 export function BagScene() {
   const rootRef = useRef<HTMLDivElement>(null);
   const bagRef = useRef<HTMLDivElement>(null);
+  const bagFrontRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
   const innerRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
     const root = rootRef.current;
     const bag = bagRef.current;
-    if (!root || !bag) return;
+    const bagFront = bagFrontRef.current;
+    if (!root || !bag || !bagFront) return;
 
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
     let animations: Animation[] = [];
@@ -38,8 +40,8 @@ export function BagScene() {
     function play() {
       stop();
       const bagBox = bag!.getBoundingClientRect();
-      // 아이템이 나오는 곳 — 가방 입구(높이는 scene.ts 의 mouthY)의 가운데
-      const mouth = { x: bagBox.left + bagBox.width / 2, y: bagBox.top + bagBox.height * LANDING_BAG.mouthY };
+      // 아이템이 나오는 곳 — 열린 입구 안(자리는 scene.ts 의 mouthX · mouthY)
+      const mouth = { x: bagBox.left + bagBox.width * LANDING_BAG.mouthX, y: bagBox.top + bagBox.height * LANDING_BAG.mouthY };
 
       itemRefs.current.forEach((item, index) => {
         const inner = innerRefs.current[index];
@@ -77,17 +79,19 @@ export function BagScene() {
           ),
         );
 
-        // 아이템이 나갈 때 가방이 한 번 들썩인다
-        animations.push(
-          bag!.animate(
-            [
-              { transform: "translateY(0) scale(1)" },
-              { transform: `translateY(-4px) scale(${1 + M.bagHop}, ${1 - M.bagHop / 2})`, offset: 0.4 },
-              { transform: "translateY(0) scale(1)" },
-            ],
-            { duration: M.bagHopTime, delay: launch, easing: "ease-out" },
-          ),
-        );
+        // 아이템이 나갈 때 가방이 한 번 들썩인다 — 뒤 겹 · 앞 겹을 똑같이
+        for (const layer of [bag!, bagFront!]) {
+          animations.push(
+            layer.animate(
+              [
+                { transform: "translateY(0) scale(1)" },
+                { transform: `translateY(-4px) scale(${1 + M.bagHop}, ${1 - M.bagHop / 2})`, offset: 0.4 },
+                { transform: "translateY(0) scale(1)" },
+              ],
+              { duration: M.bagHopTime, delay: launch, easing: "ease-out" },
+            ),
+          );
+        }
       });
       // 애니메이션이 첫 장면(가방 안, 투명)을 잡은 뒤에 숨김을 푼다 — 사이에 화면이 한 번도 그려지지 않는다
       root!.dataset.scene = "playing";
@@ -131,7 +135,7 @@ export function BagScene() {
       <ul
         aria-label="가방에서 나온 아이템"
         style={columns}
-        className="grid w-full max-w-[calc(var(--cols)*6rem)] grid-cols-[repeat(var(--cols),minmax(0,1fr))] gap-2.5 lg:max-w-[calc(var(--cols-lg)*8.5rem)] lg:grid-cols-[repeat(var(--cols-lg),minmax(0,1fr))] lg:gap-3.5"
+        className="relative z-10 grid w-full max-w-[calc(var(--cols)*6rem)] grid-cols-[repeat(var(--cols),minmax(0,1fr))] gap-2.5 lg:max-w-[calc(var(--cols-lg)*8.5rem)] lg:grid-cols-[repeat(var(--cols-lg),minmax(0,1fr))] lg:gap-3.5"
       >
         {LANDING_ITEMS.map((item, index) => (
           <li key={`${index}-${item.src}`} className="relative aspect-square rounded-sm bg-gray-2">
@@ -154,13 +158,16 @@ export function BagScene() {
         ))}
       </ul>
 
-      {/* 가방은 칸들 앞(위 레이어)에 둬서 아이템이 가방 "안"에서 나오는 것처럼 보인다 */}
-      <div
-        ref={bagRef}
-        style={{ aspectRatio: `${LANDING_BAG.width} / ${LANDING_BAG.height}` }}
-        className="relative z-10 mt-12 w-36 origin-bottom lg:mt-16 lg:w-52"
-      >
-        <Image src={LANDING_BAG.src} alt={LANDING_BAG.alt} fill sizes="(min-width: 1024px) 208px, 144px" unoptimized priority draggable={false} className="object-contain" />
+      {/* 가방은 두 겹 — 통째 그림(뒤 겹)은 칸들 뒤, 앞 지퍼 입술 아래만 남긴 그림(앞 겹)은 칸들 앞.
+          그래서 아이템이 열린 입구 안 안감 위에서 작게 나타나 앞 입술 뒤에서 솟아오른다.
+          이 감싸는 div 에는 z-index · transform 을 주지 않는다 (두 겹이 칸들 앞뒤로 갈라져 쌓이도록) */}
+      <div style={{ aspectRatio: `${LANDING_BAG.width} / ${LANDING_BAG.height}` }} className="relative mt-12 w-32 lg:mt-16 lg:w-48">
+        <div ref={bagRef} className="absolute inset-0 z-0 origin-bottom">
+          <Image src={LANDING_BAG.src} alt={LANDING_BAG.alt} fill sizes="(min-width: 1024px) 192px, 128px" unoptimized priority draggable={false} className="object-contain" />
+        </div>
+        <div ref={bagFrontRef} aria-hidden className="pointer-events-none absolute inset-0 z-20 origin-bottom">
+          <Image src={LANDING_BAG.frontSrc} alt="" fill sizes="(min-width: 1024px) 192px, 128px" unoptimized priority draggable={false} className="object-contain" />
+        </div>
       </div>
     </div>
   );
