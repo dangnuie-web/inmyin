@@ -23,13 +23,72 @@ export function BagScene() {
 
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
     let animations: Animation[] = [];
-    let timers: number[] = [];
+    // 타이머도 멈췄다 이어 갈 수 있게 남은 시간을 들고 있는다
+    type Timer = { id: number | null; run: () => void; remaining: number; startedAt: number };
+    let timers: Timer[] = [];
+    // 연출이 화면 안에 있는지 · 탭이 보이는지. 둘 다일 때만 돈다
+    let onScreen = true;
+    let pageShown = document.visibilityState !== "hidden";
+    let paused = false;
+    // 멈춰 있는 동안 배치가 바뀌면 다시 보일 때 처음부터 시작한다
+    let restartOnResume = false;
+
+    function later(run: () => void, delay: number) {
+      const timer: Timer = { id: null, run, remaining: delay, startedAt: 0 };
+      timers.push(timer);
+      if (!paused) startTimer(timer);
+    }
+
+    function startTimer(timer: Timer) {
+      timer.startedAt = performance.now();
+      timer.id = window.setTimeout(() => {
+        timers = timers.filter((other) => other !== timer);
+        timer.run();
+      }, timer.remaining);
+    }
 
     function stop() {
-      timers.forEach((timer) => window.clearTimeout(timer));
+      timers.forEach((timer) => {
+        if (timer.id !== null) window.clearTimeout(timer.id);
+      });
       animations.forEach((animation) => animation.cancel());
       timers = [];
       animations = [];
+    }
+
+    // 화면 밖 · 탭 숨김 — 그 자리에서 멈췄다가 보이면 이어서 돈다 (움직임은 그대로, 계산만 쉰다)
+    function pause() {
+      if (paused) return;
+      paused = true;
+      const now = performance.now();
+      timers.forEach((timer) => {
+        if (timer.id === null) return;
+        window.clearTimeout(timer.id);
+        timer.id = null;
+        timer.remaining = Math.max(0, timer.remaining - (now - timer.startedAt));
+      });
+      animations.forEach((animation) => {
+        if (animation.playState !== "finished") animation.pause();
+      });
+    }
+
+    function resume() {
+      if (!paused) return;
+      paused = false;
+      if (restartOnResume) {
+        restartOnResume = false;
+        update();
+        return;
+      }
+      animations.forEach((animation) => {
+        if (animation.playState === "paused") animation.play();
+      });
+      timers.forEach(startTimer);
+    }
+
+    function syncRunning() {
+      if (onScreen && pageShown) resume();
+      else pause();
     }
 
     function still() {
@@ -98,27 +157,69 @@ export function BagScene() {
 
       if (!M.repeat) return;
       const landed = M.startDelay + (LANDING_ITEMS.length - 1) * M.stagger + M.flight + M.bounce;
-      timers.push(
-        window.setTimeout(() => {
-          itemRefs.current.forEach((item) => {
-            if (item) animations.push(item.animate([{ opacity: 1 }, { opacity: 0 }], { duration: M.fadeOut, fill: "forwards" }));
-          });
-          // 다시 시작할 때도 startDelay 만큼 쉬었다가 나온다
-          timers.push(window.setTimeout(play, M.fadeOut + M.restGap));
-        }, landed + M.hold),
-      );
+      later(() => {
+        itemRefs.current.forEach((item) => {
+          if (item) animations.push(item.animate([{ opacity: 1 }, { opacity: 0 }], { duration: M.fadeOut, fill: "forwards" }));
+        });
+        // 다시 시작할 때도 startDelay 만큼 쉬었다가 나온다
+        later(play, M.fadeOut + M.restGap);
+      }, landed + M.hold);
     }
 
     function update() {
-      if (reduce.matches) still();
-      else play();
+      if (reduce.matches) {
+        still();
+        return;
+      }
+      // 멈춘 동안 새로 시작했으면 첫 장면에서 바로 멈춰 둔다 (보이면 그때부터 돈다)
+      const wasPaused = paused;
+      paused = false;
+      play();
+      if (wasPaused) pause();
     }
 
     update();
     // 보는 도중에 "동작 줄이기"를 켜고 끌 수도 있다
     reduce.addEventListener("change", update);
+
+    // 화면 밖으로 스크롤되면 멈춘다
+    const visibility = new IntersectionObserver((entries) => {
+      onScreen = entries[entries.length - 1].isIntersecting;
+      syncRunning();
+    });
+    visibility.observe(root);
+
+    // 다른 탭 · 앱으로 가면 멈춘다
+    function onVisibilityChange() {
+      pageShown = document.visibilityState !== "hidden";
+      syncRunning();
+    }
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    // 폰을 돌리거나 창 크기가 바뀌어 칸 · 가방 자리가 달라지면, 날아가는 길을 새 자리로 다시 재고 처음부터 시작한다.
+    // 크기가 바뀌는 동안은 기다렸다가 멈춘 뒤 한 번만(디바운스). 크기가 그대로면(주소창이 접히는 등) 건드리지 않는다
+    let lastSize = { width: root.offsetWidth, height: root.offsetHeight };
+    let resizeTimer: number | null = null;
+    const resize = new ResizeObserver(() => {
+      if (resizeTimer !== null) window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(() => {
+        resizeTimer = null;
+        const size = { width: root.offsetWidth, height: root.offsetHeight };
+        if (size.width === lastSize.width && size.height === lastSize.height) return;
+        lastSize = size;
+        if (reduce.matches) return;
+        if (paused) restartOnResume = true;
+        else update();
+      }, 200);
+    });
+    resize.observe(root);
+
     return () => {
       reduce.removeEventListener("change", update);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      visibility.disconnect();
+      resize.disconnect();
+      if (resizeTimer !== null) window.clearTimeout(resizeTimer);
       stop();
     };
   }, []);
