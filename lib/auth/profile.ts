@@ -31,6 +31,13 @@ const getProfileByClaims = cache(async () => {
   return { loggedIn: true, profile };
 });
 
+// 로그인했는지만 — 웹 상단 바의 로그아웃 · 로그인 자리(components/ui/WebNavAccount)용.
+// 같은 요청 안의 화면(requireProfile · getViewer)과 cache 를 같이 써서 따로 묻지 않는다
+export async function isLoggedIn() {
+  const { loggedIn } = await getProfileByClaims();
+  return loggedIn;
+}
+
 // 프로필이 있어야 하는 화면의 맨 위에서 부른다.
 // 로그인 전이면 A-01, 프로필을 아직 안 만들었으면 A-03 으로 보낸다.
 export async function requireProfile() {

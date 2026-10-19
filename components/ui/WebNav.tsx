@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 
 // 웹(1024px 이상)의 상단 메뉴 — 하단 탭 대신. 이름과 갈 곳은 하단 탭과 같다 (BottomTab). 고른 메뉴에 밑줄.
@@ -18,7 +19,8 @@ function activeHref(pathname: string) {
   return entry?.href ?? "/";
 }
 
-export function WebNav() {
+// account — 오른쪽 끝의 로그아웃 · 로그인 자리. 로그인 여부는 서버에서 읽어야 해서 레이아웃이 서버 컴포넌트(WebNavAccount)로 넣어 준다
+export function WebNav({ account }: { account?: ReactNode }) {
   const current = activeHref(usePathname());
 
   return (
@@ -43,6 +45,7 @@ export function WebNav() {
             );
           })}
         </ul>
+        <div className="ml-auto flex items-center">{account}</div>
       </nav>
     </header>
   );
