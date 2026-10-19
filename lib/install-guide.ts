@@ -33,7 +33,7 @@ export const PROMPT_EVENT = "inmyin-installprompt";
 
 // ── 기록 ─────────────────────────────────────────────────────
 
-// shown: 자동 · 설정으로 띄운 시트를 닫은 횟수 · lastAt: 마지막으로 닫은 때 · never: "다시 보지 않기"(또는 설치함)
+// shown: 자동으로 뜬 시트를 닫은 횟수 (설정에서 직접 연 것은 세지 않는다) · lastAt: 마지막으로 닫은 때 · never: "다시 보지 않기"(또는 설치함)
 export type GuideRecord = { shown: number; lastAt: string | null; never: boolean };
 
 const EMPTY_RECORD: GuideRecord = { shown: 0, lastAt: null, never: false };

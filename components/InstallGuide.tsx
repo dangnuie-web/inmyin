@@ -62,6 +62,7 @@ export function InstallGuideAuto({ addedId }: { addedId: string | null }) {
       {env && (
         <InstallGuideSheet
           env={env}
+          countsAsAuto
           onClosed={(message) => {
             setEnv(null);
             if (message) setNotice(message);
@@ -143,8 +144,18 @@ function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-// 아래에서 올라오는 판 (설계서 3절 A안). 닫히면 onClosed — 띄울 안내(토스트)가 있으면 같이 넘긴다
-function InstallGuideSheet({ env, onClosed }: { env: InstallEnv; onClosed: (notice: string | null) => void }) {
+// 아래에서 올라오는 판 (설계서 3절 A안). 닫히면 onClosed — 띄울 안내(토스트)가 있으면 같이 넘긴다.
+// countsAsAuto — 자동으로 뜬 시트만 닫을 때 자동 횟수에 센다. 설정에서 직접 연 것은 세지 않는다 (2026-10-19 당니님 결정).
+// "다시 보지 않기" · 설치함은 어디서 열었든 적는다
+function InstallGuideSheet({
+  env,
+  countsAsAuto = false,
+  onClosed,
+}: {
+  env: InstallEnv;
+  countsAsAuto?: boolean;
+  onClosed: (notice: string | null) => void;
+}) {
   const content = guideContent(env);
   const [phase, setPhase] = useState<Phase>("enter");
   const sheetRef = useRef<HTMLDivElement>(null);
@@ -174,11 +185,11 @@ function InstallGuideSheet({ env, onClosed }: { env: InstallEnv; onClosed: (noti
     (reason: CloseReason, notice: string | null = null) => {
       if (busy.current) return;
       busy.current = true;
-      recordClose(reason);
+      if (reason === "never" || countsAsAuto) recordClose(reason);
       setPhase("leave");
       setTimeout(() => onClosed(notice), prefersReducedMotion() ? 0 : SHEET_SLIDE_MS);
     },
-    [onClosed],
+    [countsAsAuto, onClosed],
   );
 
   async function run(action: GuideAction) {
