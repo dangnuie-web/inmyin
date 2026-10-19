@@ -143,7 +143,8 @@ export function BagScene() {
               ref={(element) => {
                 itemRefs.current[index] = element;
               }}
-              className="absolute inset-[10%] will-change-transform motion-safe:group-data-[scene=pending]:opacity-0"
+              // z-10: 날아가는 동안 다른 칸의 회색 박스보다 위로. li 는 쌓임 맥락이 없어 ul 안에서 겨룬다(가방 앞 겹 z-20 보다는 여전히 아래)
+              className="absolute inset-[10%] z-10 will-change-transform motion-safe:group-data-[scene=pending]:opacity-0"
             >
               <div
                 ref={(element) => {
