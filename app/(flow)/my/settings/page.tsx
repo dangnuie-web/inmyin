@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { signOut } from "@/app/(auth)/actions";
 import { toGridColumns } from "@/components/inventory/Slot";
+import { InstallGuideSettingsRow } from "@/components/InstallGuide";
 import { GridColumnsSetting } from "@/components/profile/GridColumnsSetting";
 import { SoonButton } from "@/components/profile/SoonButton";
 import { HeaderMini } from "@/components/ui/HeaderMini";
@@ -41,6 +42,8 @@ export default async function SettingsPage() {
             격자 한 줄에
             <GridColumnsSetting current={toGridColumns(profile.grid_columns)} />
           </div>
+          {/* 설치 안내를 언제든 다시 여는 줄. 이미 설치한 앱으로 열었거나 데스크톱이면 숨는다 (components/InstallGuide.tsx) */}
+          <InstallGuideSettingsRow className={ROW_CLASS} />
           <Link href="/my/settings/blocked" className={ROW_CLASS}>
             차단한 사용자
           </Link>

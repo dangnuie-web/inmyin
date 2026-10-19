@@ -94,6 +94,18 @@
     }
   }
 
+  /* 움직임 — 흐렸다가 선명해진다. 설치 안내 시트의 칸 그림에서 INMYIN 이름 (components/InstallGuide.tsx) */
+  --animate-fade-in: fade-in 0.3s ease-out both;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
   /* 움직임 — "되돌리기" 칸 아래의 선이 5초 동안 줄어든다 (M-04). 길이는 InventoryBoard 의 UNDO_MS 와 맞춘다 */
   --animate-undo-countdown: undo-countdown 5s linear forwards;
 

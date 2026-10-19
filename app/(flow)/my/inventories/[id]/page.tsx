@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { InstallGuideAuto } from "@/components/InstallGuide";
 import { InventoryBoard } from "@/components/inventory/InventoryBoard";
 import { toGridColumns } from "@/components/inventory/Slot";
 import { InventoryStrip } from "@/components/inventory/InventoryStrip";
@@ -36,6 +37,9 @@ export default async function InventoryDetailPage(props: PageProps<"/my/inventor
     getMyProfileStats(profile.id),
   ]);
   if (!inventory) notFound();
+
+  // 방금 저장한 아이템 (items/new/actions.ts 의 redirect). 그 칸을 알리고, 설치 안내를 띄울지 본다
+  const addedId = typeof searchParams.added === "string" ? searchParams.added : null;
 
   const view: InventoryView = searchParams.view === "list" ? "list" : "grid";
   // 주소에 적힌 카테고리가 이 인벤토리의 태그일 때만 거른다. 아니면 전체
@@ -90,7 +94,7 @@ export default async function InventoryDetailPage(props: PageProps<"/my/inventor
       <InventoryBoard
         inventoryId={inventory.id}
         inventories={inventories}
-        addedId={typeof searchParams.added === "string" ? searchParams.added : null}
+        addedId={addedId}
         deletedId={deletedId}
         entries={entries}
         usedSlots={inventory.entries.filter((entry) => !entry.deleted).length}
@@ -99,6 +103,8 @@ export default async function InventoryDetailPage(props: PageProps<"/my/inventor
         columns={toGridColumns(profile.grid_columns)}
       />
       </main>
+      {/* 아이템을 저장하고 돌아온 직후 "홈 화면에 INMYIN을 꽂아 두세요" (자동 최대 2번, 규칙은 lib/install-guide.ts) */}
+      <InstallGuideAuto addedId={addedId} />
     </ProfileShell>
   );
 }
