@@ -159,8 +159,8 @@ export function BagScene() {
         ))}
       </ul>
 
-      {/* 가방은 두 겹 — 통째 그림(뒤 겹)은 칸들 뒤, 앞 지퍼 입술 아래만 남긴 그림(앞 겹)은 칸들 앞.
-          그래서 아이템이 열린 입구 안 안감 위에서 작게 나타나 앞 입술 뒤에서 솟아오른다.
+      {/* 가방은 두 겹 — 통째 그림(뒤 겹)은 칸들 뒤, 앞 지퍼선 아래만 남긴 그림(앞 겹)은 칸들 앞.
+          그래서 아이템이 열린 입구 안 안감 위에서 작게 나타나 앞 지퍼선 뒤에서 솟아오른다.
           이 감싸는 div 에는 z-index · transform 을 주지 않는다 (두 겹이 칸들 앞뒤로 갈라져 쌓이도록) */}
       <div style={{ aspectRatio: `${LANDING_BAG.width} / ${LANDING_BAG.height}` }} className="relative mt-12 w-32 lg:mt-16 lg:w-48">
         <div ref={bagRef} className="absolute inset-0 z-0 origin-bottom">
