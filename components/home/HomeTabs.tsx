@@ -17,7 +17,7 @@ type HomeTabsProps = {
   current: (typeof TABS)[number]["id"];
   // 안 본 알림이 있으면 종에 빨간 점
   unread: boolean;
-  // 로그인 안 한 사람 — "아이템" 갈래는 없고(로그인 전의 / 는 랜딩이다) 종 자리에 "로그인"
+  // 로그인 안 한 사람 — "아이템" 갈래는 없고(로그인 전의 / 는 랜딩이다) 종 자리에 "로그인". 웹은 상단 바에 있어서 폰에서만
   guest?: boolean;
 };
 
@@ -39,7 +39,7 @@ export function HomeTabs({ current, unread, guest = false }: HomeTabsProps) {
         ),
       )}
       {guest ? (
-        <Link href={loginPath(currentHref)} className={`${TAB_CLASS} ml-auto border-transparent active:opacity-60`}>
+        <Link href={loginPath(currentHref)} className={`${TAB_CLASS} ml-auto border-transparent active:opacity-60 lg:hidden`}>
           로그인
         </Link>
       ) : (
