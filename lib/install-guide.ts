@@ -186,7 +186,8 @@ export type ChipIcon = "share" | "more" | "moreVertical" | "plus";
 export type StepPart = string | { chip: string | null; icon?: ChipIcon };
 
 // 시트의 버튼이 하는 일
-export type GuideAction = "ok" | "never" | "later" | "install" | "openExternal" | "copy";
+//   okBand — 아이폰 판의 "알겠어요". 닫으면서 화면 위쪽 안내 띠로 줄어든다 (아래 "안내 띠")
+export type GuideAction = "ok" | "okBand" | "never" | "later" | "install" | "openExternal" | "copy";
 
 export type GuideContent = {
   // 시트 위쪽의 칸 그림 (빈 칸 사이에 INMYIN 아이콘이 꽂히는 그림). 인앱 판에는 없다
@@ -273,7 +274,7 @@ export function guideContent(env: InstallEnv): GuideContent {
     steps,
     // iOS 26 사파리에서 기본 탭 모양이 아닌 사람은 공유 버튼이 바로 보인다
     note: panel === "ios26" ? "공유 버튼이 바로 보이면 그걸 눌러도 돼요." : null,
-    primary: OK,
+    primary: { label: "알겠어요", action: "okBand" },
     secondary: null,
     quiet: NEVER,
   };
@@ -289,4 +290,52 @@ export const COPY_FAILED_NOTICE = "주소를 복사하지 못했어요.";
 // 카카오톡 안에서 바깥 브라우저로 여는 주소
 export function kakaoOpenExternalUrl(url: string) {
   return `kakaotalk://web/openExternal?url=${encodeURIComponent(url)}`;
+}
+
+// ── 안내 띠 (2026-10-19 당니님 결정) ─────────────────────────────
+// 아이폰은 판을 닫아야 사파리 메뉴를 누를 수 있어서, "알겠어요"를 누르면 판이 화면 위쪽의 얇은 띠로 줄어 단계를 남긴다.
+// 사파리 메뉴 막대가 아래에 있어서 위에 둔다. 같은 탭에서는 화면을 옮기거나 새로 고쳐도 남고(sessionStorage),
+// × 를 누르거나 설치한 앱으로 열면 사라진다. × 는 "알겠어요"가 이미 적은 기록 그대로 — 따로 세지 않는다.
+// 안드로이드 · 인앱 판에는 띠가 없다
+
+export type BandPanel = "ios26" | "ios18";
+export const BAND_KEY = "inmyin-install-band";
+export const BAND_EVENT = "inmyin-install-band";
+
+// 띠에 쓰는 단계 — 판의 칩을 그대로 다시 쓴다. 칩 사이에는 "→"
+export function bandSteps(panel: BandPanel): StepPart[] {
+  return panel === "ios26"
+    ? [{ chip: null, icon: "more" }, { chip: "공유", icon: "share" }, ADD_TO_HOME]
+    : [{ chip: "공유", icon: "share" }, ADD_TO_HOME];
+}
+
+export function bandPanelFor(env: InstallEnv): BandPanel | null {
+  return env.kind === "ios" ? env.panel : null;
+}
+
+export function readBand(): BandPanel | null {
+  try {
+    const saved = sessionStorage.getItem(BAND_KEY);
+    return saved === "ios26" || saved === "ios18" ? saved : null;
+  } catch {
+    return null;
+  }
+}
+
+function setBand(panel: BandPanel | null) {
+  try {
+    if (panel) sessionStorage.setItem(BAND_KEY, panel);
+    else sessionStorage.removeItem(BAND_KEY);
+  } catch {
+    // 사생활 보호 모드 등으로 못 쓰면 띠가 남지 않는다 — 판은 이미 닫혔고 설정 줄로 다시 볼 수 있다
+  }
+  window.dispatchEvent(new Event(BAND_EVENT));
+}
+
+export function showBand(panel: BandPanel) {
+  setBand(panel);
+}
+
+export function hideBand() {
+  setBand(null);
 }

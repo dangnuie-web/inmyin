@@ -2,6 +2,7 @@ import { SerwistProvider } from "@serwist/turbopack/react";
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { wantedSans } from "./fonts/wanted-sans";
+import { InstallGuideBand } from "@/components/InstallGuide";
 import { InstallPromptCatcher } from "@/components/InstallPromptCatcher";
 import { Splash, SplashSwitch } from "@/components/Splash";
 import { colorToken } from "@/lib/design-tokens";
@@ -50,6 +51,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Splash />
         {/* 안드로이드 크롬의 설치 신호를 일찍 받아 둔다 — 설치 안내 시트의 "앱 설치" 버튼이 쓴다 (components/InstallGuide.tsx) */}
         <InstallPromptCatcher />
+        {/* 아이폰 설치 안내를 따라가는 동안 화면 맨 위에 남는 띠 ("알겠어요"를 누르면 생김, × 나 설치하면 사라짐) */}
+        <InstallGuideBand />
         {/* 서비스워커(app/sw.ts) 등록. 개발 중에는 끈다 — 고친 코드가 바로 보여야 하고, 오프라인 동작은 어차피 build + start 로 확인한다 */}
         <SerwistProvider swUrl="/serwist/sw.js" disable={process.env.NODE_ENV === "development"}>
           {children}

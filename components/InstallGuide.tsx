@@ -7,6 +7,9 @@ import { Toast } from "@/components/ui/Toast";
 import {
   AUTO_DELAY_MS,
   autoAllowed,
+  BAND_EVENT,
+  bandPanelFor,
+  bandSteps,
   canAutoGuide,
   canGuide,
   type ChipIcon,
@@ -18,10 +21,12 @@ import {
   forgetInstallPrompt,
   type GuideAction,
   guideContent,
+  hideBand,
   type InstallEnv,
   installPrompt,
   kakaoOpenExternalUrl,
   PROMPT_EVENT,
+  readBand,
   readRecord,
   recordClose,
   SESSION_KEY,
@@ -29,6 +34,7 @@ import {
   SHEET_SLIDE_MS,
   SHELF_ICON_DELAY_MS,
   SHELF_NAME_DELAY_MS,
+  showBand,
   type StepPart,
   SWIPE_CLOSE_PX,
 } from "@/lib/install-guide";
@@ -198,6 +204,12 @@ function InstallGuideSheet({
       case "ok":
       case "later":
         return close("dismissed");
+      case "okBand": {
+        // 판이 내려가는 동안 위쪽에 띠가 생긴다 — 사파리 메뉴를 누르는 동안 단계를 보고 따라간다
+        const panel = bandPanelFor(env);
+        if (panel) showBand(panel);
+        return close("dismissed");
+      }
       case "never":
         return close("never");
       case "install": {
@@ -457,4 +469,55 @@ function shareableUrl() {
   const url = new URL(window.location.href);
   url.searchParams.delete("added");
   return url.toString();
+}
+
+// ── 안내 띠 ─────────────────────────────────────────────────────
+
+function subscribeBand(onChange: () => void) {
+  window.addEventListener(BAND_EVENT, onChange);
+  return () => window.removeEventListener(BAND_EVENT, onChange);
+}
+// 설치한 앱으로 열었으면 띠는 없다
+function bandSnapshot() {
+  const panel = readBand();
+  return panel && currentInstallEnv().kind !== "installed" ? panel : null;
+}
+
+// 화면 맨 위의 얇은 띠 — 아이폰 판의 "알겠어요"를 누르면 판이 이것으로 줄어든다 (lib/install-guide.ts 의 "안내 띠").
+// 루트 레이아웃의 맨 위, 화면 흐름 안에 놓여서 아래 화면을 덮지 않고 그만큼 밀어 내린다. 같은 탭 안에서는 화면을 옮겨도 남는다
+export function InstallGuideBand() {
+  const panel = useSyncExternalStore(subscribeBand, bandSnapshot, () => null);
+  if (!panel) return null;
+
+  const steps = bandSteps(panel);
+  return (
+    <div
+      role="region"
+      aria-label="홈 화면에 추가하는 방법"
+      className="shrink-0 border-b border-gray-3 bg-white pt-[env(safe-area-inset-top)] animate-fade-in motion-reduce:animate-none"
+    >
+      <div className="mx-auto flex min-h-11 w-full max-w-md items-center gap-1.5 pr-1 pl-5 text-label">
+        <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-1.5 gap-y-1 py-2">
+          {steps.map((part, index) => (
+            <span key={index} className="contents">
+              {index > 0 && (
+                <span aria-hidden className="text-caption text-ink-muted">
+                  →
+                </span>
+              )}
+              <StepPiece part={part} />
+            </span>
+          ))}
+        </span>
+        <button
+          type="button"
+          aria-label="안내 띠 닫기"
+          onClick={hideBand}
+          className="flex size-11 flex-none items-center justify-center text-ink active:opacity-60"
+        >
+          <Icon name="close" scale={44 / 64} />
+        </button>
+      </div>
+    </div>
+  );
 }
