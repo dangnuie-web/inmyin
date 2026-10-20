@@ -3,7 +3,7 @@
 
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
-import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { test } from "node:test";
@@ -260,8 +260,11 @@ test("예시 설정은 오류 없이 읽힌다", async () => {
   assert.deepEqual(config.users[1].follows, ["momo_pouch"], "아이디로 가리킨 팔로우");
   assert.deepEqual(config.users[0].follows, ["juno_desk"], "번호로 가리킨 팔로우");
   assert.equal(config.users[1].inventories[0].slotCount, 25, "칸 수 기본값 = basic 플랜");
-  assert.ok(config.users[0].inventories[0].items[0].image.endsWith("1_모모/hf_20261020_000001_pouch-example.png"));
-  assert.ok(!config.users[0].inventories[0].items[0].image.startsWith("~"), "~ 를 홈 폴더로 바꿈");
+  // 사진 경로는 파일을 찾기 전(normalizeConfig) 값으로 본다 — 예시의 이미지 폴더는 오피스의 실제 폴더라 파일이 바뀌면 찾기 결과도 바뀐다
+  const { config: raw } = normalizeConfig(JSON.parse(await readFile(path.join(here, "example.json"), "utf8")), here);
+  assert.ok(raw.users[0].inventories[0].image.endsWith("1_모모/hf_20261020_000001_pouch-example.png"), "인벤토리 사진 경로");
+  assert.ok(raw.users[0].inventories[0].items[0].image.endsWith("1_모모/1-01*"), "아이템 사진은 찾기 전 패턴 그대로");
+  assert.ok(!raw.users[0].inventories[0].image.startsWith("~"), "~ 를 홈 폴더로 바꿈");
 });
 
 test("설정 오류를 한 번에 모아 알려 준다", () => {
@@ -544,4 +547,119 @@ test("사진 찾기: 선택 아이템은 사진이 없으면 빠지고, 그 아�
   const fake = fakeSupabase();
   await assert.rejects(seed(fake.client, config, quiet), /사진이 없어 넣을 수 없습니다: 1-02/);
   assert.equal(fake.calls.length, 0);
+});
+
+// ─────────────────────────────────────────────────────────────
+// INMYIN 게시물
+// ─────────────────────────────────────────────────────────────
+
+async function configWithPosts() {
+  const config = await memoryConfig();
+  const dir = await mkdtemp(path.join(tmpdir(), "inmyin-posts-"));
+  const jpg = await sharp({ create: { width: 1080, height: 1350, channels: 3, background: "#f2f2f2" } }).jpeg().toBuffer();
+  const doc = {
+    version: 1, width: 1080, height: 1350, background: { kind: "color", color: "#f2f2f2" },
+    objects: [
+      { id: "o1", kind: "item", itemId: null, code: "1-02", src: "item:1-02", x: 108, y: 135, width: 216, height: 270, rotation: -5 },
+      { id: "o2", kind: "item", itemId: null, code: "1-01", src: "item:1-01", x: 324, y: 675, width: 432, height: 540, rotation: 0 },
+      { id: "o3", kind: "text", text: "What's in my bag", font: "pretendard", fontSize: 64, fill: "#000000", bold: true, stroke: null, background: null, x: 300, y: 80, width: 480, height: 83.2, rotation: 0 },
+    ],
+  };
+  await writeFile(path.join(dir, "p1.jpg"), jpg);
+  await writeFile(path.join(dir, "p1.json"), JSON.stringify(doc));
+  config.users[0].posts = [
+    { key: "p1", id: stableUuid("post:demo_one:p1"), title: "오늘 가방", description: "설명", template: "A", canvasTitle: null, items: ["1-01", "1-02"], hoursAgo: 5, bookmarkedBy: ["demo_two"], image: path.join(dir, "p1.jpg"), canvas: path.join(dir, "p1.json") },
+  ];
+  config.users[1].posts = [];
+  return config;
+}
+
+test("게시물 넣기 — 앱과 같은 이미지 자리 · 문서 속 아이템은 썸네일 주소 · 탭 영역 · 올린 시각 · 게시물 북마크", async () => {
+  const fake = fakeSupabase();
+  const config = await configWithPosts();
+  const before = Date.now();
+  const { userIds, posts } = await seed(fake.client, config, quiet);
+  const one = userIds.demo_one;
+  const id = stableUuid("post:demo_one:p1");
+  assert.equal(posts, 1);
+  const [post] = fake.db.inmyin_posts;
+  assert.equal(post.id, id);
+  assert.equal(post.user_id, one);
+  assert.equal(post.title, "오늘 가방");
+  assert.equal(post.image_url, `https://example.supabase.co/storage/v1/object/public/posts/${one}/${id}.jpg`);
+  assert.ok(fake.files.has(`posts/${one}/${id}.jpg`));
+  const hoursAgo = (before - new Date(post.created_at).getTime()) / 3600_000;
+  assert.ok(hoursAgo > 4.9 && hoursAgo < 5.1, `${hoursAgo}시간 전`);
+  const items = post.canvas_json.objects.filter((o) => o.kind === "item");
+  assert.deepEqual(items.map((o) => o.itemId), [itemId("1-02"), itemId("1-01")]);
+  assert.equal(items[1].src, `https://example.supabase.co/storage/v1/object/public/items/${one}/${itemId("1-01")}.webp`, "그 아이템 썸네일과 같은 주소");
+  assert.ok(items.every((o) => !("code" in o)));
+  assert.deepEqual(
+    fake.db.post_items.map((r) => [r.item_id, r.x, r.y, r.w, r.h]).sort(),
+    [[itemId("1-01"), 0.3, 0.5, 0.4, 0.4], [itemId("1-02"), 0.1, 0.1, 0.2, 0.2]].sort(),
+  );
+  const postBookmarks = fake.db.bookmarks.filter((b) => b.target_type === "post");
+  assert.deepEqual(postBookmarks.map((b) => [b.user_id, b.target_id]), [[userIds.demo_two, id]]);
+
+  // 다시 돌려도 게시물 · 탭 영역 · 북마크가 늘지 않고, 이미지는 다시 올리지 않음
+  const uploads = fake.calls.filter((c) => c[0] === "upload" && c[1] === "posts").length;
+  config.users[0].posts[0].title = "바뀐 제목";
+  await seed(fake.client, config, quiet);
+  assert.equal(fake.db.inmyin_posts.length, 1);
+  assert.equal(fake.db.inmyin_posts[0].title, "바뀐 제목");
+  assert.equal(fake.db.post_items.length, 2);
+  assert.equal(fake.db.bookmarks.filter((b) => b.target_type === "post").length, 1);
+  assert.equal(fake.calls.filter((c) => c[0] === "upload" && c[1] === "posts").length, uploads);
+});
+
+test("게시물 마른 실행 — 문서를 읽어 개체 · 탭 영역 수를 내고, 문서와 설정의 아이템이 다르면 문제로 알림", async () => {
+  const config = await configWithPosts();
+  const { lines, problems } = await planSeed(config);
+  assert.deepEqual(problems, []);
+  assert.ok(lines.some((l) => /게시물 "오늘 가방" · 틀 A · 아이템 1-01, 1-02 · 5시간 전 · 북마크 @demo_two · 개체 3 · 탭 영역 2/.test(l)));
+  assert.match(lines.at(-1), /게시물 1 · 게시물 북마크 1/);
+  config.users[0].posts[0].items = ["1-01", "1-03"];
+  const bad = await planSeed(config);
+  assert.match(bad.problems.join("\n"), /다시 그려 주세요/);
+});
+
+test("지우기 — 게시물 · 탭 영역 · 게시 이미지 · 게시물 북마크(실제 유저가 누른 것 포함)까지", async () => {
+  const fake = fakeSupabase();
+  const { userIds } = await seed(fake.client, await configWithPosts(), quiet);
+  const realId = randomUUID();
+  fake.authUsers.push({ id: realId, email: "real@gmail.com", app_metadata: {} });
+  fake.db.users.push({ id: realId, handle: "real_user", nickname: "진짜" });
+  const id = stableUuid("post:demo_one:p1");
+  fake.db.bookmarks.push({ user_id: realId, target_type: "post", target_id: id });
+
+  const c = await collectDemo(fake.client);
+  assert.equal(c.rows.posts.length, 1);
+  assert.equal(c.files.posts.length, 1);
+  assert.match(describeCollection(c).join("\n"), /INMYIN 게시물 1/);
+  await clean(fake.client, c, quiet);
+  assert.equal(fake.db.inmyin_posts.length, 0);
+  assert.equal(fake.db.post_items.length, 0);
+  assert.equal(fake.db.bookmarks.length, 0);
+  assert.equal([...fake.files.keys()].filter((k) => k.startsWith("posts/")).length, 0);
+  assert.ok(fake.db.users.some((u) => u.id === realId), "실제 유저는 남음");
+  assert.ok(!fake.files.has(`posts/${userIds.demo_one}/${id}.jpg`));
+});
+
+test("설정 JSON 의 posts — 상대 경로를 이미지 폴더 기준으로, 틀린 곳은 오류로", () => {
+  const raw = {
+    imageDir: "/img",
+    users: [
+      { no: 1, handle: "demo_one", nickname: "하나", inventories: [{ key: "m", name: "인벤", items: [{ code: "1-01", name: "a", description: "d", image: "a.png" }] }], posts: [{ key: "p", template: "A", title: "t", items: ["1-01"], bookmarkedBy: [2], image: "게시물/p.jpg", canvas: "게시물/p.json" }] },
+      { no: 2, handle: "demo_two", nickname: "둘", inventories: [{ key: "m", name: "인벤", items: [{ code: "2-01", name: "b", description: "d", image: "b.png" }] }], posts: [{ template: "B", title: "u", items: ["1-01"] }] },
+    ],
+  };
+  const { errors, config } = normalizeConfig(raw, "/");
+  assert.equal(config, null);
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /demo_two.*1-01 는 demo_two 의 아이템이 아닙니다/);
+  raw.users[1].posts = [];
+  const ok = normalizeConfig(raw, "/");
+  assert.deepEqual(ok.errors, []);
+  assert.equal(ok.config.users[0].posts[0].image, "/img/게시물/p.jpg");
+  assert.deepEqual(ok.config.users[0].posts[0].bookmarkedBy, ["demo_two"]);
 });

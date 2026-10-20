@@ -9,6 +9,7 @@ import { homedir } from "node:os";
 import path from "node:path";
 import sharp from "sharp";
 import { whiteBackgroundCutout } from "./cutout.mjs";
+import { bindDocument, itemAreas, normalizePosts } from "./posts.mjs";
 
 // ─────────────────────────────────────────────────────────────
 // 앱과 같아야 하는 값 (바뀌면 여기도 같이)
@@ -260,11 +261,18 @@ export function normalizeConfig(raw, configDir) {
       follows: Array.isArray(u?.follows) ? u.follows : [],
       bookmarks: Array.isArray(u?.bookmarks) ? u.bookmarks : [],
       hearts: Array.isArray(u?.hearts) ? u.hearts : [],
+      rawPosts: u?.posts,
     });
   }
 
   // 팔로우는 유저 번호(no) 또는 아이디(handle)로, 북마크 · 하트는 아이템 번호(code)로 가리킨다
   const byNo = new Map(users.map((u) => [u.no, u.handle]));
+  // INMYIN 게시물 (posts.mjs). 북마크한 사람은 유저 번호 또는 아이디
+  const resolve = (ref) => (typeof ref === "number" ? byNo.get(ref) : handles.has(ref) ? ref : null) ?? null;
+  for (const u of users) {
+    u.posts = normalizePosts(u.rawPosts, u, { fail, file, handles: { resolve } });
+    delete u.rawPosts;
+  }
   for (const u of users) {
     const where = `users(${u.handle})`;
     u.follows = u.follows.flatMap((ref) => {
@@ -320,6 +328,15 @@ export async function loadConfig(configPath) {
 // ─────────────────────────────────────────────────────────────
 
 const IMAGE_FILE = /\.(png|jpe?g|webp)$/i;
+
+async function exists(file) {
+  try {
+    await readFile(file);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export async function findImage(pattern) {
   if (typeof pattern !== "string") return { file: pattern ?? null };
@@ -390,6 +407,14 @@ export async function resolveFiles(config) {
     }
   }
   for (const u of config.users) {
+    for (const post of u.posts ?? []) {
+      const gone = post.items.filter((code) => dropped.has(code));
+      if (gone.length) missing.push(`게시물 ${u.handle}/${post.key}: 건너뛴 아이템 ${gone.join(", ")} 이 들어 있습니다 — 다시 그려 주세요(render-posts)`);
+      for (const [what, value] of [["이미지", post.image], ["캔버스 문서", post.canvas]]) {
+        if (!value) missing.push(`게시물 ${u.handle}/${post.key}: ${what}이 없습니다 — npm run demo:posts 로 먼저 그려 주세요`);
+        else if (!(await exists(value))) missing.push(`게시물 ${u.handle}/${post.key}: ${what} 파일 없음 (${path.basename(value)})`);
+      }
+    }
     for (const kind of ["bookmarks", "hearts"]) {
       const gone = u[kind].filter((code) => dropped.has(code));
       if (gone.length) notes.push(`@${u.handle}: ${kind} 의 ${gone.join(", ")} 는 건너뛴 아이템이라 뺍니다`);
@@ -489,6 +514,17 @@ async function upload(supabase, bucket, filePath, photo) {
 // 넣기
 // ─────────────────────────────────────────────────────────────
 
+// render-posts.mjs 가 그려 둔 캔버스 문서. 글자 크기까지 재서 채운 것이라 그대로 쓴다
+export async function readPostDocument(post) {
+  const doc = JSON.parse(await readFile(post.canvas, "utf8"));
+  if (doc?.version !== 1 || !Array.isArray(doc.objects)) throw new Error("캔버스 문서 꼴이 아닙니다");
+  if (doc.objects.length > 40) throw new Error("개체가 40개를 넘습니다");
+  const codes = new Set(doc.objects.filter((o) => o.kind === "item").map((o) => o.code));
+  const want = new Set(post.items);
+  if (codes.size !== want.size || [...want].some((c) => !codes.has(c))) throw new Error(`문서의 아이템(${[...codes].join(", ")})이 설정(${post.items.join(", ")})과 다릅니다 — 다시 그려 주세요`);
+  return doc;
+}
+
 // 마른 실행: DB 에 붙지 않는다. 파일이 다 있는지, 사진이 만들어지는지까지 확인하고 넣을 내용을 줄로 돌려준다
 export async function planSeed(config, { cutoutMode = false, processImages = true } = {}) {
   const lines = [];
@@ -526,6 +562,14 @@ export async function planSeed(config, { cutoutMode = false, processImages = tru
         );
       }
     }
+    for (const post of u.posts ?? []) {
+      const doc = processImages && post.canvas ? await check(`${u.handle}/${post.key} 캔버스 문서`, () => readPostDocument(post)) : null;
+      lines.push(
+        `  게시물 "${post.title}" · 틀 ${post.template} · 아이템 ${post.items.join(", ")} · ${post.hoursAgo}시간 전` +
+          `${post.bookmarkedBy.length ? ` · 북마크 ${post.bookmarkedBy.map((h) => `@${h}`).join(", ")}` : ""}` +
+          `${doc ? ` · 개체 ${doc.objects.length} · 탭 영역 ${doc.objects.filter((o) => o.kind === "item").length}` : ""} · id ${post.id}`,
+      );
+    }
     if (u.follows.length) lines.push(`  팔로우 → ${u.follows.map((h) => `@${h}`).join(", ")}`);
     if (u.bookmarks.length) lines.push(`  북마크 → ${u.bookmarks.join(", ")}`);
     if (u.hearts.length) lines.push(`  하트 → ${u.hearts.join(", ")}`);
@@ -535,7 +579,8 @@ export async function planSeed(config, { cutoutMode = false, processImages = tru
   lines.push("");
   lines.push(
     `합계: 유저 ${config.users.length} · 인벤토리 ${count((u) => u.inventories.length)} · 아이템 ${count((u) => u.inventories.reduce((s, i) => s + i.items.length, 0))}` +
-      ` · 팔로우 ${count((u) => u.follows.length)} · 북마크 ${count((u) => u.bookmarks.length)} · 하트 ${count((u) => u.hearts.length)}`,
+      ` · 팔로우 ${count((u) => u.follows.length)} · 북마크 ${count((u) => u.bookmarks.length)} · 하트 ${count((u) => u.hearts.length)}` +
+      ` · 게시물 ${count((u) => (u.posts ?? []).length)} · 게시물 북마크 ${count((u) => (u.posts ?? []).reduce((s, p) => s + p.bookmarkedBy.length, 0))}`,
   );
   return { lines, problems };
 }
@@ -679,7 +724,52 @@ export async function seed(supabase, config, { cutoutMode = false, refreshImages
     if (rows.length) must(await supabase.from(kind).upsert(rows, { onConflict: "user_id,target_type,target_id", ignoreDuplicates: true }), kind);
   }
   log(`관계: 팔로우 ${follows.length} · 북마크 ${targetRows("bookmarks").length} · 하트 ${targetRows("hearts").length} (이미 있던 것은 건너뜀)`);
-  return { userIds: Object.fromEntries(ids) };
+
+  // ⑤ INMYIN 게시물. 완성 이미지는 앱과 같은 자리(posts/<유저 id>/<게시물 id>.jpg), 문서 속 아이템은 그 아이템의 썸네일 주소로
+  const postCount = await seedPosts(supabase, config, ids, { refreshImages, log });
+  return { userIds: Object.fromEntries(ids), posts: postCount };
+}
+
+async function seedPosts(supabase, config, ids, { refreshImages, log }) {
+  const all = config.users.flatMap((u) => (u.posts ?? []).map((post) => ({ u, post })));
+  if (!all.length) return 0;
+  const existing = new Set((await selectIn(supabase, "inmyin_posts", "id", "id", all.map(({ post }) => post.id))).map((r) => r.id));
+  const now = Date.now();
+  for (const { u, post } of all) {
+    const userId = ids.get(u.handle);
+    const ownerOf = new Map(u.inventories.flatMap((inv) => inv.items.map((it) => [it.code, it.id])));
+    const doc = bindDocument(await readPostDocument(post), {
+      itemIdOf: (code) => ownerOf.get(code),
+      // 아이템 썸네일은 늘 webp (makePhotoPair)
+      srcOf: (code) => publicUrl(supabase, "items", `${userId}/${ownerOf.get(code)}.webp`),
+    });
+    const imagePath = `${userId}/${post.id}.jpg`;
+    if (!existing.has(post.id) || refreshImages) {
+      await upload(supabase, "posts", imagePath, { buffer: await readFile(post.image), contentType: "image/jpeg" });
+    }
+    const fields = {
+      title: post.title,
+      description: post.description,
+      image_url: publicUrl(supabase, "posts", imagePath),
+      canvas_json: doc,
+    };
+    if (existing.has(post.id)) {
+      must(await supabase.from("inmyin_posts").update({ ...fields, deleted_at: null }).eq("id", post.id), `게시물 ${post.key} 갱신`);
+      must(await supabase.from("post_items").delete().eq("post_id", post.id), `게시물 ${post.key} 아이템 표시 비우기`);
+    } else {
+      // 올린 시각을 조금씩 앞당겨 피드에 섞여 보이게
+      const createdAt = new Date(now - post.hoursAgo * 3600_000).toISOString();
+      must(await supabase.from("inmyin_posts").insert({ id: post.id, user_id: userId, ...fields, created_at: createdAt }), `게시물 ${post.key} 넣기`);
+    }
+    const areas = itemAreas(doc);
+    if (areas.length) must(await supabase.from("post_items").insert(areas.map((a) => ({ post_id: post.id, item_id: a.itemId, x: a.x, y: a.y, w: a.w, h: a.h }))), `게시물 ${post.key} 아이템 표시`);
+    log(`  게시물 ${existing.has(post.id) ? "갱신" : "넣음"} @${u.handle} "${post.title}" (탭 영역 ${areas.length})`);
+  }
+  // 게시물 북마크 — 발견(추천 · 인기)의 점수. 지금 시각으로 들어간다
+  const rows = all.flatMap(({ post }) => post.bookmarkedBy.map((h) => ({ user_id: ids.get(h), target_type: "post", target_id: post.id })));
+  if (rows.length) must(await supabase.from("bookmarks").upsert(rows, { onConflict: "user_id,target_type,target_id", ignoreDuplicates: true }), "게시물 북마크");
+  log(`게시물 ${all.length} · 게시물 북마크 ${rows.length} (이미 있던 북마크는 건너뜀)`);
+  return all.length;
 }
 
 // ─────────────────────────────────────────────────────────────

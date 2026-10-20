@@ -10,7 +10,8 @@
     "db:types": "supabase gen types typescript --linked > lib/supabase/database.types.ts",
     "app-icon": "node scripts/app-icon.mjs",
     "demo": "node scripts/demo/demo-data.mjs",
-    "test:demo": "node --test scripts/demo/demo-data.test.mjs",
+    "demo:posts": "node scripts/demo/render-posts.mjs",
+    "test:demo": "node --test scripts/demo/demo-data.test.mjs scripts/demo/posts.test.mjs",
     "test:image": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/image/adjust.test.mjs lib/image/retouch.test.mjs",
     "test": "npm run test:demo && npm run test:image"
   },
