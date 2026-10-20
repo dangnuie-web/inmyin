@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageTransition } from "@/components/ui/PageTransition";
 import { WebNav } from "@/components/ui/WebNav";
 import { WebNavAccount } from "@/components/ui/WebNavAccount";
 
@@ -13,7 +14,7 @@ export default function FlowLayout({ children }: { children: React.ReactNode }) 
           </Suspense>
         }
       />
-      {children}
+      <PageTransition>{children}</PageTransition>
     </>
   );
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
 import type { InventoryView } from "@/lib/inventory/paths";
+import { LinkPending } from "@/components/ui/LinkPending";
 
 const VIEWS = [
   { view: "grid", label: "그리드 보기" },
@@ -31,6 +32,7 @@ export function ViewToggle({ current, hrefFor, onSelect }: ViewToggleProps) {
             className={className}
           >
             <Icon name={view} />
+            <LinkPending scope="board" />
           </Link>
         ) : (
           <button key={view} type="button" onClick={() => onSelect(view)} aria-label={label} aria-pressed={view === current} className={className}>

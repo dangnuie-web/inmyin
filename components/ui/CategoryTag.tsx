@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
+import { LinkPending } from "@/components/ui/LinkPending";
 
 type CategoryTagProps = {
   label: string;
@@ -42,8 +43,20 @@ export function CategoryTag({ label, selected = true, href, onClick, onRemove, s
   if (href) {
     return (
       // 고르는 동안 화면이 맨 위로 튀지 않게, 뒤로가기 기록도 쌓이지 않게 한다
-      <Link href={href} replace scroll={false} aria-current={selected ? "true" : undefined} className={className}>
+      // 누르면 답이 올 때까지 이 칩이 검정 굵게, 고른 칩은 회색 — 칩 줄(ChipRow, group/chips)에 표식이 생긴 동안 (components/ui/LinkPending.tsx)
+      <Link
+        href={href}
+        replace
+        scroll={false}
+        aria-current={selected ? "true" : undefined}
+        className={`${className} ${
+          selected
+            ? "group-has-[[data-link-pending]]/chips:font-medium group-has-[[data-link-pending]]/chips:text-ink-muted"
+            : "has-[[data-link-pending]]:font-bold has-[[data-link-pending]]:text-ink"
+        }`}
+      >
         {label}
+        <LinkPending scope="board" />
       </Link>
     );
   }

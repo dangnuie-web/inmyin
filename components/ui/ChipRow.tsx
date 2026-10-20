@@ -33,7 +33,7 @@ export function ChipRow({ className = "", children }: { className?: string; chil
       ref={rowRef}
       onScroll={(event) => setScrolled(event.currentTarget.scrollLeft > 0)}
       // 맨 끝까지 넘기면 마지막 칩이 흐린 곳을 벗어나게 오른쪽 여백을 둔다
-      className={`flex items-center gap-5 overflow-x-auto pr-10 [scrollbar-width:none] ${scrolled ? FADE_BOTH : FADE_RIGHT} ${className}`}
+      className={`group/chips flex items-center gap-5 overflow-x-auto pr-10 [scrollbar-width:none] ${scrolled ? FADE_BOTH : FADE_RIGHT} ${className}`}
     >
       {children}
     </div>

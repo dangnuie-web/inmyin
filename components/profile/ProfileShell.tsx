@@ -4,6 +4,8 @@ import { FollowCounts } from "@/components/follow/FollowCounts";
 import { StickyTop } from "@/components/ui/StickyTop";
 import { otherItemsPath, otherPostsPath, profilePath } from "@/lib/profile/paths";
 import { Avatar } from "./Avatar";
+import { LinkPending } from "@/components/ui/LinkPending";
+import { PAGE_FADE } from "@/components/ui/page-fade";
 
 export type ProfileShellTab = "inventory" | "items" | "inmyin";
 
@@ -54,7 +56,8 @@ export function ProfileShell({ person, mine, tab, corner, actions, phoneHeader, 
   );
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-1 flex-col lg:max-w-web">
+    // data-pending-scope · body — 세 탭을 누르면 답이 올 때까지 몸통이 흐려진다 (components/ui/LinkPending.tsx)
+    <div data-pending-scope="shell" className="mx-auto flex w-full max-w-md flex-1 flex-col lg:max-w-web">
       {phoneHeader && (
         <>
           {/* sticky 는 부모 상자 안에서만 붙는다 — 화면 전체를 감싼 이 상자의 바로 안에 둔다 */}
@@ -93,21 +96,33 @@ export function ProfileShell({ person, mine, tab, corner, actions, phoneHeader, 
 
       {/* 세 탭. 폰: 버튼 줄 아래 28 · 16px · 사이 36 · 밑줄이 화면 끝까지(홈 갈래 줄과 같은 모양). 웹: 20px · 사이 56 */}
       <div className={phoneHeader ? "lg:px-5" : "hidden lg:block lg:px-5"}>
-        <nav aria-label="프로필 갈래" className="mt-7 flex items-end gap-9 border-b border-border px-5 text-body font-bold lg:mt-9 lg:gap-14 lg:px-3 lg:text-title">
+        <nav aria-label="프로필 갈래" className="group/tabs mt-7 flex items-end gap-9 border-b border-border px-5 text-body font-bold lg:mt-9 lg:gap-14 lg:px-3 lg:text-title">
           {tabs.map((entry) => (
             <Link
               key={entry.id}
               href={entry.href}
+              // 세 탭은 화면에 들어오면 내용까지 미리 받는다(prefetch true) — 두 개뿐이고 같은 사람 것이라 가볍다.
+              // 기본(뼈대까지만)이면 누른 뒤 서버를 한 번 더 다녀와야 해서 느린 폰 · 망에서 0.7초쯤 그대로 멈춰 있었다
+              prefetch
+              transitionTypes={PAGE_FADE}
               aria-current={entry.id === tab ? "page" : undefined}
-              className={`-mb-px border-b-2 pb-3 lg:pb-4 ${entry.id === tab ? "border-ink text-ink" : "border-transparent text-ink-muted active:opacity-60 lg:hover:text-ink"}`}
+              // 누르자마자 밑줄이 누른 탭으로 옮겨 간다 — 지금 탭은 표식이 생기면 회색, 누른 탭은 검정
+              className={`-mb-px border-b-2 pb-3 lg:pb-4 ${
+                entry.id === tab
+                  ? "border-ink text-ink group-has-[[data-link-pending]]/tabs:border-transparent group-has-[[data-link-pending]]/tabs:text-ink-muted"
+                  : "border-transparent text-ink-muted active:opacity-60 has-[[data-link-pending]]:border-ink has-[[data-link-pending]]:text-ink lg:hover:text-ink"
+              }`}
             >
               {entry.label}
+              <LinkPending scope="shell" />
             </Link>
           ))}
         </nav>
       </div>
 
-      {children}
+      <div data-pending-body="shell" className="flex flex-1 flex-col">
+        {children}
+      </div>
     </div>
   );
 }

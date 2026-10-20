@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { BottomTab } from "@/components/ui/BottomTab";
+import { PageTransition } from "@/components/ui/PageTransition";
 import { WebNav } from "@/components/ui/WebNav";
 import { WebNavAccount } from "@/components/ui/WebNavAccount";
 
@@ -17,7 +18,10 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           </Suspense>
         }
       />
-      <main className="flex flex-1 flex-col">{children}</main>
+      <main className="flex flex-1 flex-col">
+        {/* 몸통만 페이드로 바뀐다 — 하단 탭 · 상단 메뉴는 밖이라 그대로 (components/ui/PageTransition.tsx) */}
+        <PageTransition>{children}</PageTransition>
+      </main>
       <BottomTab />
     </>
   );

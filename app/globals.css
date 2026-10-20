@@ -182,6 +182,59 @@ body {
   }
 }
 
+/* 누르자마자 — 뼈대 화면 없이 서버의 답을 기다리는 전환(프로필 탭 줄 · 띠 · 토글 · 칩)에서 누른 Link 안에
+   표식(components/ui/LinkPending.tsx)이 생기면 그 묶음의 몸통을 흐린다. 0.12초 안에 끝나는 전환은 깜빡이지 않게 늦게 시작 */
+[data-pending-body] {
+  transition: opacity 150ms ease-out;
+}
+[data-pending-scope="shell"]:has([data-link-pending="shell"]) [data-pending-body="shell"],
+[data-pending-scope="board"]:has([data-link-pending="board"]) [data-pending-body="board"] {
+  opacity: 0.45;
+  transition-delay: 120ms;
+}
+
+/* 화면 전환 — components/ui/PageTransition.tsx. 몸통만 짧게 겹쳐 바뀐다(옛 것 0.12초에 걷히고 새 것 0.18초에 나타남).
+   화면 전체(root)는 그대로 바꿔서 하단 탭 · 상단 메뉴가 깜빡이지 않게, 전환 중에도 누를 수 있게 */
+::view-transition {
+  pointer-events: none;
+}
+::view-transition-group(root),
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+::view-transition-group(.page-fade) {
+  animation: none;
+}
+::view-transition-old(.page-fade) {
+  animation: page-fade-out 120ms ease-out both;
+}
+::view-transition-new(.page-fade) {
+  animation: page-fade-in 180ms ease-out both;
+}
+@keyframes page-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* 움직임 줄이기 — 흐려지기 · 겹쳐 바뀌기 없이 바로 */
+@media (prefers-reduced-motion: reduce) {
+  [data-pending-body] {
+    transition: none;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
 /* 배경 지우는 동안의 연출(M-07) — components/item/CutoutLoading.tsx. 시간 값은 lib/image/cutout-motion.ts 에서 CSS 변수로 온다.
    기다리는 동안은 CSS 애니메이션만 돈다(매 프레임 JS 없음) */
 

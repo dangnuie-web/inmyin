@@ -5,6 +5,8 @@ import { Icon } from "@/components/ui/Icon";
 import type { InventorySummary } from "@/lib/inventory/queries";
 import { InventoryThumb } from "./InventoryRow";
 import { StripScroll } from "./StripScroll";
+import { LinkPending } from "@/components/ui/LinkPending";
+import { PAGE_FADE } from "@/components/ui/page-fade";
 
 // 주소로 갈아타는 곳(프로필 격자)은 hrefFor 를, 화면 안에서 갈아타는 곳(M-05 짐싸기)은 onSelect 를 준다
 type InventoryStripProps = {
@@ -21,9 +23,10 @@ type InventoryStripProps = {
 } & ({ hrefFor: (inventoryId: string) => string; onSelect?: undefined } | { onSelect: (inventoryId: string) => void; hrefFor?: undefined });
 
 // 프로필 격자 · M-05 위쪽의 인벤토리 띠. 인벤토리를 순서(sort_order)대로 가로로 늘어놓고, 누르면 그 인벤토리로 갈아탄다.
+// 주소 칸은 화면에 보이는 것만 내용까지 미리 받는다(prefetch) — 옆으로 넘겨야 보이는 칸은 넘길 때 받는다
 export function InventoryStrip({ inventories, currentId, dimmedId, named = false, trailing, label = "내 인벤토리", hrefFor, onSelect }: InventoryStripProps) {
   return (
-    <nav aria-label={label}>
+    <nav aria-label={label} className="group/strip">
       {/* 이름이 붙으면 칸 사이 16 (이름 없이 썸네일만이면 20) */}
       <StripScroll className={`flex overflow-x-auto px-5 [scrollbar-width:none] ${named ? "gap-4" : "gap-5"}`}>
         {inventories.map((inventory) => {
@@ -32,7 +35,10 @@ export function InventoryStrip({ inventories, currentId, dimmedId, named = false
           const isPrivate = named && inventory.isPublic === false;
           const name = isPrivate ? `${inventory.name} (비공개)` : inventory.name;
           // 고른 것만 테두리가 보인다. 나머지도 같은 두께의 투명 테두리를 둬서 줄이 흔들리지 않게 한다
-          const frame = `relative block rounded-md border p-1 ${isCurrent ? "border-ink" : "border-transparent"}`;
+          // 누르자마자 테두리가 누른 칸으로 옮겨 간다 — 고른 칸은 띠에 표식이 생기면 투명, 누른 칸은 검정 (components/ui/LinkPending.tsx)
+          const frame = `relative block rounded-md border p-1 ${
+            isCurrent ? "border-ink group-has-[[data-link-pending]]/strip:border-transparent" : "border-transparent group-has-[[data-link-pending]]/cell:border-ink"
+          }`;
           const thumb = (
             <span className={frame}>
               <InventoryThumb filled>
@@ -60,8 +66,9 @@ export function InventoryStrip({ inventories, currentId, dimmedId, named = false
           return (
             <li key={inventory.id} className="shrink-0">
               {hrefFor ? (
-                <Link href={hrefFor(inventory.id)} aria-label={name} aria-current={isCurrent ? "page" : undefined} className={className}>
+                <Link href={hrefFor(inventory.id)} prefetch transitionTypes={PAGE_FADE} aria-label={name} aria-current={isCurrent ? "page" : undefined} className={`group/cell ${className}`}>
                   {body}
+                  <LinkPending scope="board" />
                 </Link>
               ) : (
                 <button

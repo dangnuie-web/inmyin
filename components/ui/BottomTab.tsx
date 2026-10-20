@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { PlusMark, TabIcon, type TabIconName } from "./TabIcon";
+import { PAGE_FADE } from "./page-fade";
 
 // 다섯 자리 — 홈 · 발견 · + · 북마크 · 프로필 (2026-10-20 당니님 결정, 무늬 설계서 2절 A안). 홈이 맨 왼쪽, 가운데는 촬영.
 // 이름은 한글. 웹 상단 메뉴(WebNav)도 같은 이름 · 같은 순서다
@@ -31,7 +32,7 @@ function TabLink({ href, label, icon, current }: Tab & { current: string }) {
   const isActive = href === current;
   return (
     <li className="flex-1">
-      <Link href={href} aria-current={isActive ? "page" : undefined} className="flex flex-col items-center gap-1 text-[11px] leading-[1.2] font-medium text-ink">
+      <Link href={href} transitionTypes={PAGE_FADE} aria-current={isActive ? "page" : undefined} className="flex flex-col items-center gap-1 text-[11px] leading-[1.2] font-medium text-ink">
         <TabIcon name={icon} active={isActive} />
         {label}
       </Link>

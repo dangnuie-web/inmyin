@@ -76,7 +76,8 @@ export function ProfileInventoryScreen(props: ProfileInventoryScreenProps) {
 
   return (
     <>
-      <div className="flex flex-1 flex-col lg:mx-5 lg:mt-4 lg:rounded-xl lg:bg-gray-1 lg:pb-4">
+      {/* 띠 · 토글 · 칩을 누르면 답이 올 때까지 아래 판이 흐려진다 (components/ui/LinkPending.tsx) */}
+      <div data-pending-scope="board" className="flex flex-1 flex-col lg:mx-5 lg:mt-4 lg:rounded-xl lg:bg-gray-1 lg:pb-4">
         <div className="pt-5">
           <InventoryStrip
             inventories={inventories}
@@ -88,29 +89,31 @@ export function ProfileInventoryScreen(props: ProfileInventoryScreenProps) {
           />
         </div>
 
-        {props.mine ? (
-          <>
-            {/* 연 인벤토리를 "마지막에 연 것"으로 적어 둔다 — 하단 탭 + 와 다음에 여는 /my 가 이것을 쓴다 */}
-            <RememberInventory id={inventory.id} />
-            <InventoryBoard
-              inventoryId={inventory.id}
-              name={inventory.name}
-              isPublic={inventory.isPublic}
-              controls={controls}
-              filtered={category !== null}
-              inventories={inventories}
-              addedId={props.addedId}
-              deletedId={props.deletedId}
-              entries={entries}
-              usedSlots={inventory.entries.filter((entry) => !entry.deleted).length}
-              slotCount={inventory.slotCount}
-              view={view}
-              columns={columns}
-            />
-          </>
-        ) : (
-          <OtherBoard handle={props.handle} inventory={inventory} entries={entries} filtered={category !== null} controls={controls} view={view} columns={columns} />
-        )}
+        <div data-pending-body="board" className="flex flex-1 flex-col">
+          {props.mine ? (
+            <>
+              {/* 연 인벤토리를 "마지막에 연 것"으로 적어 둔다 — 하단 탭 + 와 다음에 여는 /my 가 이것을 쓴다 */}
+              <RememberInventory id={inventory.id} />
+              <InventoryBoard
+                inventoryId={inventory.id}
+                name={inventory.name}
+                isPublic={inventory.isPublic}
+                controls={controls}
+                filtered={category !== null}
+                inventories={inventories}
+                addedId={props.addedId}
+                deletedId={props.deletedId}
+                entries={entries}
+                usedSlots={inventory.entries.filter((entry) => !entry.deleted).length}
+                slotCount={inventory.slotCount}
+                view={view}
+                columns={columns}
+              />
+            </>
+          ) : (
+            <OtherBoard handle={props.handle} inventory={inventory} entries={entries} filtered={category !== null} controls={controls} view={view} columns={columns} />
+          )}
+        </div>
       </div>
       {/* 아이템을 저장하고 돌아온 직후 "홈 화면에 INMYIN을 꽂아 두세요" (자동 최대 2번, 규칙은 lib/install-guide.ts) */}
       {props.mine && <InstallGuideAuto addedId={props.addedId} />}

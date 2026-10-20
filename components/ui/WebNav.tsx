@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { activeTabHref } from "./BottomTab";
+import { PAGE_FADE } from "./page-fade";
 
 // 웹(1024px 이상)의 상단 메뉴 — 하단 탭 대신. 이름 · 순서 · 갈 곳은 하단 탭과 같다 (BottomTab, 2026-10-20 홈 · 발견 · 북마크 · 프로필). 고른 메뉴에 밑줄.
 // 하단 탭 가운데의 + (촬영)는 메뉴에 없다 — 대신 오른쪽 끝 account 자리에 "+ 추가"(WebNavAdd, 로그인했을 때만)
@@ -33,6 +34,7 @@ export function WebNav({ account }: { account?: ReactNode }) {
               <li key={href} className="flex">
                 <Link
                   href={href}
+                  transitionTypes={PAGE_FADE}
                   aria-current={isActive ? "page" : undefined}
                   className={`flex items-center border-b-2 px-1 text-body font-bold ${isActive ? "border-ink text-ink" : "border-transparent text-ink-muted hover:text-ink"}`}
                 >

@@ -5,6 +5,7 @@ import { Avatar } from "@/components/profile/Avatar";
 import { Icon } from "@/components/ui/Icon";
 import { slotEntryPath } from "@/lib/inventory/paths";
 import type { SlotEntry } from "@/lib/inventory/queries";
+import { PAGE_FADE } from "@/components/ui/page-fade";
 
 // 인벤토리 상세(M-04)의 한 칸. 피그마 `아이템 슬롯` 컴포넌트.
 // 같은 내용을 그리드에서는 네모 칸(SlotCell)으로, 리스트에서는 한 줄(SlotRow)로 그린다.
@@ -101,6 +102,7 @@ export function SlotCell({ entry, current = false, href, owner, ...props }: Slot
   return (
     // 옅은 회색 바탕. 배경을 지운 사진은 이 위에 물건만 놓인다
     <Link
+      transitionTypes={PAGE_FADE}
       {...props}
       href={href ?? slotEntryPath(entry)}
       aria-label={owner ? `${entry.name} · ${owner.nickname}` : entry.name}
@@ -149,7 +151,7 @@ type SlotRowProps = Omit<ComponentProps<typeof Link>, "href" | "className"> & {
 
 export function SlotRow({ entry, caption, href, ...props }: SlotRowProps) {
   return (
-    <Link {...props} href={href ?? slotEntryPath(entry)} draggable={false} className={`${SLOT_ROW_CLASS} ${NO_BROWSER_GESTURES} active:opacity-80`}>
+    <Link transitionTypes={PAGE_FADE} {...props} href={href ?? slotEntryPath(entry)} draggable={false} className={`${SLOT_ROW_CLASS} ${NO_BROWSER_GESTURES} active:opacity-80`}>
       <SlotRowThumb filled>
         <SlotImage entry={entry} sizes="54px" />
       </SlotRowThumb>

@@ -40,6 +40,11 @@ Supabase 프로젝트가 **서울(ap-northeast-2)** 에 있어서, Vercel 의 �
 
 누르면 바로 반응해야 하는 동작(삭제 · 되돌리기 등)은 서버의 답을 기다리지 말고 화면부터 바꾼다.
 
+화면 이동도 누르자마자 무언가 바뀌어야 한다 (2026-10-21, 폰 390 · CPU 4배 · 느린 4G 에서 잼):
+- 다른 화면으로 가면 묶음의 `loading.tsx` 뼈대가 먼저 뜬다. 같은 틀 안에서 바뀌는 것(프로필 탭 줄 · 띠 · 보기 토글 · 칩)은 뼈대가 안 떠서, Link 안에 `<LinkPending scope>` 를 넣고 몸통에 `data-pending-scope · data-pending-body` 를 단다 — 누른 것이 먼저 골라지고 몸통이 흐려진다.
+- 프로필 세 탭 · 띠는 `prefetch`(내용까지 미리), 나머지는 기본(뼈대까지만). 격자 칸 · 하단 탭까지 내용을 미리 받으면 화면마다 서버 요청이 수십 개라 하지 않는다. 한 번 연 화면은 30초 동안 다시 쓴다(`next.config.ts` staleTimes).
+- 화면 전환 페이드는 `transitionTypes={PAGE_FADE}` 를 단 Link 로 옮길 때만(components/ui/PageTransition.tsx). 화면 안의 변화 · 뒤로가기에는 안 단다.
+
 ### 배경제거는 반드시 함수 하나로 감쌀 것
 
 ```ts

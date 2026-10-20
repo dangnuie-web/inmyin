@@ -77,7 +77,8 @@ export function ItemFeed({ items, q, category, categories, columns }: ItemFeedPr
   const toEntry = (item: FeedItem): SlotEntry => ({ kind: "item", deleted: false, ...item });
 
   return (
-    <div className="flex flex-1 flex-col">
+    // 칩을 누르면 답이 올 때까지 아래 목록이 흐려진다 (components/ui/LinkPending.tsx)
+    <div data-pending-scope="board" className="flex flex-1 flex-col">
       {/* 갈래의 밑줄과 검색창 사이 20px. 토글은 검색창 왼쪽 — 써 보니 그쪽이 편했다 (M-04 와 같은 자리) */}
       <div className="mt-5">
         <ListControls
@@ -108,31 +109,33 @@ export function ItemFeed({ items, q, category, categories, columns }: ItemFeedPr
         />
       </div>
 
-      {shown.length === 0 ? (
-        isFiltered ? (
-          <EmptyLine>찾는 아이템이 없어요.</EmptyLine>
+      <div data-pending-body="board" className="flex flex-col">
+        {shown.length === 0 ? (
+          isFiltered ? (
+            <EmptyLine>찾는 아이템이 없어요.</EmptyLine>
+          ) : (
+            <EmptyBag action={{ label: "아이템 넣기", href: "/add" }}>아직 공개된 아이템이 없어요. 내 인벤토리에 넣은 것이 여기에 모여요.</EmptyBag>
+          )
+        ) : view === "grid" ? (
+          // 웹은 7칸, 1280 이상(기둥 1200 이 다 찬 때)은 8칸 (2026-10-20). 설정의 3/4칸은 폰에만
+          <ul className={`mt-8 grid gap-3.5 px-5 lg:grid-cols-7 xl:grid-cols-8 ${gridColumnsClass(columns)}`}>
+            {shown.map((item) => (
+              <li key={item.id}>
+                <SlotCell entry={toEntry(item)} href={itemPath(item.id, { from: "home", q, category })} owner={{ nickname: item.ownerNickname, avatarUrl: item.ownerAvatarUrl }} />
+              </li>
+            ))}
+          </ul>
         ) : (
-          <EmptyBag action={{ label: "아이템 넣기", href: "/add" }}>아직 공개된 아이템이 없어요. 내 인벤토리에 넣은 것이 여기에 모여요.</EmptyBag>
-        )
-      ) : view === "grid" ? (
-        // 웹은 7칸, 1280 이상(기둥 1200 이 다 찬 때)은 8칸 (2026-10-20). 설정의 3/4칸은 폰에만
-        <ul className={`mt-8 grid gap-3.5 px-5 lg:grid-cols-7 xl:grid-cols-8 ${gridColumnsClass(columns)}`}>
-          {shown.map((item) => (
-            <li key={item.id}>
-              <SlotCell entry={toEntry(item)} href={itemPath(item.id, { from: "home", q, category })} owner={{ nickname: item.ownerNickname, avatarUrl: item.ownerAvatarUrl }} />
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <ul className="mt-5 flex flex-col border-t border-border">
-          {shown.map((item) => (
-            // 누구의 어느 인벤토리에 있는지. 여러 사람의 것이 섞이는 화면이라 이름 아래에 적는다
-            <li key={item.id}>
-              <SlotRow entry={toEntry(item)} caption={`${item.ownerNickname} · ${item.inventoryName}`} href={itemPath(item.id, { from: "home", q, category })} />
-            </li>
-          ))}
-        </ul>
-      )}
+          <ul className="mt-5 flex flex-col border-t border-border">
+            {shown.map((item) => (
+              // 누구의 어느 인벤토리에 있는지. 여러 사람의 것이 섞이는 화면이라 이름 아래에 적는다
+              <li key={item.id}>
+                <SlotRow entry={toEntry(item)} caption={`${item.ownerNickname} · ${item.inventoryName}`} href={itemPath(item.id, { from: "home", q, category })} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
       {!ended && shown.length > 0 && (
         <button
