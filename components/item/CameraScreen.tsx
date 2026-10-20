@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { HeaderMini } from "@/components/ui/HeaderMini";
 import { Icon } from "@/components/ui/Icon";
 import { Toast } from "@/components/ui/Toast";
+import { meanLuma, nextDarkState } from "@/lib/image/adjust";
 import { capturePhoto } from "@/lib/image/capture";
 import { pickedPhoto, setPendingPhoto, type PendingPhoto } from "@/lib/image/pending-photo";
 
@@ -14,6 +15,11 @@ const CAMERA: MediaStreamConstraints = {
   video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } },
   audio: false,
 };
+
+// 프레임이 어두운지 이 간격으로 본다. 매 장면을 볼 필요는 없고, 가볍게
+const DARK_CHECK_MS = 1500;
+// 줄여 그릴 크기. 밝기 평균만 보면 되니 아주 작게
+const DARK_SAMPLE_SIDE = 24;
 
 // starting — 카메라를 켜는 중 · ready — 찍을 수 있음 · blocked — 권한을 거절했거나 카메라가 없음
 type CameraStatus = "starting" | "ready" | "blocked";
@@ -36,6 +42,38 @@ export function CameraScreen({ closeHref, nextHref }: CameraScreenProps) {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const hideNotice = useCallback(() => setNotice(null), []);
+  const [dark, setDark] = useState(false);
+
+  // 프레임이 어두우면 밝은 곳에서 찍으라고 알려 준다 — 어두우면 색이 틀어지고(노랑이 녹색으로) 사진 편집의 자동 보정으로도 다 못 살린다.
+  // 영상을 아주 작게 줄여 그려 밝기 평균만 본다. 켜고 끌 때 문턱을 달리해 깜빡이지 않게 한다 (adjust.ts)
+  useEffect(() => {
+    if (status !== "ready") return;
+    const canvas = document.createElement("canvas");
+    canvas.width = DARK_SAMPLE_SIDE;
+    canvas.height = DARK_SAMPLE_SIDE;
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+    if (!context) return;
+    const timer = window.setInterval(() => {
+      const video = videoRef.current;
+      if (!video?.videoWidth || document.hidden) return;
+      // 프레임(가운데 정사각형) 쪽만 본다 — 썸네일이 될 곳
+      const side = Math.min(video.videoWidth, video.videoHeight);
+      context.drawImage(
+        video,
+        (video.videoWidth - side) / 2,
+        (video.videoHeight - side) / 2,
+        side,
+        side,
+        0,
+        0,
+        DARK_SAMPLE_SIDE,
+        DARK_SAMPLE_SIDE,
+      );
+      const mean = meanLuma(context.getImageData(0, 0, DARK_SAMPLE_SIDE, DARK_SAMPLE_SIDE).data);
+      setDark((was) => nextDarkState(was, mean));
+    }, DARK_CHECK_MS);
+    return () => window.clearInterval(timer);
+  }, [status]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -124,8 +162,13 @@ export function CameraScreen({ closeHref, nextHref }: CameraScreenProps) {
         {/* 폰을 눕혀도 위아래 버튼을 덮지 않게, 너비와 (화면 높이 − 위아래 버튼 자리) 중 작은 쪽에 맞춘다 */}
         <div
           ref={frameRef}
-          className="flex aspect-square w-[min(100%,100dvh-15rem)] items-center justify-center rounded-lg ring-[100vmax] ring-ink/50"
+          className="relative flex aspect-square w-[min(100%,100dvh-15rem)] items-center justify-center rounded-lg ring-[100vmax] ring-ink/50"
         >
+          {status === "ready" && dark && (
+            <p role="status" className="absolute inset-x-0 bottom-4 mx-auto w-fit animate-fade-in rounded-full bg-dropdown px-4 py-2 text-caption">
+              조금 더 밝은 곳에서 찍어 보세요
+            </p>
+          )}
           {status === "blocked" && (
             <p className="break-keep px-8 text-center text-label">
               카메라를 쓸 수 없어요.

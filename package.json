@@ -10,7 +10,9 @@
     "db:types": "supabase gen types typescript --linked > lib/supabase/database.types.ts",
     "app-icon": "node scripts/app-icon.mjs",
     "demo": "node scripts/demo/demo-data.mjs",
-    "test:demo": "node --test scripts/demo/demo-data.test.mjs"
+    "test:demo": "node --test scripts/demo/demo-data.test.mjs",
+    "test:image": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/image/adjust.test.mjs",
+    "test": "npm run test:demo && npm run test:image"
   },
   "dependencies": {
     "@imgly/background-removal": "^1.7.0",
