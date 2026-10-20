@@ -116,7 +116,7 @@ export function ItemFeed({ items, q, category, categories, columns }: ItemFeedPr
         <ul className={`mt-8 grid gap-3.5 px-5 lg:grid-cols-7 xl:grid-cols-8 ${gridColumnsClass(columns)}`}>
           {shown.map((item) => (
             <li key={item.id}>
-              <SlotCell entry={toEntry(item)} href={itemPath(item.id, { from: "home", q, category })} />
+              <SlotCell entry={toEntry(item)} href={itemPath(item.id, { from: "home", q, category })} owner={{ nickname: item.ownerNickname, avatarUrl: item.ownerAvatarUrl }} />
             </li>
           ))}
         </ul>

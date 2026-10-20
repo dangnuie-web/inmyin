@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
+import { Avatar } from "@/components/profile/Avatar";
 import { Icon } from "@/components/ui/Icon";
 import { slotEntryPath } from "@/lib/inventory/paths";
 import type { SlotEntry } from "@/lib/inventory/queries";
@@ -65,22 +66,35 @@ type SlotCellProps = Omit<ComponentProps<typeof Link>, "href" | "className"> & {
   current?: boolean;
   // 누르면 갈 곳을 따로 정할 때 (홈 피드는 "어디서 왔는지"를 주소에 싣는다). 없으면 아이템 상세 · 담긴 인벤토리
   href?: string;
+  // 여러 사람의 것이 섞이는 격자(홈 피드 · Bookmark)에서 누구 것인지. 웹에서 마우스를 올리면 프로필 사진 · 닉네임이 뜬다.
+  // 폰은 칸 아래에 이름을 달면 지저분해서 안 보이고, 상세(H-02)의 작성자 줄에서 본다 (2026-10-19 당니님)
+  owner?: { nickname: string; avatarUrl: string | null };
 };
 
 // 나머지 props 는 링크에 그대로 넘긴다 — 길게 누르기(SlotGestures)가 여기에 손잡이를 단다
-export function SlotCell({ entry, current = false, href, ...props }: SlotCellProps) {
+export function SlotCell({ entry, current = false, href, owner, ...props }: SlotCellProps) {
   return (
     // 옅은 회색 바탕. 배경을 지운 사진은 이 위에 물건만 놓인다
     <Link
       {...props}
       href={href ?? slotEntryPath(entry)}
-      aria-label={entry.name}
+      aria-label={owner ? `${entry.name} · ${owner.nickname}` : entry.name}
       aria-current={current ? "true" : undefined}
       draggable={false}
-      className={`${CELL_CLASS} ${NO_BROWSER_GESTURES} overflow-hidden bg-gray-1 active:opacity-80 ${current ? "ring-2 ring-ink" : ""}`}
+      className={`group ${CELL_CLASS} ${NO_BROWSER_GESTURES} overflow-hidden bg-gray-1 active:opacity-80 ${current ? "ring-2 ring-ink" : ""}`}
     >
       <SlotImage entry={entry} sizes="(min-width: 448px) 130px, 30vw" />
       <QuantityBadge quantity={entry.quantity} className="absolute bottom-2 right-2 bg-white" />
+      {/* 주인 — 웹(lg)에서 올리거나(hover) 키보드로 왔을 때만. 왼쪽 위 흰 알약이라 오른쪽 아래 개수 배지와 안 겹친다 */}
+      {owner && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-1.5 top-1.5 hidden max-w-max items-center gap-1.5 rounded-full bg-white py-1 pr-2.5 pl-1 text-caption shadow-[0_0_0_1px_var(--color-border)] lg:group-hover:flex lg:group-focus-visible:flex"
+        >
+          <Avatar url={owner.avatarUrl} size={20} />
+          <span className="min-w-0 truncate font-bold">{owner.nickname}</span>
+        </span>
+      )}
     </Link>
   );
 }

@@ -97,7 +97,7 @@ export function ItemCollection({ items, capacity, columns, emptyText, sortable =
         <ul className={`mt-8 grid gap-3.5 px-5 lg:grid-cols-7 xl:grid-cols-8 ${gridColumnsClass(columns)}`}>
           {shown.map((item) => (
             <li key={item.id}>
-              <SlotCell entry={toEntry(item)} />
+              <SlotCell entry={toEntry(item)} owner={item.ownerNickname ? { nickname: item.ownerNickname, avatarUrl: item.ownerAvatarUrl ?? null } : undefined} />
             </li>
           ))}
         </ul>

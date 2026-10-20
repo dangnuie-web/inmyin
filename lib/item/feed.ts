@@ -6,6 +6,7 @@ import type { CollectedItem } from "./queries";
 export type FeedItem = CollectedItem & {
   ownerHandle: string;
   ownerNickname: string;
+  ownerAvatarUrl: string | null;
   // "2026-09-22T…". 다음 장을 읽을 때 "이것보다 오래된 것"의 기준
   createdAt: string;
 };

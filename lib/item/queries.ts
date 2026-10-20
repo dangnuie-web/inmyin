@@ -54,8 +54,9 @@ export type CollectedItem = {
   quantity: number;
   category: string | null;
   inventoryName: string;
-  // 누구 것인지. 여러 사람의 것이 섞이는 곳(Bookmark 탭)에서만 채운다 — 리스트의 줄에 "닉네임 · 인벤토리"로 보인다
+  // 누구 것인지. 여러 사람의 것이 섞이는 곳(Bookmark 탭)에서만 채운다 — 리스트의 줄에 "닉네임 · 인벤토리"로, 웹 격자에서는 마우스를 올리면 보인다
   ownerNickname?: string;
+  ownerAvatarUrl?: string | null;
 };
 
 // 내 아이템 전부, 최신순 (M-13). 한 번에 다 읽는다 — 검색과 카테고리를 누르는 즉시 걸러 보여주려면 브라우저가 전부 갖고 있어야 한다
@@ -87,7 +88,7 @@ export async function getPublicItemFeed({ q, category, before, limit = FEED_PAGE
   const supabase = await createClient();
   let query = supabase
     .from("items")
-    .select("id, name, image_url, quantity, category, created_at, inventories!inner(name), users!inner(handle, nickname)")
+    .select("id, name, image_url, quantity, category, created_at, inventories!inner(name), users!inner(handle, nickname, avatar_url)")
     .is("deleted_at", null)
     .order("created_at", { ascending: false })
     .limit(limit);
@@ -110,6 +111,7 @@ export async function getPublicItemFeed({ q, category, before, limit = FEED_PAGE
     inventoryName: item.inventories.name,
     ownerHandle: item.users.handle,
     ownerNickname: item.users.nickname,
+    ownerAvatarUrl: item.users.avatar_url,
   }));
 }
 

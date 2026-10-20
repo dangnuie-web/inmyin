@@ -39,7 +39,7 @@ export async function getMyBookmarkedItems(userId: string): Promise<CollectedIte
     chunks.map((chunk) =>
       supabase
         .from("items")
-        .select("id, name, image_url, quantity, category, inventories!inner(name), users!inner(nickname)")
+        .select("id, name, image_url, quantity, category, inventories!inner(name), users!inner(nickname, avatar_url)")
         .in("id", chunk)
         .is("deleted_at", null),
     ),
@@ -53,7 +53,7 @@ export async function getMyBookmarkedItems(userId: string): Promise<CollectedIte
   return ids.flatMap((id) => {
     const item = byId.get(id);
     return item
-      ? [{ id: item.id, name: item.name, imageUrl: item.image_url, quantity: item.quantity, category: item.category, inventoryName: item.inventories.name, ownerNickname: item.users.nickname }]
+      ? [{ id: item.id, name: item.name, imageUrl: item.image_url, quantity: item.quantity, category: item.category, inventoryName: item.inventories.name, ownerNickname: item.users.nickname, ownerAvatarUrl: item.users.avatar_url }]
       : [];
   });
 }
