@@ -1,6 +1,6 @@
 // 정해진 앱 아이콘 SVG 하나로 PWA 에 필요한 아이콘 파일들을 만든다.
 //
-//   npm run app-icon -- "../SVG/inmyin logo_2.svg"
+//   npm run app-icon -- "../SVG/20260922_inmyin_logo_2_v01.svg"
 //
 // 만드는 것:
 //   public/icons/icon-192.png, icon-512.png   — 매니페스트용. 그린 그대로 (모서리가 투명한 둥근 네모)

@@ -1,5 +1,7 @@
 # 작업 순서 
 
+> 2026-10-19부터 이 파일은 1~3단계 기록으로만 남긴다. 앞으로의 할 일은 저장소 밖 오피스 로드맵(`~/dev/CLAUDE.md` 표의 inmyin 폴더 › 로드맵.md).
+
 체크박스 하나가 한 작업 단위다. 위에서부터 하나씩 끝내고, 끝낼 때마다 체크한다.
 
 클로드 코드에게 어떻게 말할지는 `docs/how-to-ask.md`에 문장이 그대로 적혀 있다.
@@ -45,7 +47,7 @@
 - [✅] 프로필 관리 — 프로필 사진 · 닉네임 · 아이디 수정. 디자인이 없어서 다른 정보 입력 화면(M-08)과 같은 모양으로 만들었다
 - [✅] 아이템 모아보기 (M-13) — 검색 · 카테고리 칩 · 그리드/리스트. 카테고리 칩을 한 줄로 쓸어 넘기는 공용 부품(ChipRow)을 만들어 M-04 에도 넣었다
 - [✅] PWA 설정 — manifest(`app/manifest.ts`) + 서비스워커(`app/sw.ts`, Serwist Turbopack) + 아이콘(`public/icons/`). 아이폰 전용 태그는 `app/layout.tsx`. 인터넷이 끊기면 마지막으로 본 화면을 다시 보여주고, 없으면 `/offline`. Supabase · 배경제거 모델 · 로그인 콜백은 저장하지 않는다. 개발 중(`npm run dev`)에는 서비스워커를 끈다 — 확인은 `npm run build && npm start`
-  - 앱 아이콘은 `inmyin logo_2.svg`(시안 3번)로 정했다. 바꾸려면 `npm run app-icon -- "<svg 경로>"` 로 아이콘 4종과 favicon 을 다시 만든다
+  - 앱 아이콘은 `20260922_inmyin_logo_2_v01.svg`(시안 3번)로 정했다. 바꾸려면 `npm run app-icon -- "<svg 경로>"` 로 아이콘 4종과 favicon 을 다시 만든다
   - 아이콘 시안 고르기 도구는 INMYIN 밖으로 뺐다 — 옆 폴더 `../icon-preview` (GitHub `dangnuie-web/icon-preview`, 배포 https://icon-preview-dangdang3.vercel.app). 시안을 아이폰 홈 화면 모양에 넣어 보고 "홈 화면에 추가"로 진짜 아이콘으로 깔아 볼 수 있다. 다른 프로젝트에서도 쓴다 — 쓰는 법은 그 폴더의 README
 
 ### 내 아이폰에 설치해보기
