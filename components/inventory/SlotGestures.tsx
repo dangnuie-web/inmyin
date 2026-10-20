@@ -88,7 +88,7 @@ type SwipeRowProps = {
   children: ReactNode;
 };
 
-// 오른쪽으로 밀면 왼쪽에서 회색 연필(수정), 왼쪽으로 밀면 오른쪽에서 보라색 휴지통(삭제)이 나온다
+// 오른쪽으로 밀면 왼쪽에서 회색 연필(수정), 왼쪽으로 밀면 오른쪽에서 검정 휴지통(삭제)이 나온다
 export function SwipeRow({ open, onOpenChange, onEdit, onDelete, children }: SwipeRowProps) {
   // 미는 동안의 위치. + 는 연필이 나온 만큼, − 는 휴지통이 나온 만큼 (px). 밀고 있지 않으면 null
   const [dragOffset, setDragOffset] = useState<number | null>(null);
@@ -183,7 +183,7 @@ export function SwipeRow({ open, onOpenChange, onEdit, onDelete, children }: Swi
         onClick={onDelete}
         aria-label="삭제"
         tabIndex={open === "delete" ? 0 : -1}
-        className={`${panelClass} right-0 bg-point`}
+        className={`${panelClass} right-0 bg-ink`}
         style={{ transform: `translateX(${Math.max(0, offset + PANEL_WIDTH)}px)` }}
       >
         <Icon name="trash" />

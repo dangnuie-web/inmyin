@@ -11,12 +11,11 @@
   --color-gray-mid: #c1c1c1;
   --color-ink: #000000;
   --color-primary: #ff2d55;
-  --color-point: #6155f5;
   --color-dropdown: #000000b2;
 
   /* 어두운 화면(M-08 정보 입력) — 피그마에 변수 없이 값으로만 들어 있던 색 */
-  --color-surface-dark: #4d4a50;
-  --color-field-dark: #3c3640;
+  --color-surface-dark: #4c4c4c;
+  --color-field-dark: #393939;
   --color-placeholder-dark: var(--color-gray-mid);
 
   /* 외부 브랜드 색 — 카카오 로그인 버튼 가이드가 정해둔 값 */
@@ -54,7 +53,7 @@
 
   /* 움직임 — 새로 들어온(또는 되살아난) 칸을 알려준다 (M-04).
      그리드의 칸은 작게 시작해 살짝 넘치게 커졌다가 제 크기로 돌아온다 — 홈 화면에 앱이 깔릴 때 같은 "톡".
-     리스트의 줄은 옅은 보라색이 깔렸다가 서서히 빠진다 — 목록에서 "방금 바뀐 줄"을 알릴 때 흔히 쓰는 방식 */
+     리스트의 줄은 옅은 회색이 깔렸다가 서서히 빠진다 — 목록에서 "방금 바뀐 줄"을 알릴 때 흔히 쓰는 방식 */
   --animate-slot-pop: slot-pop 0.5s cubic-bezier(0.2, 0.9, 0.3, 1) both;
   /* 스크롤로 데려온 칸은 이미 눈에 보이고 있어서, 사라졌다 나타나지 않고 제자리에서 한 번 부푼다 */
   --animate-slot-pulse: slot-pulse 0.5s ease-out both;
@@ -87,7 +86,7 @@
   @keyframes row-flash {
     0%,
     25% {
-      background-color: color-mix(in srgb, var(--color-point) 14%, transparent);
+      background-color: color-mix(in srgb, var(--color-ink) 8%, transparent);
     }
     100% {
       background-color: transparent;

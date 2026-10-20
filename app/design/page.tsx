@@ -18,7 +18,6 @@ const PALETTE = [
   { name: "gray-mid", className: "bg-gray-mid" },
   { name: "ink", className: "bg-ink" },
   { name: "primary", className: "bg-primary" },
-  { name: "point", className: "bg-point" },
   { name: "dropdown", className: "bg-dropdown" },
   { name: "surface-dark", className: "bg-surface-dark" },
   { name: "field-dark", className: "bg-field-dark" },

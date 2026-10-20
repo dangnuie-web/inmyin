@@ -2,7 +2,6 @@ import type { ComponentProps } from "react";
 
 const VARIANTS = {
   primary: "bg-ink text-white",
-  point: "bg-point text-white",
   outline: "border border-disabled bg-white text-ink",
   kakao: "bg-kakao text-ink",
   // 검은 화면 위의 버튼 (M-07 저장하기)

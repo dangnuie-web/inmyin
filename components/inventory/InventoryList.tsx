@@ -13,7 +13,7 @@ import { SwipeRow, type SwipeSide } from "./SlotGestures";
 
 // "되돌리기" 줄이 남아 있는 시간. globals.css 의 undo-countdown 길이와 맞춘다
 const UNDO_MS = 5000;
-// 되살아난 줄에 옅은 보라색이 스치는 시간. globals.css 의 row-flash 보다 길어야 한다
+// 되살아난 줄에 옅은 회색이 스치는 시간. globals.css 의 row-flash 보다 길어야 한다
 const FLASH_MS = 1600;
 
 // 화면에만 미리 반영해 둔 줄. 서버가 보낸 목록에는 없을 수 있어서, 끼워 넣을 자리와 함께 들고 있는다
@@ -39,7 +39,7 @@ export function InventoryList({ inventories, maxInventories }: InventoryListProp
   const [ghost, setGhost] = useState<(Placed & { deleting: Promise<FormState> }) | null>(null);
   // 되돌리기를 누른 것 (원래 줄로 보인다)
   const [revived, setRevived] = useState<Placed | null>(null);
-  // 방금 되살아난 줄. 옅은 보라색이 스친다
+  // 방금 되살아난 줄. 옅은 회색이 스친다
   const [restoredId, setRestoredId] = useState<string | null>(null);
 
   // 서버가 보낸 목록에 위의 것들을 입힌다. 서버가 이미 목록에서 뺐으면 (또는 아직 안 넣었으면) 원래 자리에 끼워 넣는다

@@ -66,11 +66,11 @@ export function UndoInventoryRow({ inventory, onUndo }: { inventory: InventorySu
         <span className="truncate text-title font-bold text-disabled">{inventory.name}</span>
         <span className="text-caption text-ink-muted">삭제했어요</span>
       </span>
-      <span className="flex shrink-0 items-center gap-2 text-label font-bold text-point">
+      <span className="flex shrink-0 items-center gap-2 text-label font-bold text-ink">
         <Icon name="undo" scale={0.45} />
         되돌리기
       </span>
-      <span className="absolute inset-x-0 bottom-0 h-0.75 origin-left animate-undo-countdown bg-point" />
+      <span className="absolute inset-x-0 bottom-0 h-0.75 origin-left animate-undo-countdown bg-ink" />
     </button>
   );
 }

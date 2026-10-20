@@ -138,9 +138,9 @@ export function SlotRow({ entry, caption, href, ...props }: SlotRowProps) {
 }
 
 // 방금 지운 아이템의 자리. 5초 동안 "되돌리기" 칸으로 남았다가 사라진다 — 그때 뒤의 칸들이 당겨 붙는다.
-// 지운 바로 그 자리에 뜨기 때문에 눈도 손가락도 이미 여기에 있다. 보라색 선이 남은 시간을 알려준다 —
+// 지운 바로 그 자리에 뜨기 때문에 눈도 손가락도 이미 여기에 있다. 검은 선이 남은 시간을 알려준다 —
 // 리스트의 줄에서는 아래의 선이 줄어들고, 그리드의 칸에서는 테두리를 따라 한 바퀴 돌며 지워진다
-const UNDO_COUNTDOWN_CLASS = "absolute inset-x-0 bottom-0 h-0.75 origin-left animate-undo-countdown bg-point";
+const UNDO_COUNTDOWN_CLASS = "absolute inset-x-0 bottom-0 h-0.75 origin-left animate-undo-countdown bg-ink";
 const UNDO_IMAGE_CLASS = "opacity-25 grayscale";
 
 export function UndoSlotCell({ entry, onUndo }: { entry: SlotEntry; onUndo: () => void }) {
@@ -149,7 +149,7 @@ export function UndoSlotCell({ entry, onUndo }: { entry: SlotEntry; onUndo: () =
       type="button"
       onClick={onUndo}
       aria-label={`${entry.name} 삭제 되돌리기`}
-      className={`${CELL_CLASS} w-full flex-col gap-1.5 overflow-hidden bg-gray-1 text-point active:opacity-80`}
+      className={`${CELL_CLASS} w-full flex-col gap-1.5 overflow-hidden bg-gray-1 text-ink active:opacity-80`}
     >
       <span className={`absolute inset-0 ${UNDO_IMAGE_CLASS}`}>
         <SlotImage entry={entry} sizes="(min-width: 448px) 130px, 30vw" />
@@ -184,7 +184,7 @@ export function UndoSlotRow({ entry, onUndo }: { entry: SlotEntry; onUndo: () =>
         <span className="truncate text-body text-disabled">{entry.name}</span>
         <span className="text-caption text-ink-muted">삭제했어요</span>
       </span>
-      <span className="flex shrink-0 items-center gap-2 text-label font-bold text-point">
+      <span className="flex shrink-0 items-center gap-2 text-label font-bold text-ink">
         <Icon name="undo" scale={0.45} />
         되돌리기
       </span>

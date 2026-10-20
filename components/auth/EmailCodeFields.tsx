@@ -122,7 +122,6 @@ export function EmailCodeFields({ state, onEmailChange }: EmailCodeFieldsProps) 
         }}
         action={
           <Button
-            variant="point"
             size="sm"
             className={ACTION_WIDTH}
             onClick={state.sendCode}
@@ -144,12 +143,11 @@ export function EmailCodeFields({ state, onEmailChange }: EmailCodeFieldsProps) 
           onChange={(e) => state.setCode(e.target.value.replace(/\D/g, ""))}
           trailing={
             !verified && (
-              <span className="num text-body text-primary">{formatTime(state.secondsLeft)}</span>
+              <span className="num text-body text-ink-muted">{formatTime(state.secondsLeft)}</span>
             )
           }
           action={
             <Button
-              variant="point"
               size="sm"
               className={ACTION_WIDTH}
               onClick={state.verifyCode}
@@ -161,7 +159,7 @@ export function EmailCodeFields({ state, onEmailChange }: EmailCodeFieldsProps) 
         />
       )}
       {verified ? (
-        <p role="status" className="text-caption text-point">
+        <p role="status" className="text-caption text-ink-muted">
           인증번호가 확인되었습니다.
         </p>
       ) : (

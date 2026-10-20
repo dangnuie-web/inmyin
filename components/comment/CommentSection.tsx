@@ -123,7 +123,7 @@ export function CommentSection({ targetType, targetId, comments, me, ownerId }: 
             enterKeyHint="send"
             className="h-11 min-w-0 flex-1 rounded-full bg-gray-2 px-4 text-label outline-none placeholder:text-ink-muted"
           />
-          <button type="submit" disabled={!text.trim()} className="shrink-0 text-label font-bold text-point active:opacity-60 disabled:text-disabled">
+          <button type="submit" disabled={!text.trim()} className="shrink-0 text-label font-bold text-ink active:opacity-60 disabled:text-disabled">
             게시
           </button>
         </form>

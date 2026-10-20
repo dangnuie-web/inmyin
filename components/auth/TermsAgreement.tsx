@@ -5,7 +5,7 @@ import { useState } from "react";
 import { TERMS, termFieldName, type TermId } from "@/lib/terms";
 
 const BOX =
-  "size-5 shrink-0 appearance-none border border-ink bg-white checked:bg-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-point";
+  "size-5 shrink-0 appearance-none border border-ink bg-white checked:bg-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink";
 
 // 모든 항목을 같은 값으로 채운다
 function fill(value: boolean) {

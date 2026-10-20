@@ -28,7 +28,7 @@ export function MyInventoriesSection({ inventories, maxInventories, slotCount }:
       {isFull && (
         <Link
           href="/my/plan"
-          className="mx-auto mt-auto mb-10 flex h-11.25 w-52 items-center justify-center gap-1 rounded-sm bg-point text-link font-bold text-white active:opacity-80"
+          className="mx-auto mt-auto mb-10 flex h-11.25 w-52 items-center justify-center gap-1 rounded-sm bg-ink text-link font-bold text-white active:opacity-80"
         >
           {/* 피그마에서도 그림이 아니라 글자(✦)다 */}
           <span aria-hidden>✦</span>

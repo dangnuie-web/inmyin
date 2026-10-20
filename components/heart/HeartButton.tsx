@@ -18,7 +18,7 @@ type HeartButtonProps = {
 };
 
 // 하트 + 하트 수 (제목 줄, 북마크 왼쪽). 누르면 화면부터 바뀌고 서버에 저장한다 — 실패하면 되돌리고 알린다.
-// 켜지면 primary(분홍빨강)로 채운 하트, 꺼지면 검은 테두리 하트. 수는 늘 검정
+// 켜지면 검정으로 채운 하트, 꺼지면 검은 테두리 하트 (북마크처럼 "켜지면 채움". 분홍은 알림 점 · 오류에만). 수는 늘 검정
 export function HeartButton({ targetType, targetId, hearted: initialHearted, count: initialCount, guest = false }: HeartButtonProps) {
   const [hearted, setHearted] = useState(initialHearted);
   const [count, setCount] = useState(initialCount);
@@ -48,7 +48,7 @@ export function HeartButton({ targetType, targetId, hearted: initialHearted, cou
         onClick={toggle}
         aria-pressed={hearted}
         aria-label={hearted ? "하트 취소" : "하트"}
-        className={`flex shrink-0 items-center gap-1.5 text-title font-bold transition-transform active:scale-90 ${hearted ? "text-primary" : "text-ink"}`}
+        className="flex shrink-0 items-center gap-1.5 text-title font-bold text-ink transition-transform active:scale-90"
       >
         <Icon name={hearted ? "heartFilled" : "heart"} scale={0.5} />
         <span className="num text-ink">{count}</span>

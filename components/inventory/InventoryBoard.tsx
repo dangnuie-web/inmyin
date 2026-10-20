@@ -133,7 +133,7 @@ export function InventoryBoard({ inventoryId, inventories, addedId, deletedId, e
     return () => observer.disconnect();
   }, [view, isFull]);
 
-  // 방금 등록한(또는 되살린) 칸을 알려준다. 그리드의 칸은 "톡" 하고 나타나고, 리스트의 줄은 옅은 보라색이 스친다.
+  // 방금 등록한(또는 되살린) 칸을 알려준다. 그리드의 칸은 "톡" 하고 나타나고, 리스트의 줄은 옅은 회색이 스친다.
   // 화면 안에 있으면 그려지기 전에 바로 시작하고, 밖에 있으면 스크롤로 데려와서 **도착한 순간** 시작한다 —
   // 그냥 바로 시작하면 도착하기도 전에 끝나 버린다
   useLayoutEffect(() => {
@@ -399,7 +399,7 @@ export function InventoryBoard({ inventoryId, inventories, addedId, deletedId, e
               type="button"
               onClick={() => setMenu("floating")}
               aria-label="추가"
-              className="flex size-10.5 items-center justify-center rounded-full bg-point text-white shadow-lg active:opacity-80"
+              className="flex size-10.5 items-center justify-center rounded-full bg-ink text-white shadow-lg active:opacity-80"
             >
               <Icon name="plusBold" />
             </button>

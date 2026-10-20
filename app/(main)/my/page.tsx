@@ -44,8 +44,8 @@ export default async function MyProfilePage() {
             <p className="flex items-center gap-2 text-title font-bold">
               <span className="truncate">{profile.nickname}</span>
               {profile.plan === "premium" && (
-                // 프리미엄 표시. 보라색 원 안의 별
-                <span aria-label="프리미엄" className="flex size-4 shrink-0 items-center justify-center rounded-full bg-point text-[9px] leading-none text-white">
+                // 프리미엄 표시. 검정 원 안의 별
+                <span aria-label="프리미엄" className="flex size-4 shrink-0 items-center justify-center rounded-full bg-ink text-[9px] leading-none text-white">
                   ★
                 </span>
               )}

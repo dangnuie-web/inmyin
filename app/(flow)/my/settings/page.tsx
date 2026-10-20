@@ -69,7 +69,7 @@ export default async function SettingsPage() {
         </Section>
 
         <form action={signOut} className="mt-2">
-          <button type="submit" className={`${ROW_CLASS} text-primary`}>
+          <button type="submit" className={`${ROW_CLASS} text-ink-muted`}>
             로그아웃
           </button>
         </form>
