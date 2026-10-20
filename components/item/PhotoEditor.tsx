@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { HeaderMini } from "@/components/ui/HeaderMini";
 import { Icon } from "@/components/ui/Icon";
 import { PhotoPreview } from "@/components/ui/PhotoPreview";
+import { CutoutRetouch } from "./CutoutRetouch";
 import { Toast } from "@/components/ui/Toast";
 import { removeBackground } from "@/lib/background-removal";
 import { analyze, autoAdjust, buildLuts, isIdentity, NO_AUTO, NO_MANUAL, type AutoAdjust, type ManualAdjust } from "@/lib/image/adjust";
@@ -41,6 +42,9 @@ export function PhotoEditor({ closeHref, nextHref }: PhotoEditorProps) {
   const [pending] = useState(getPendingPhoto);
   // 배경을 지운 사진. 한 번 만들어 두면 껐다 켜도 다시 만들지 않는다
   const [cutout, setCutout] = useState<File | null>(null);
+  // 누끼 손질(지우개 · 되살리기 붓)한 결과. 배경제거를 껐다 켜도 남는다 — 배경은 사진마다 한 번만 지우므로 손질이 덮일 일이 없다
+  const [retouched, setRetouched] = useState<File | null>(null);
+  const [retouching, setRetouching] = useState(false);
   const [cutoutStatus, setCutoutStatus] = useState<CutoutStatus>("idle");
   // 배경제거 버튼이 켜져 있는지. 기본은 켜짐 — 지우는 중에 꺼도 지우기는 뒤에서 끝까지 하고 결과는 기억해 둔다
   const [removed, setRemoved] = useState(true);
@@ -110,7 +114,8 @@ export function PhotoEditor({ closeHref, nextHref }: PhotoEditorProps) {
   }, [startRemoval]);
 
   const removing = removed && cutoutStatus === "running";
-  const source = pending ? (removed && cutout ? cutout : pending.photo) : null;
+  // 순서: 배경 지우기 → 손질 → 보정(98번). 보정은 손질한 결과 위에 입힌다
+  const source = pending ? (removed && cutout ? (retouched ?? cutout) : pending.photo) : null;
 
   // 자동 보정 값 정하기 (사진마다 한 번)
   useEffect(() => {
@@ -249,7 +254,7 @@ export function PhotoEditor({ closeHref, nextHref }: PhotoEditorProps) {
         </div>
 
         <div className="px-5 pb-6">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center">
             <button
               type="button"
               onClick={() => setAutoOn(!autoOn)}
@@ -261,12 +266,24 @@ export function PhotoEditor({ closeHref, nextHref }: PhotoEditorProps) {
             >
               자동 보정
             </button>
+            {/* 배경을 지운 사진이 보일 때만 — 덜 지운 곳 · 너무 지운 곳을 붓으로 손본다 */}
+            {removed && cutout && (
+              <button
+                type="button"
+                onClick={() => setRetouching(true)}
+                disabled={working || saveQueued}
+                className="ml-2 flex h-9 items-center gap-1 rounded-full border border-gray-4 px-3.5 text-label font-bold text-white active:opacity-80 disabled:opacity-40"
+              >
+                <Icon name="eraser" scale={0.75} />
+                손질
+              </button>
+            )}
             <button
               type="button"
               onClick={() => setDetailOpen(!detailOpen)}
               aria-expanded={detailOpen}
               aria-controls="photo-adjust-detail"
-              className="flex h-9 items-center gap-1 text-label text-gray-mid active:opacity-80"
+              className="ml-auto flex h-9 items-center gap-1 text-label text-gray-mid active:opacity-80"
             >
               세부 조정
               <Icon name="chevronDown" scale={0.75} className={`transition-transform ${detailOpen ? "rotate-180" : ""}`} />
@@ -308,6 +325,18 @@ export function PhotoEditor({ closeHref, nextHref }: PhotoEditorProps) {
           저장하기
         </Button>
       </div>
+      {retouching && cutout && (
+        <CutoutRetouch
+          original={pending.photo}
+          cutout={retouched ?? cutout}
+          autoCutout={cutout}
+          onCancel={() => setRetouching(false)}
+          onDone={(file) => {
+            setRetouched(file);
+            setRetouching(false);
+          }}
+        />
+      )}
       <Toast message={notice} onDone={hideNotice} />
     </main>
   );

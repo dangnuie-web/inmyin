@@ -11,7 +11,7 @@
     "app-icon": "node scripts/app-icon.mjs",
     "demo": "node scripts/demo/demo-data.mjs",
     "test:demo": "node --test scripts/demo/demo-data.test.mjs",
-    "test:image": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/image/adjust.test.mjs",
+    "test:image": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/image/adjust.test.mjs lib/image/retouch.test.mjs",
     "test": "npm run test:demo && npm run test:image"
   },
   "dependencies": {
