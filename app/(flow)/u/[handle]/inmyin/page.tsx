@@ -38,7 +38,7 @@ export default async function OtherPostsPage(props: PageProps<"/u/[handle]/inmyi
         <BackHeader title="INMYIN" />
       </StickyTop>
       <main className="flex flex-1 flex-col lg:mx-5 lg:mt-4 lg:rounded-xl lg:bg-gray-1 lg:pt-6 lg:pb-4">
-        <PostGrid posts={posts} emptyText="아직 INMYIN 이 없어요." note={`${posts.length}개`} />
+        <PostGrid posts={posts} empty={{ text: "아직 INMYIN이 없어요." }} note={`${posts.length}개`} />
       </main>
     </ProfileShell>
   );

@@ -105,6 +105,20 @@
     }
   }
 
+  /* 움직임 — 빈 화면의 가방(EmptyBag)이 화면이 뜨고 0.3초 뒤 한 번 들썩인다. 랜딩 가방과 같은 몸짓
+     (lib/landing/scene.ts 의 bagHop 0.06 · bagHopTime 240ms) — 그래서 "그 가방"으로 읽힌다 */
+  --animate-bag-hop: bag-hop 240ms ease-out 0.3s both;
+
+  @keyframes bag-hop {
+    0%,
+    100% {
+      transform: translateY(0) scale(1);
+    }
+    40% {
+      transform: translateY(-4px) scale(1.06, 0.97);
+    }
+  }
+
   /* 움직임 — "되돌리기" 칸 아래의 선이 5초 동안 줄어든다 (M-04). 길이는 InventoryBoard 의 UNDO_MS 와 맞춘다 */
   --animate-undo-countdown: undo-countdown 5s linear forwards;
 

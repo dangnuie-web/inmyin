@@ -34,7 +34,7 @@ export default async function MyItemsPage() {
           items={items}
           capacity={maxInventories * slotCount}
           columns={toGridColumns(profile.grid_columns)}
-          emptyText="아직 등록한 아이템이 없어요. 인벤토리에서 + 를 눌러 넣어 보세요."
+          empty={{ text: "아직 등록한 아이템이 없어요. 찍어 넣은 물건이 전부 여기에 모여요.", action: { label: "아이템 넣기", href: "/add" } }}
         />
       </main>
     </ProfileShell>

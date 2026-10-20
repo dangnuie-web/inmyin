@@ -7,6 +7,7 @@ import { type GridColumns, gridColumnsClass, SlotCell, SlotRow } from "@/compone
 import { ViewToggle } from "@/components/inventory/ViewToggle";
 import { CategoryTag } from "@/components/ui/CategoryTag";
 import { ChipRow } from "@/components/ui/ChipRow";
+import { EmptyBag, EmptyLine } from "@/components/ui/EmptyBag";
 import { Icon } from "@/components/ui/Icon";
 import { ListControls } from "@/components/ui/ListControls";
 import { feedPath } from "@/lib/home/paths";
@@ -108,9 +109,11 @@ export function ItemFeed({ items, q, category, categories, columns }: ItemFeedPr
       </div>
 
       {shown.length === 0 ? (
-        <p className="mt-16 break-keep px-5 text-center text-label text-ink-muted">
-          {isFiltered ? "찾는 아이템이 없어요." : "아직 공개된 아이템이 없어요. 내 인벤토리에 넣은 것이 여기에 모여요."}
-        </p>
+        isFiltered ? (
+          <EmptyLine>찾는 아이템이 없어요.</EmptyLine>
+        ) : (
+          <EmptyBag action={{ label: "아이템 넣기", href: "/add" }}>아직 공개된 아이템이 없어요. 내 인벤토리에 넣은 것이 여기에 모여요.</EmptyBag>
+        )
       ) : view === "grid" ? (
         // 웹은 7칸, 1280 이상(기둥 1200 이 다 찬 때)은 8칸 (2026-10-20). 설정의 3/4칸은 폰에만
         <ul className={`mt-8 grid gap-3.5 px-5 lg:grid-cols-7 xl:grid-cols-8 ${gridColumnsClass(columns)}`}>

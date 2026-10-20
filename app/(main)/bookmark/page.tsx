@@ -44,10 +44,10 @@ export default async function BookmarkPage(props: PageProps<"/bookmark">) {
         </nav>
       </StickyTop>
       {tab === "items" ? (
-        // 아래 숫자는 모은 개수 / 플랜 한도 (lib/plans.ts 의 maxBookmarks). 아이템 · INMYIN 을 합쳐 센다
-        <ItemCollection items={items} capacity={maxBookmarks} columns={toGridColumns(profile.grid_columns)} emptyText="아직 북마크한 아이템이 없어요. 홈에서 책갈피를 눌러 모아 보세요." sortable />
+        // 목록 위 숫자는 모은 개수 / 플랜 한도 (lib/plans.ts 의 maxBookmarks). 아이템 · INMYIN 을 합쳐 센다
+        <ItemCollection items={items} capacity={maxBookmarks} columns={toGridColumns(profile.grid_columns)} empty={{ text: "책갈피를 누른 아이템이 여기에 모여요.", action: { label: "홈 구경하기", href: "/" } }} sortable />
       ) : (
-        <PostGrid posts={posts} emptyText="아직 북마크한 INMYIN 이 없어요. 게시물에서 책갈피를 눌러 모아 보세요." note={`${posts.length}개`} />
+        <PostGrid posts={posts} empty={{ text: "책갈피를 누른 INMYIN이 여기에 모여요.", action: { label: "INMYIN 구경하기", href: "/inmyin" } }} note={`${posts.length}개`} />
       )}
     </div>
   );

@@ -4,6 +4,7 @@ import { HomeTabs } from "@/components/home/HomeTabs";
 import { PostCard } from "@/components/inmyin/PostCard";
 import { CategoryTag } from "@/components/ui/CategoryTag";
 import { ChipRow } from "@/components/ui/ChipRow";
+import { EmptyBag, EmptyLine } from "@/components/ui/EmptyBag";
 import { getViewer } from "@/lib/auth/profile";
 import { postFeedPath, type PostSort } from "@/lib/inmyin/paths";
 import { getPostFeed } from "@/lib/inmyin/queries";
@@ -58,7 +59,12 @@ export default async function InmyinFeedPage(props: PageProps<"/inmyin">) {
       </p>
 
       {posts.length === 0 ? (
-        <p className="mt-16 px-5 text-center text-body text-ink-muted">{category ? "이 태그의 INMYIN 이 아직 없어요." : "아직 INMYIN 이 없어요. 프로필에서 첫 INMYIN 을 만들어 보세요."}</p>
+        // 태그로 걸러서 0개면 비어 있는 게 아니라 거른 것 — 가방 없이 글 한 줄 (무늬 빈화면프로필설계 v01 4-1)
+        category ? (
+          <EmptyLine>이 태그의 INMYIN이 아직 없어요.</EmptyLine>
+        ) : (
+          <EmptyBag action={{ label: "INMYIN 만들기", href: "/my/inmyin/new" }}>아직 INMYIN이 없어요. 내 아이템으로 첫 INMYIN을 만들어 보세요.</EmptyBag>
+        )
       ) : (
         <ul className="mt-4 grid grid-cols-2 gap-x-3.5 gap-y-6 px-5 pb-10 lg:grid-cols-5 lg:gap-x-5 lg:gap-y-7 xl:grid-cols-6">
           {posts.map((post) => (

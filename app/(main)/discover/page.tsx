@@ -53,7 +53,7 @@ export default async function DiscoverPage(props: PageProps<"/discover">) {
 
       {users.length === 0 ? (
         <p className="mt-16 px-5 text-center text-body text-ink-muted">
-          {mode === "recommend" ? `아직 추천할 사람이 없어요. 누적 북마크 ${RECOMMEND_THRESHOLD}개 미만인 사람 중에서 골라요.` : "다른 사람의 INMYIN 이 아직 없어요."}
+          {mode === "recommend" ? `아직 추천할 사람이 없어요. 누적 북마크 ${RECOMMEND_THRESHOLD}개 미만인 사람 중에서 골라요.` : "다른 사람의 INMYIN이 아직 없어요."}
         </p>
       ) : (
         <ul className="mt-4 grid gap-10 px-5 pb-10 lg:grid-cols-2 lg:gap-x-6 xl:grid-cols-3">

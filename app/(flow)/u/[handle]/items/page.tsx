@@ -14,7 +14,7 @@ import { StickyTop } from "@/components/ui/StickyTop";
 
 export const metadata: Metadata = { title: "아이템 · INMYIN" };
 
-// 타유저의 아이템 모아보기. 내 것(M-13)과 같은 화면이고 보이는 아이템만 온다. 웹은 프로필 틀의 아이템 탭 안에. 아래 숫자는 보이는 아이템 수
+// 타유저의 아이템 모아보기. 내 것(M-13)과 같은 화면이고 보이는 아이템만 온다. 웹은 프로필 틀의 아이템 탭 안에. 목록 위 숫자는 보이는 아이템 수
 export default async function OtherItemsPage(props: PageProps<"/u/[handle]/items">) {
   // 로그인 없이도 열린다 (구경) — 그때는 팔로우를 누르면 로그인으로, ⋮(차단) 메뉴는 없다
   const profile = await getViewer();
@@ -38,7 +38,7 @@ export default async function OtherItemsPage(props: PageProps<"/u/[handle]/items
         <BackHeader title="아이템" />
       </StickyTop>
       <main className="flex flex-1 flex-col lg:mx-5 lg:mt-4 lg:rounded-xl lg:bg-gray-1 lg:pt-6 lg:pb-4">
-        <ItemCollection items={items} capacity={null} columns={profile ? toGridColumns(profile.grid_columns) : DEFAULT_GRID_COLUMNS} emptyText="공개된 아이템이 아직 없어요." />
+        <ItemCollection items={items} capacity={null} columns={profile ? toGridColumns(profile.grid_columns) : DEFAULT_GRID_COLUMNS} empty={{ text: "공개된 아이템이 아직 없어요." }} />
       </main>
     </ProfileShell>
   );

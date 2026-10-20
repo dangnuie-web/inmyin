@@ -12,7 +12,7 @@ export default function LicensesPage() {
       <StickyTop>
         <HeaderMini icon="back" href="/my/settings" title="오픈소스 라이선스" />
       </StickyTop>
-      <p className="break-keep px-5 pt-4 text-label text-ink-muted">INMYIN 은 아래의 오픈소스로 만들어졌습니다. 이름을 누르면 원본 저장소가 열립니다.</p>
+      <p className="break-keep px-5 pt-4 text-label text-ink-muted">INMYIN은 아래의 오픈소스로 만들어졌습니다. 이름을 누르면 원본 저장소가 열립니다.</p>
       {/* AGPL 은 서비스를 쓰는 사람에게 소스코드를 받을 길을 열어 두라고 한다 (13조). 여기가 그 길이다 */}
       <a
         href={SOURCE_URL}

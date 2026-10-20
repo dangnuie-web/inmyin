@@ -6,6 +6,7 @@ import { ViewToggle } from "@/components/inventory/ViewToggle";
 import { CategoryTag } from "@/components/ui/CategoryTag";
 import { ChipRow } from "@/components/ui/ChipRow";
 import { Icon } from "@/components/ui/Icon";
+import { EmptyBag, EmptyLine, type EmptyState } from "@/components/ui/EmptyBag";
 import { ListControls } from "@/components/ui/ListControls";
 import type { InventoryView } from "@/lib/inventory/paths";
 import type { SlotEntry } from "@/lib/inventory/queries";
@@ -15,19 +16,19 @@ import { NumText } from "@/components/ui/NumText";
 type ItemCollectionProps = {
   // 최신순으로 온다
   items: CollectedItem[];
-  // 넣을 수 있는 전체 칸 수 (인벤토리 한도 × 칸 수). 아래의 3/125 에 쓴다. 남의 것(타유저 프로필)은 한도를 보여주지 않으므로 null — 개수만
+  // 넣을 수 있는 전체 칸 수 (인벤토리 한도 × 칸 수). 목록 위의 3/125 에 쓴다. 남의 것(타유저 프로필)은 한도를 보여주지 않으므로 null — 개수만
   capacity: number | null;
   // 격자 한 줄의 칸 수 (Slot.tsx 의 gridFor)
   columns: GridColumns;
-  // 아이템이 하나도 없을 때의 글자. 화면마다 다르다 (내 것 · 남의 것 · 좋아요)
-  emptyText: string;
+  // 아이템이 하나도 없을 때의 빈 가방 — 글 · 버튼. 화면마다 다르다 (내 것 · 남의 것 · 북마크). 걸러서 0개면 가방 없이 글 한 줄
+  empty: EmptyState;
   // "최신순 | 오래된순" 정렬을 보여줄지 (북마크 탭). items 는 최근 것부터 온다고 본다
   sortable?: boolean;
 };
 
 // M-13 · 아이템 모아보기. 인벤토리 구분 없이 아이템 전체를 최신순으로 본다.
 // 검색과 카테고리는 서버를 거치지 않고 여기서 바로 거른다 — 글자를 칠 때마다, 칩을 누를 때마다 즉시 바뀐다.
-export function ItemCollection({ items, capacity, columns, emptyText, sortable = false }: ItemCollectionProps) {
+export function ItemCollection({ items, capacity, columns, empty, sortable = false }: ItemCollectionProps) {
   const [view, setView] = useState<InventoryView>("grid");
   const [oldestFirst, setOldestFirst] = useState(false);
   const [query, setQuery] = useState("");
@@ -47,7 +48,8 @@ export function ItemCollection({ items, capacity, columns, emptyText, sortable =
   const toEntry = (item: CollectedItem): SlotEntry => ({ kind: "item", deleted: false, ...item });
 
   return (
-    <div className="flex flex-1 flex-col">
+    // 아래 여백 40 — 전에는 바닥 숫자 줄(76)이 이 자리를 잡아 줬다
+    <div className="flex flex-1 flex-col pb-10">
       {/* 토글은 검색창 왼쪽 — 써 보니 그쪽이 편했다 (M-04 와 같은 자리). 웹에서는 칩 · 검색 · 토글 순 (ListControls) */}
       <ListControls
         toggle={<ViewToggle current={view} onSelect={setView} />}
@@ -76,25 +78,33 @@ export function ItemCollection({ items, capacity, columns, emptyText, sortable =
         }
       />
 
-      {sortable && (
-        // 피그마 V-01: 오른쪽 끝에 "최신순 | 오래된순"(정렬 문구는 "~순" 붙여 씀, 2026-10-20). 고른 쪽이 검정
-        <p className="mt-4 flex justify-end gap-2 px-5 text-caption">
-          <button type="button" onClick={() => setOldestFirst(false)} aria-pressed={!oldestFirst} className={`font-bold ${oldestFirst ? "text-ink-muted" : "text-ink"}`}>
-            최신순
-          </button>
-          <span aria-hidden className="text-gray-3">|</span>
-          <button type="button" onClick={() => setOldestFirst(true)} aria-pressed={oldestFirst} className={`font-bold ${oldestFirst ? "text-ink" : "text-ink-muted"}`}>
-            오래된순
-          </button>
-        </p>
-      )}
+      {/* 목록 바로 위 왼쪽에 사용량 — 거르고 있을 때는 찾은 개수 (무늬 빈화면프로필설계 v01 5절. 전에는 화면 바닥 알약).
+          비어서 빈 가방이 설 때도 남겨 한도를 알린다(0/500). 북마크는 오른쪽 끝에 "최신순 | 오래된순"(정렬 문구는 "~순" 붙여 씀). 고른 쪽이 검정 */}
+      <div className="mt-4 flex h-6 items-center px-5 text-caption text-ink-muted">
+        <NumText text={isFiltered || capacity === null ? `${shown.length}개` : `${items.length}/${capacity}`} />
+        {sortable && (
+          <p className="ml-auto flex gap-2">
+            <button type="button" onClick={() => setOldestFirst(false)} aria-pressed={!oldestFirst} className={`font-bold ${oldestFirst ? "text-ink-muted" : "text-ink"}`}>
+              최신순
+            </button>
+            <span aria-hidden className="text-gray-3">|</span>
+            <button type="button" onClick={() => setOldestFirst(true)} aria-pressed={oldestFirst} className={`font-bold ${oldestFirst ? "text-ink" : "text-ink-muted"}`}>
+              오래된순
+            </button>
+          </p>
+        )}
+      </div>
 
       {shown.length === 0 ? (
-        <p className="mt-16 break-keep px-5 text-center text-label text-ink-muted">
-          {isFiltered ? "찾는 아이템이 없어요." : emptyText}
-        </p>
+        isFiltered ? (
+          <EmptyLine>찾는 아이템이 없어요.</EmptyLine>
+        ) : (
+          <EmptyBag action={empty.action} secondary={empty.secondary}>
+            {empty.text}
+          </EmptyBag>
+        )
       ) : view === "grid" ? (
-        <ul className={`mt-8 grid gap-3.5 px-5 lg:grid-cols-7 xl:grid-cols-8 ${gridColumnsClass(columns)}`}>
+        <ul className={`mt-4 grid gap-3.5 px-5 lg:grid-cols-7 xl:grid-cols-8 ${gridColumnsClass(columns)}`}>
           {shown.map((item) => (
             <li key={item.id}>
               <SlotCell entry={toEntry(item)} owner={item.ownerNickname ? { nickname: item.ownerNickname, avatarUrl: item.ownerAvatarUrl ?? null } : undefined} />
@@ -102,7 +112,7 @@ export function ItemCollection({ items, capacity, columns, emptyText, sortable =
           ))}
         </ul>
       ) : (
-        <ul className="mt-5 flex flex-col border-t border-border">
+        <ul className="mt-4 flex flex-col border-t border-border">
           {shown.map((item) => (
             <li key={item.id}>
               <SlotRow entry={toEntry(item)} caption={item.ownerNickname ? `${item.ownerNickname} · ${item.inventoryName}` : item.inventoryName} />
@@ -110,11 +120,6 @@ export function ItemCollection({ items, capacity, columns, emptyText, sortable =
           ))}
         </ul>
       )}
-
-      {/* 화면 아래에 붙어 있는 숫자. 거르고 있을 때는 찾은 개수를, 아니면 전체 사용량을 보여준다 */}
-      <div className="pointer-events-none sticky bottom-0 mt-auto flex h-19 items-center justify-center pb-[env(safe-area-inset-bottom)]">
-        <p className="rounded-full bg-white px-3 py-0.5 text-caption text-ink-muted"><NumText text={isFiltered || capacity === null ? `${shown.length}개` : `${items.length}/${capacity}`} /></p>
-      </div>
     </div>
   );
 }
