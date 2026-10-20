@@ -2,7 +2,6 @@ import type { UserCard } from "@/lib/follow/queries";
 import type { InventoryDetail, InventorySummary, SlotEntry } from "@/lib/inventory/queries";
 import type { CollectedItem } from "@/lib/item/queries";
 import { createClient } from "@/lib/supabase/server";
-import type { ProfileItem, ProfilePost } from "./queries";
 
 // ---- 남의 것을 읽는 조회 (타유저 프로필 H-06 ~ H-08).
 // 무엇이 보이는지는 DB 규칙(RLS)이 정한다 — 비공개 아이템, 비공개 인벤토리와 그 안의 것은 애초에 돌아오지 않는다.
@@ -12,15 +11,10 @@ export type PublicProfile = UserCard & {
   bio: string | null;
   followerCount: number;
   followingCount: number;
-  // 보이는 아이템 수와, 그중 최근 것
+  // 보이는 아이템 수 · 게시물 수
   itemCount: number;
   postCount: number;
-  recentItems: ProfileItem[];
-  recentPosts: ProfilePost[];
 };
-
-const RECENT_ITEM_LIMIT = 12;
-const RECENT_POST_LIMIT = 12;
 
 // 아이디로 사람 하나 (H-06). 없거나 탈퇴했으면 null
 export async function getPublicProfile(handle: string): Promise<PublicProfile | null> {
@@ -38,20 +32,8 @@ export async function getPublicProfile(handle: string): Promise<PublicProfile | 
   const [followers, following, posts, items] = await Promise.all([
     supabase.from("follows").select("follower_id", count).eq("following_id", user.id),
     supabase.from("follows").select("following_id", count).eq("follower_id", user.id),
-    supabase
-      .from("inmyin_posts")
-      .select("id, title, image_url", { count: "exact" })
-      .eq("user_id", user.id)
-      .is("deleted_at", null)
-      .order("created_at", { ascending: false })
-      .limit(RECENT_POST_LIMIT),
-    supabase
-      .from("items")
-      .select("id, name, image_url", { count: "exact" })
-      .eq("user_id", user.id)
-      .is("deleted_at", null)
-      .order("created_at", { ascending: false })
-      .limit(RECENT_ITEM_LIMIT),
+    supabase.from("inmyin_posts").select("id", count).eq("user_id", user.id).is("deleted_at", null),
+    supabase.from("items").select("id", count).eq("user_id", user.id).is("deleted_at", null),
   ]);
   const error = followers.error ?? following.error ?? posts.error ?? items.error;
   if (error) throw error;
@@ -66,8 +48,6 @@ export async function getPublicProfile(handle: string): Promise<PublicProfile | 
     followingCount: following.count ?? 0,
     postCount: posts.count ?? 0,
     itemCount: items.count ?? 0,
-    recentItems: (items.data ?? []).map((item) => ({ id: item.id, name: item.name, imageUrl: item.image_url })),
-    recentPosts: (posts.data ?? []).map((post) => ({ id: post.id, title: post.title, imageUrl: post.image_url })),
   };
 }
 
@@ -77,7 +57,7 @@ export async function getVisibleInventories(userId: string): Promise<InventorySu
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("inventories")
-    .select("id, name, image_url, slot_count, parent_inventory_id, items(count)")
+    .select("id, name, image_url, slot_count, parent_inventory_id, is_public, items(count)")
     .eq("user_id", userId)
     .is("deleted_at", null)
     .is("items.deleted_at", null)
@@ -92,6 +72,7 @@ export async function getVisibleInventories(userId: string): Promise<InventorySu
     slotCount: inventory.slot_count,
     usedSlots: (inventory.items[0]?.count ?? 0) + data.filter((child) => child.parent_inventory_id === inventory.id).length,
     parentId: inventory.parent_inventory_id,
+    isPublic: inventory.is_public,
   }));
 }
 

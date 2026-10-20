@@ -5,16 +5,12 @@ export function followsPath(handle: string, tab: FollowTab = "followers") {
   return `/u/${handle}/follows${tab === "following" ? "?tab=following" : ""}`;
 }
 
-// 타유저 프로필(H-06). 아직 화면은 없고 주소만 정해 둔다
+// 타유저 프로필(H-06) = 그 사람의 프로필 첫 화면(띠 + 격자)
 export function profilePath(handle: string) {
   return `/u/${handle}`;
 }
 
-// 타유저의 인벤토리 목록(H-07) · 인벤토리 상세(H-08) · 아이템 모아보기. 보기 방식과 카테고리는 M-04 처럼 주소에 싣는다
-export function otherInventoriesPath(handle: string) {
-  return `/u/${handle}/inventories`;
-}
-
+// 타유저 프로필에서 그 인벤토리를 고른 상태(H-08) · 아이템 모아보기. 보기 방식과 카테고리는 M-04 처럼 주소에 싣는다
 export function otherInventoryPath(handle: string, inventoryId: string, options: { view?: "grid" | "list"; category?: string | null } = {}) {
   const params = new URLSearchParams();
   if (options.view === "list") params.set("view", "list");

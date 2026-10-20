@@ -9,7 +9,7 @@ type MyInventoriesSectionProps = {
   slotCount: number;
 };
 
-// 내 인벤토리 목록의 몸통 — 전체 숫자 · 목록 · 다 찼을 때의 "늘리기". 폰의 M-03 과 웹의 프로필 › 인벤토리 탭이 같이 쓴다
+// 인벤토리 관리(M-03)의 몸통 — 전체 숫자 · 순서 안내 · 목록 · 다 찼을 때의 "늘리기"
 export function MyInventoriesSection({ inventories, maxInventories, slotCount }: MyInventoriesSectionProps) {
   const isFull = inventories.length >= maxInventories;
   const usedTotal = inventories.reduce((sum, inventory) => sum + inventory.usedSlots, 0);
@@ -20,6 +20,8 @@ export function MyInventoriesSection({ inventories, maxInventories, slotCount }:
       <p className="mt-4 flex justify-end pr-5 text-caption text-ink-muted">
         <NumText text={`전체 ${usedTotal}/${maxInventories * slotCount}`} />
       </p>
+      {/* 순서의 뜻 — 띠의 순서이고, 맨 앞이 남이 내 프로필을 열면 처음 보는 인벤토리 (설계서 2-2) */}
+      <p className="mt-2 break-keep px-5 text-caption text-ink-muted">순서대로 띠에 놓여요. 맨 앞이 남에게 먼저 보여요.</p>
 
       <InventoryList inventories={inventories} maxInventories={maxInventories} />
 

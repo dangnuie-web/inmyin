@@ -190,3 +190,28 @@ export async function takeOutInventory(inventoryId: string) {
 export async function moveInventory(inventoryId: string, toInventoryId: string) {
   return setParent(inventoryId, toInventoryId, true);
 }
+
+// 인벤토리 순서 바꾸기 (인벤토리 관리에서 손잡이로 끈 뒤). 받은 순서대로 sort_order 를 0 부터 다시 적는다.
+// 내 것만 — user_id 로 한 번 더 거르고, DB 규칙(inventories_update_own)도 막는다. 칸을 새로 만들지 않는다 (sort_order 는 처음부터 있다)
+export async function reorderInventories(orderedIds: string[]): Promise<FormState> {
+  const profile = await requireProfile();
+  if (
+    !Array.isArray(orderedIds) ||
+    orderedIds.length === 0 ||
+    orderedIds.length > 200 ||
+    !orderedIds.every((id) => typeof id === "string" && UUID_PATTERN.test(id)) ||
+    new Set(orderedIds).size !== orderedIds.length
+  ) {
+    return BAD_REQUEST;
+  }
+
+  const supabase = await createClient();
+  const results = await Promise.all(
+    orderedIds.map((id, index) => supabase.from("inventories").update({ sort_order: index }).eq("id", id).eq("user_id", profile.id).is("deleted_at", null)),
+  );
+  if (results.some((result) => result.error)) return { error: "순서를 바꾸지 못했어요. 잠시 후 다시 시도해 주세요." };
+
+  // 띠(내 프로필 · 그 인벤토리들)와 관리 화면이 이 순서를 읽는다
+  revalidatePath("/my", "layout");
+  return {};
+}

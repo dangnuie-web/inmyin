@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { inventoryPath } from "@/lib/inventory/paths";
 import { requireProfile } from "@/lib/auth/profile";
 import type { FormState } from "@/lib/auth/rules";
 import { cleanCategories, INVENTORY_NAME_MAX } from "@/lib/inventory/rules";
@@ -73,6 +74,7 @@ export async function createInventory(input: NewInventoryInput): Promise<FormSta
   });
   if (error) return { error: "저장하지 못했습니다. 잠시 후 다시 시도해 주세요." };
 
-  revalidatePath("/my/inventories");
-  redirect("/my/inventories");
+  revalidatePath("/my", "layout");
+  // 새 인벤토리의 프로필 격자로 — 빈 가방의 "아이템 넣기"로 바로 이어진다 (무늬 빈화면프로필설계 v01 4-3. 전에는 목록으로)
+  redirect(inventoryPath(input.id));
 }

@@ -95,7 +95,7 @@ export function InventoryForm({ userId, inventory }: InventoryFormProps) {
 
     setError(undefined);
     startTransition(async () => {
-      // 성공하면 서버가 목록으로 보낸다. 돌아온 값이 있으면 오류다
+      // 성공하면 서버가 보낸다 — 새 인벤토리는 그 인벤토리의 프로필 격자로, 수정은 인벤토리 관리로. 돌아온 값이 있으면 오류다
       if (inventory) {
         const result = await updateInventory(inventory.id, { name, categories, isPublic });
         if (result?.error) setError(result.error);

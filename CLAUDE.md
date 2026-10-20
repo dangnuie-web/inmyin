@@ -99,14 +99,14 @@ app/
     page.tsx        홈 › 아이템
     inmyin/         홈 › INMYIN 목록 (상세는 (flow)/inmyin/[postId])
     discover/       발견 탭 (추천순 · 인기순)
-    u/[handle]/     타유저 프로필
-    my/             프로필 탭 (내 프로필, 설정, 인벤토리)
+    u/[handle]/     타유저 프로필 (띠 + 격자 · 아이템 · INMYIN 탭, inventories/[id])
+    my/             프로필 탭 — 내 프로필 = 띠 + 격자(/my · inventories/[id]) · 아이템 · INMYIN 탭. 인벤토리 관리 · 설정 · 입력 화면은 (flow)/my/
     bookmark/       북마크 탭
     notifications/  알림 (홈 갈래 줄의 종)
   api/
 components/
-  ui/               버튼, 인풋 등 원자 단위
-  inventory/        인벤토리 격자, 칸, 아이템 카드
+  ui/               버튼, 인풋 등 원자 단위 · EmptyBag(빈 화면의 빈 가방)
+  inventory/        인벤토리 격자, 칸, 아이템 카드 · 프로필 격자(ProfileInventoryScreen · InventoryStrip · InventoryTitleRow)
   item/             아이템 등록 플로우
   inmyin/           캔버스 에디터 (Editor · Canvas(Konva) · Background · ItemPicker · AddSheet(틀 · 스티커 · 사진 · 텍스트 · 배경) · TemplatePicker · ColorField · PreviewScreen · PostForm) · 게시물 카드 · 라벨 이미지
   heart/ bookmark/  하트 · 책갈피 버튼 (제목 줄의 [하트 · 하트 수 · 댓글 · 댓글 수 · 북마크])

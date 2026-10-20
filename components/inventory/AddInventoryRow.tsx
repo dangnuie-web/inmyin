@@ -1,55 +1,54 @@
 "use client";
 
-import { useRef, useState, type ChangeEvent } from "react";
-import { useRouter } from "next/navigation";
-import { DarkMenu } from "@/components/ui/DarkMenu";
+import { useState } from "react";
 import { Icon } from "@/components/ui/Icon";
-import { pickedPhoto, setPendingPhoto } from "@/lib/image/pending-photo";
-import { NEW_INVENTORY_CAMERA_PATH, NEW_INVENTORY_EDIT_PATH } from "@/lib/inventory/paths";
 import { INVENTORY_ROW_CLASS, InventoryThumb } from "./InventoryRow";
+import { useAddInventory } from "./useAddInventory";
 
-// 인벤토리 목록의 + 줄. 누르면 "사진 업로드 / 사진 찍기" 메뉴가 뜬다.
-// 사진을 고르면 그 사진을 들고 편집 화면(M-07)으로 가고, 찍겠다고 하면 촬영 화면(M-06)으로 간다.
+// 인벤토리 관리의 + 줄. 누르면 "사진 업로드 / 사진 찍기" 메뉴가 뜬다 (useAddInventory)
 export function AddInventoryRow() {
-  const router = useRouter();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const uploadRef = useRef<HTMLInputElement>(null);
-
-  function onAddClick() {
-    // 손가락으로 쓰는 기기(폰·태블릿)에서만 메뉴를 띄운다.
-    // 데스크톱에는 찍을 카메라가 없으니 바로 파일 고르기를 연다
-    if (window.matchMedia("(pointer: coarse)").matches) setMenuOpen(true);
-    else uploadRef.current?.click();
-  }
-
-  function onPhotoChange(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    setPendingPhoto(pickedPhoto(file));
-    router.push(NEW_INVENTORY_EDIT_PATH);
-  }
-
+  const add = useAddInventory("left-19 top-7");
   return (
     <li className="relative">
-      <button type="button" onClick={onAddClick} className={`${INVENTORY_ROW_CLASS} text-left text-disabled`}>
+      <button type="button" onClick={add.open} className={`${INVENTORY_ROW_CLASS} text-left text-disabled`}>
         <InventoryThumb>
           <Icon name="plus" />
         </InventoryThumb>
         <span className="text-body">+를 눌러 인벤토리를 추가하세요.</span>
       </button>
+      {add.elements}
+    </li>
+  );
+}
 
-      {menuOpen && (
-        <DarkMenu
-          className="left-19 top-7"
-          onClose={() => setMenuOpen(false)}
-          items={[
-            { label: "사진 업로드", onSelect: () => uploadRef.current?.click() },
-            { label: "사진 찍기", onSelect: () => router.push(NEW_INVENTORY_CAMERA_PATH) },
-          ]}
-        />
-      )}
-
-      <input ref={uploadRef} type="file" accept="image/*" hidden onChange={onPhotoChange} />
+// 프로필 띠 맨 끝의 + 칸 "만들기" (무늬 빈화면프로필설계 v01 3-1). 띠의 다른 칸과 같은 60 칸 · 이름 자리.
+// 띠는 옆으로 넘기는 상자(overflow)라 그 안에 메뉴를 띄우면 잘린다 — 메뉴는 누른 칸 바로 아래 화면 좌표(fixed)에 띄운다
+export function AddInventoryTile() {
+  const add = useAddInventory("left-0 top-0");
+  const [at, setAt] = useState<{ left: number; top: number } | null>(null);
+  return (
+    <li className="w-15 shrink-0">
+      <button
+        type="button"
+        onClick={(event) => {
+          const rect = event.currentTarget.getBoundingClientRect();
+          // 오른쪽 끝 칸이면 메뉴(약 130)가 화면 밖으로 나가지 않게 왼쪽으로 당긴다
+          setAt({ left: Math.min(rect.left, window.innerWidth - 150), top: rect.top + 64 });
+          add.open();
+        }}
+        aria-label="인벤토리 만들기"
+        className="block w-15 active:opacity-60"
+      >
+        <span className="block rounded-md border border-transparent p-1">
+          <span className="flex size-13 items-center justify-center rounded-sm border border-border bg-white text-gray-mid">
+            <Icon name="plus24" />
+          </span>
+        </span>
+        <span className="mt-1 block truncate text-center text-[11px] leading-[1.2] font-medium text-ink-muted">만들기</span>
+      </button>
+      <div className="fixed z-20" style={at ?? { left: 0, top: 0 }}>
+        {add.elements}
+      </div>
     </li>
   );
 }

@@ -9,13 +9,16 @@ import { DarkMenu } from "@/components/ui/DarkMenu";
 import { Icon } from "@/components/ui/Icon";
 import { Toast } from "@/components/ui/Toast";
 import { pickedPhoto, setPendingPhoto } from "@/lib/image/pending-photo";
-import { itemCameraPath, itemEditPath, itemUpdatePath, type InventoryView } from "@/lib/inventory/paths";
+import { itemCameraPath, itemEditPath, itemUpdatePath, packingPath, type InventoryView } from "@/lib/inventory/paths";
+import { withSubjectParticle } from "@/lib/korean";
 import type { FormState } from "@/lib/auth/rules";
 import type { InventorySummary, SlotEntry } from "@/lib/inventory/queries";
 import { InventoryPicker } from "./InventoryPicker";
 import { AddSlotCell, gridFor, type GridColumns, SLOT_ROW_CLASS, SlotRow, SlotRowThumb, UndoSlotCell, UndoSlotRow } from "./Slot";
 import { LongPressSlotCell, LongPressSlotRow, SwipeRow, type SwipeSide } from "./SlotGestures";
-import { NumText } from "@/components/ui/NumText";
+import { EmptyBag, EmptyLine } from "@/components/ui/EmptyBag";
+import { SMALL_OUTLINE_CLASS } from "@/components/profile/ProfileParts";
+import { InventoryTitleRow } from "./InventoryTitleRow";
 
 type MenuAnchor = "slot" | "floating" | null;
 
@@ -48,6 +51,13 @@ const UNDO_MS = 5000;
 
 type InventoryBoardProps = {
   inventoryId: string;
+  // 이름 줄 "데스크 10/25 🔒 [관리] [짐싸기]" 에 쓴다
+  name: string;
+  isPublic: boolean;
+  // 이름 줄 아래의 토글 · 칩 줄 (서버가 그려서 준다)
+  controls: React.ReactNode;
+  // 카테고리를 골라 거른 중인가. 거른 결과가 0개면 빈 가방 대신 글 한 줄
+  filtered: boolean;
   // 내 인벤토리 전부. "인벤토리 가져오기"에서 고를 목록이다
   inventories: InventorySummary[];
   // 방금 등록한(또는 되살린) 아이템의 id. 그 칸으로 스크롤하고 잠깐 강조한다
@@ -64,8 +74,10 @@ type InventoryBoardProps = {
   columns: GridColumns;
 };
 
-// M-04 의 격자 · 리스트와 + 버튼. + 칸은 항상 마지막 아이템의 다음 칸에 하나만 있다.
-export function InventoryBoard({ inventoryId, inventories, addedId, deletedId, entries, usedSlots, slotCount, view, columns }: InventoryBoardProps) {
+// 프로필 격자(M-04)의 이름 줄 · 토글 · 칩 아래 격자 · 리스트와 + 버튼. + 칸은 항상 마지막 아이템의 다음 칸에 하나만 있다.
+// 이름 줄의 숫자가 지우기 · 되돌리기 · 가져오기를 누른 즉시 바뀌어야 해서 이름 줄도 여기서 그린다.
+// 비었으면(칩 전체) 빈 가방 + "아이템 넣기" + "인벤토리 가져오기" — + 칸은 그리지 않는다 (무늬 빈화면프로필설계 v01 4-2)
+export function InventoryBoard({ inventoryId, name, isPublic, controls, filtered, inventories, addedId, deletedId, entries, usedSlots, slotCount, view, columns }: InventoryBoardProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -119,8 +131,9 @@ export function InventoryBoard({ inventoryId, inventories, addedId, deletedId, e
     (brought && !isLive(brought.id) ? 1 : 0) -
     (takenOutId && isLive(takenOutId) ? 1 : 0);
   const isFull = used >= slotCount;
+  const isEmpty = shown.length === 0;
 
-  // + 칸이 화면 밖으로 나가면 플로팅 + 를 띄운다
+  // + 칸이 화면 밖으로 나가면 플로팅 + 를 띄운다 (당니님 결정으로 없앨 것 — 인벤토리 고르기 작업에서 함께 걷어 낸다)
   const addSlotRef = useRef<HTMLDivElement>(null);
   // 컴퓨터에서 "아이템 넣기"를 누르면 여는 사진 고르기 창
   const uploadRef = useRef<HTMLInputElement>(null);
@@ -131,7 +144,7 @@ export function InventoryBoard({ inventoryId, inventories, addedId, deletedId, e
     const observer = new IntersectionObserver(([entry]) => setAddSlotVisible(entry.isIntersecting));
     observer.observe(target);
     return () => observer.disconnect();
-  }, [view, isFull]);
+  }, [view, isFull, isEmpty]);
 
   // 방금 등록한(또는 되살린) 칸을 알려준다. 그리드의 칸은 "톡" 하고 나타나고, 리스트의 줄은 옅은 회색이 스친다.
   // 화면 안에 있으면 그려지기 전에 바로 시작하고, 밖에 있으면 스크롤로 데려와서 **도착한 순간** 시작한다 —
@@ -318,8 +331,27 @@ export function InventoryBoard({ inventoryId, inventories, addedId, deletedId, e
   );
 
   return (
-    <div className="flex flex-1 flex-col">
-      {view === "grid" ? (
+    // 아래 여백 40 — 전에는 바닥 숫자 줄(76)이 이 자리를 잡아 줬다
+    <div className="flex flex-1 flex-col pb-10 lg:pb-0">
+      <InventoryTitleRow name={name} note={`${used}/${slotCount}`} locked={!isPublic}>
+        <Link href="/my/inventories" className={SMALL_OUTLINE_CLASS}>
+          관리
+        </Link>
+        <Link href={packingPath(inventoryId)} className={SMALL_OUTLINE_CLASS}>
+          짐싸기
+        </Link>
+      </InventoryTitleRow>
+      {controls}
+
+      {isEmpty ? (
+        filtered ? (
+          <EmptyLine>이 카테고리에는 아직 없어요.</EmptyLine>
+        ) : (
+          <EmptyBag action={{ label: "아이템 넣기", onClick: menuItems[0].onSelect }} secondary={{ label: "인벤토리 가져오기", onClick: () => setPickerOpen(true) }}>
+            {withSubjectParticle(name)} 비어 있어요. 물건을 찍어 넣어 보세요.
+          </EmptyBag>
+        )
+      ) : view === "grid" ? (
         <Grid
           entries={shown}
           slotCount={slotCount}
@@ -381,19 +413,17 @@ export function InventoryBoard({ inventoryId, inventories, addedId, deletedId, e
         </ul>
       )}
 
-      {isFull && (
+      {isFull && !isEmpty && (
         // + 를 그냥 없애면 기능이 사라진 줄 안다
         <Link href="/my/plan" className="mx-auto mt-6 text-label text-ink-muted underline underline-offset-4">
           칸이 가득 찼어요 · 프리미엄으로 늘리기
         </Link>
       )}
 
-      {/* 화면 아래에 붙어 있는 줄 — 가운데 사용량, 오른쪽 플로팅 + */}
-      <div className="pointer-events-none sticky bottom-0 mt-auto flex h-19 items-center justify-center pb-[env(safe-area-inset-bottom)]">
-        <p className="pointer-events-auto rounded-full bg-white px-3 py-0.5 text-caption text-ink-muted">
-          <NumText text={`${used}/${slotCount}`} />
-        </p>
-        {!isFull && !addSlotVisible && (
+      {/* 플로팅 + — + 칸이 화면 밖일 때만. 사용량 숫자는 이름 줄로 옮겼다 (무늬 빈화면프로필설계 v01 5절).
+          폰은 하단 탭(61 + 홈 막대) 바로 위에 뜬다 — 프로필 격자가 하단 탭 있는 화면으로 옮겨 와서 */}
+      <div className="pointer-events-none sticky bottom-[calc(3.8125rem+max(0px,env(safe-area-inset-bottom)-0.625rem))] mt-auto h-0 lg:bottom-0">
+        {!isFull && !isEmpty && !addSlotVisible && (
           <div className="pointer-events-auto absolute bottom-4 right-5.5">
             <button
               type="button"
@@ -450,13 +480,13 @@ type GridProps = {
   children: (isLastColumn: boolean) => React.ReactNode;
 };
 
-// 채워진 칸과 그 다음의 + 칸만 그린다. 빈 칸은 그리지 않는다 — 남은 용량은 아래의 16/25 가 알려준다
+// 채워진 칸과 그 다음의 + 칸만 그린다. 빈 칸은 그리지 않는다 — 남은 용량은 이름 줄의 16/25 가 알려준다
 function Grid({ entries, slotCount, columns: preferred, isFull, actionsFor, onActionsFor, entryActions, onUndo, children }: GridProps) {
   const { columns, className } = gridFor(slotCount, preferred);
 
   return (
-    // 웹은 7칸 고정 (피그마). 설정의 3/4칸은 폰에만
-    <ul className={`mt-6 grid gap-3.5 px-5 lg:grid-cols-7 ${className}`}>
+    // 웹은 7칸, 1280 이상(기둥 1200 이 다 찬 때)은 8칸 — 피드와 한 규칙. 설정의 3/4칸은 폰에만
+    <ul className={`mt-6 grid gap-3.5 px-5 lg:grid-cols-7 xl:grid-cols-8 ${className}`}>
       {entries.map((entry, index) => (
         <li key={entry.id} id={slotElementId(entry.id)} className={`relative ${SCROLL_MARGIN}`}>
           {entry.deleted ? (

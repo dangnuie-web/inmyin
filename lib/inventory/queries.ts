@@ -9,6 +9,8 @@ export type InventorySummary = {
   usedSlots: number;
   // 이 인벤토리를 담고 있는 인벤토리. 어디에도 안 담겨 있으면 null. 부모는 항상 하나다 (CLAUDE.md 규칙 2)
   parentId: string | null;
+  // 남에게 보이는가. 내 띠 · 이름 줄 · 관리 줄에 자물쇠로 보인다 (남의 띠에는 비공개가 아예 안 온다 — DB 규칙)
+  isPublic: boolean;
 };
 
 // 인벤토리의 한 칸에 든 것. 아이템과, 이 안에 담긴 인벤토리가 같은 칸을 쓴다
@@ -106,12 +108,12 @@ export async function getMyInventoryDetail(
   };
 }
 
-// 내 인벤토리 전부. 다른 인벤토리 안에 담긴 것도 목록에는 같이 나온다 (M-03)
+// 내 인벤토리 전부, 순서(sort_order — 인벤토리 관리에서 바꾼다)대로. 다른 인벤토리 안에 담긴 것도 같이 나온다 (띠 · 관리)
 export async function getMyInventories(userId: string): Promise<InventorySummary[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("inventories")
-    .select("id, name, image_url, slot_count, parent_inventory_id, items(count)")
+    .select("id, name, image_url, slot_count, parent_inventory_id, is_public, items(count)")
     .eq("user_id", userId)
     .is("deleted_at", null)
     .is("items.deleted_at", null)
@@ -128,6 +130,7 @@ export async function getMyInventories(userId: string): Promise<InventorySummary
       (inventory.items[0]?.count ?? 0) +
       data.filter((child) => child.parent_inventory_id === inventory.id).length,
     parentId: inventory.parent_inventory_id,
+    isPublic: inventory.is_public,
   }));
 }
 
