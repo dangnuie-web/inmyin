@@ -48,4 +48,11 @@ const serwist = new Serwist({
   },
 });
 
+// 일꾼(Web Worker) 파일은 서비스워커가 손대지 않고 브라우저가 직접 받게 둔다 — Serwist 보다 먼저 듣고 넘겨 버린다.
+// Turbopack 은 일꾼 시작 파일 주소 뒤 #params= 에 설정을 실어 보내는데, 저장해 둔 것으로 답하면 # 뒤가 떨어져
+// 일꾼이 "Missing worker bootstrap config" 로 바로 죽는다(배경제거 일꾼 lib/background-removal.ts 가 화면 스레드로 돌아가 화면이 멈춤)
+self.addEventListener("fetch", (event) => {
+  if (event.request.destination === "worker") event.stopImmediatePropagation();
+});
+
 serwist.addEventListeners();

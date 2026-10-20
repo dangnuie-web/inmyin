@@ -55,12 +55,15 @@ export function CutoutLoading({ phase, running, startedAt, progressRef, firstTim
     const id = window.setInterval(() => {
       const now = performance.now();
       const target = progressRef.current;
+      // 지난 tick 과의 간격은 여기서 정해 둔다 — 아래 updater 는 React 가 나중에(렌더할 때) 부를 수 있어서,
+      // 그 안에서 last 를 읽으면 이미 now 로 바뀐 뒤라 간격이 0 이 되고 선이 멈춘다(2026-10-20 헤드리스에서 53% 에 멈춤)
+      const dt = now - last;
+      last = now;
       setState((prev) => ({
-        shown: stepShown(prev.shown, target, now - last, now - startedAt),
+        shown: stepShown(prev.shown, target, dt, now - startedAt),
         elapsed: now - startedAt,
         known: target !== null,
       }));
-      last = now;
     }, v.tick);
     return () => window.clearInterval(id);
   }, [running, startedAt, progressRef, v.tick]);
