@@ -1,7 +1,8 @@
 // 가입·로그인 폼이 공통으로 쓰는 규칙. 서버와 브라우저 양쪽에서 부른다.
 
 // 서버 함수가 폼에 돌려주는 결과
-export type FormState = { error?: string };
+// reason — 오류를 화면이 다르게 다룰 때. full = 고른 인벤토리가 꽉 찼다 → 정보 입력(M-08)이 "넣을 곳" 판을 연다
+export type FormState = { error?: string; reason?: "full" };
 
 // DB의 users_handle_format 제약과 같아야 한다
 export const HANDLE_PATTERN = /^[a-z0-9_]{3,30}$/;

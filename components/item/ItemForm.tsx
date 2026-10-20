@@ -1,9 +1,12 @@
 "use client";
 
-import { useEffect, useState, useTransition, type FormEvent } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useRef, useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { updateItem } from "@/app/(flow)/items/[itemId]/actions";
 import { createItem } from "@/app/(flow)/my/inventories/[id]/items/new/actions";
+import { InventoryTargetSheet } from "@/components/inventory/InventoryTargetSheet";
 import { Button } from "@/components/ui/Button";
 import { CategoryTag } from "@/components/ui/CategoryTag";
 import { DarkInput, DarkTextarea } from "@/components/ui/DarkInput";
@@ -14,6 +17,8 @@ import { MAX_CATEGORY_LENGTH } from "@/lib/categories";
 import { getPendingPhoto, setPendingPhoto } from "@/lib/image/pending-photo";
 import { uploadPhotoPair } from "@/lib/image/upload";
 import { inventoryPath } from "@/lib/inventory/paths";
+import type { InventoryChoice } from "@/lib/inventory/queries";
+import { hasRoom } from "@/lib/inventory/target";
 import type { ItemDetail } from "@/lib/item/queries";
 import {
   ACQUIRED_NOTE_MAX,
@@ -25,21 +30,47 @@ import {
 
 type ItemFormProps = {
   userId: string;
+  // 새로 넣을 때는 주소의 [id] — 사진 없이 들어왔을 때 돌아갈 곳. 수정할 때는 그 아이템이 든 인벤토리
   inventoryId: string;
-  // 이 인벤토리에 달린 태그. 칩으로 보여주고 하나를 고른다
-  categories: string[];
-  // 수정할 때만 준다. 그 값으로 채워서 열고, 사진은 받지 않는다 — 글자 정보만 고친다
-  item?: ItemDetail;
-};
+} & (
+  | {
+      // 수정 — 그 값으로 채워서 열고, 사진은 받지 않는다 — 글자 정보만 고친다. 넣을 곳 줄은 없다(옮기기는 짐싸기의 몫)
+      item: ItemDetail;
+      // 이 인벤토리에 달린 태그. 칩으로 보여주고 하나를 고른다
+      categories: string[];
+    }
+  | {
+      item?: undefined;
+      // 내 인벤토리 전부 (인벤토리 관리와 같은 순서). "넣을 곳" 판에서 고른다. 칩은 고른 인벤토리의 태그
+      inventories: InventoryChoice[];
+      // 처음 골라 둘 곳 (page 가 정한다 — 무늬 인벤토리고르기설계 v01 3-2)
+      initialInventoryId: string;
+      // 아이템 모아보기(M-13)에서 칩을 고른 채 왔으면 그 카테고리. 입력칸에 미리 채운다
+      initialCategory?: string | null;
+    }
+);
 
-// M-08 · 아이템 정보 입력. 사진은 앞 단계에서 이미 골랐고, 여기서는 글자 정보만 받는다.
+// M-08 · 아이템 정보 입력. 사진은 앞 단계에서 이미 골랐고, 여기서는 넣을 곳과 글자 정보를 받는다.
 // 아이템 수정도 같은 폼이다.
-export function ItemForm({ userId, inventoryId, categories, item }: ItemFormProps) {
+export function ItemForm(props: ItemFormProps) {
+  const { userId, inventoryId, item } = props;
   const router = useRouter();
   const [photo] = useState(getPendingPhoto);
+  // 넣을 곳 (새로 넣을 때만). 저장하려다 꽉 찼다고 돌아온 인벤토리는 판에서 꽉 찬 것으로 보인다
+  const [targetId, setTargetId] = useState(props.item ? inventoryId : props.initialInventoryId);
+  const [fullIds, setFullIds] = useState<string[]>([]);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const targetButtonRef = useRef<HTMLButtonElement>(null);
+  const choices = props.item
+    ? []
+    : props.inventories.map((inventory) => (fullIds.includes(inventory.id) ? { ...inventory, usedSlots: Math.max(inventory.usedSlots, inventory.slotCount) } : inventory));
+  const target = choices.find((inventory) => inventory.id === targetId);
+  const categories = props.item ? props.categories : (target?.categories ?? []);
+  const targetFull = target ? !hasRoom(target) : false;
+
   const [name, setName] = useState(item?.name ?? "");
   const [description, setDescription] = useState(item?.description ?? "");
-  const [category, setCategory] = useState(item?.category ?? "");
+  const [category, setCategory] = useState(item?.category ?? (props.item ? "" : (props.initialCategory ?? "")));
   const [quantity, setQuantity] = useState(item?.quantity ?? 1);
   const [acquiredNote, setAcquiredNote] = useState(item?.acquiredNote ?? "");
   const [expiresAt, setExpiresAt] = useState(item?.expiresAt ?? "");
@@ -85,14 +116,54 @@ export function ItemForm({ userId, inventoryId, categories, item }: ItemFormProp
         return;
       }
 
-      const result = await createItem({ id, inventoryId, ...fields, ...extensions });
-      if (result?.error) setError(result.error);
+      const result = await createItem({ id, inventoryId: targetId, ...fields, ...extensions });
+      if (!result?.error) return;
+      setError(result.error);
+      // 찍는 사이 다른 기기에서 채웠다 — 고를 곳으로 바로 데려간다. 사진 · 글자는 그대로 (올린 사진은 다음 시도에서 새 id 로 다시 올린다)
+      if (result.reason === "full") {
+        setFullIds((ids) => [...ids, targetId]);
+        setSheetOpen(true);
+      }
     });
   }
 
   return (
     <form onSubmit={onSubmit} className="flex flex-1 flex-col px-5 pb-[max(3.5rem,env(safe-area-inset-bottom))]">
       <div className="mt-8 flex flex-col gap-4">
+        {/* 넣을 곳 — 맨 위. 카테고리 칩이 인벤토리에 달려 있어서 넣을 곳이 먼저 정해져야 한다 (무늬 인벤토리고르기설계 v01 2-2) */}
+        {target && (
+          <div className="flex flex-col gap-2">
+            <p className="text-label font-bold text-white">넣을 곳</p>
+            {choices.length > 1 ? (
+              <button
+                ref={targetButtonRef}
+                type="button"
+                onClick={() => setSheetOpen(true)}
+                aria-haspopup="dialog"
+                aria-expanded={sheetOpen}
+                aria-label={`넣을 곳: ${target.name}, ${target.slotCount}칸 중 ${target.usedSlots}칸 사용. 바꾸기`}
+                className={`${TARGET_ROW_CLASS} text-left active:opacity-60`}
+              >
+                <TargetRowContent inventory={target} />
+                <Icon name="chevronDown" className="ml-2 shrink-0 text-gray-mid" />
+              </button>
+            ) : (
+              // 하나뿐이면 고를 게 없다 — 어디로 들어가는지만 알린다
+              <div className={TARGET_ROW_CLASS}>
+                <TargetRowContent inventory={target} />
+              </div>
+            )}
+            {targetFull && (
+              <p className="text-caption text-placeholder-dark">
+                칸이 가득 찼어요 ·{" "}
+                <Link href="/my/plan" className="underline underline-offset-4">
+                  프리미엄으로 늘리기
+                </Link>
+              </p>
+            )}
+          </div>
+        )}
+
         <DarkInput
           label="아이템 이름"
           value={name}
@@ -207,10 +278,48 @@ export function ItemForm({ userId, inventoryId, categories, item }: ItemFormProp
         <FormError message={error} />
       </div>
 
-      <Button type="submit" size="pill" disabled={pending || (!item && !photo)} className="mx-auto mt-10">
+      <Button type="submit" size="pill" disabled={pending || (!item && (!photo || targetFull))} className="mx-auto mt-10">
         {item ? (pending ? "수정 중…" : "수정하기") : pending ? "저장 중…" : "저장하기"}
       </Button>
+
+      {sheetOpen && (
+        <InventoryTargetSheet
+          inventories={choices}
+          selectedId={targetId}
+          onPick={(inventory) => {
+            // 칩은 새 인벤토리의 태그로 바뀌고, 카테고리 입력칸의 글자는 그대로 둔다 — 저장하면 새 인벤토리 태그에 더해진다 (설계서 2-4)
+            setTargetId(inventory.id);
+            setSheetOpen(false);
+            targetButtonRef.current?.focus();
+          }}
+          onClose={() => {
+            setSheetOpen(false);
+            targetButtonRef.current?.focus();
+          }}
+        />
+      )}
     </form>
+  );
+}
+
+// 넣을 곳 줄의 틀 — 입력칸(DarkInput)과 같은 높이 · 바탕 · 여백
+const TARGET_ROW_CLASS = "flex h-12.5 w-full items-center rounded-md bg-field-dark pl-4 pr-3";
+
+// 넣을 곳 줄 안 — 사진 32 · 이름 · 12/25 (이번 아이템을 더하기 전). 담긴 곳은 적지 않는다(판에서 본다)
+function TargetRowContent({ inventory }: { inventory: InventoryChoice }) {
+  return (
+    <>
+      <span className="relative size-8 shrink-0 overflow-hidden rounded-sm bg-gray-mid">
+        {inventory.imageUrl && (
+          // 올릴 때 이미 작게 줄여 둔 사진이라 Next 의 이미지 최적화를 거치지 않는다
+          <Image src={inventory.imageUrl} alt="" fill sizes="32px" unoptimized draggable={false} className="object-cover" />
+        )}
+      </span>
+      <span className="ml-3 min-w-0 flex-1 truncate text-body font-bold text-white">{inventory.name}</span>
+      <span className="num ml-3 shrink-0 text-caption text-gray-mid">
+        {inventory.usedSlots}/{inventory.slotCount}
+      </span>
+    </>
   );
 }
 

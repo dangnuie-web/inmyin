@@ -1,35 +1,39 @@
 import { redirect } from "next/navigation";
 import { getViewer } from "@/lib/auth/profile";
 import { loginPath } from "@/lib/auth/paths";
-import { itemCameraPath, NEW_INVENTORY_CAMERA_PATH } from "@/lib/inventory/paths";
-import { resolveLastInventory } from "@/lib/inventory/resolve-last-inventory";
-import { createClient } from "@/lib/supabase/server";
+import {
+  addFlowCategory,
+  addItemPath,
+  inventoryPath,
+  itemCameraPath,
+  itemEditPath,
+  NEW_INVENTORY_CAMERA_PATH,
+  NEW_INVENTORY_EDIT_PATH,
+} from "@/lib/inventory/paths";
+import { getMyInventories, getMyItemStamps } from "@/lib/inventory/queries";
+import { readLastInventoryId } from "@/lib/inventory/resolve-last-inventory";
+import { chooseTarget, fallbackInventory } from "@/lib/inventory/target";
 
-// 하단 탭 가운데 + (촬영). 화면은 없고 갈 곳만 정한다:
-// 1) 마지막에 연 내 인벤토리(쿠키 inmyin-last-inventory, 프로필 격자가 적는다 · 내 프로필 /my 도 같은 것을 처음에 연다)의 촬영
-// 2) 쿠키가 없거나 그 인벤토리가 지워졌으면 — 가장 최근에 아이템을 넣은 인벤토리, 그것도 없으면 가장 최근에 만든 인벤토리
-//    (설계서는 "updated_at 최신"이었지만 inventories 에 updated_at 칸이 없어서 이렇게 읽는다)
-// 3) 인벤토리가 하나도 없으면 새 인벤토리 촬영
-// 꽉 찬 인벤토리면 촬영 화면이 인벤토리로 돌려보낸다 (거기에 프리미엄 안내가 있다)
-export default async function AddPage() {
+// 하단 탭 가운데 + · 웹 상단 "+ 추가 › 아이템 넣기" · 아이템 모아보기(M-13)의 +. 화면은 없고 갈 곳만 정한다
+// (무늬 인벤토리고르기설계 v01 3-1 · 4절):
+// - 기본으로 골라 둘 인벤토리 = 빈 칸 있는 것 중 카테고리(?category=, 그 카테고리 아이템이 가장 많은 곳) → 마지막에 연 것(쿠키) →
+//   최근에 아이템을 넣은 곳 → 최근 만든 곳. 넣을 곳은 정보 입력(M-08) 맨 위 "넣을 곳" 줄에서 바꾼다
+// - ?to=edit — 컴퓨터에서 사진을 먼저 골랐다 → 촬영을 건너뛰고 사진편집(M-07)으로. 아니면 촬영(M-06)
+// - 모두 꽉 찼으면 찍기 전에 인벤토리로(거기에 "프리미엄으로 늘리기"가 있다). 인벤토리가 없으면 새 인벤토리 만들기
+// 사진은 브라우저 메모리에 있어서, 부르는 쪽이 router.push 로 와야 살아 있다
+export default async function AddPage(props: PageProps<"/add">) {
+  const searchParams = await props.searchParams;
+  const category = addFlowCategory(searchParams.category);
+  const toEdit = searchParams.to === "edit";
+
   const profile = await getViewer();
-  if (!profile) redirect(loginPath("/add"));
+  if (!profile) redirect(loginPath(addItemPath({ category, toEdit })));
 
-  const remembered = await resolveLastInventory(profile.id);
-  if (remembered) redirect(itemCameraPath(remembered));
+  const [inventories, items, rememberedId] = await Promise.all([getMyInventories(profile.id), getMyItemStamps(profile.id), readLastInventoryId()]);
+  if (inventories.length === 0) redirect(toEdit ? NEW_INVENTORY_EDIT_PATH : NEW_INVENTORY_CAMERA_PATH);
 
-  const supabase = await createClient();
-  const { data: recentItem } = await supabase
-    .from("items")
-    .select("inventory_id, inventories!inner(deleted_at)")
-    .eq("user_id", profile.id)
-    .is("deleted_at", null)
-    .is("inventories.deleted_at", null)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (recentItem) redirect(itemCameraPath(recentItem.inventory_id));
+  const target = chooseTarget({ inventories, items, category, rememberedId });
+  if (!target) redirect(inventoryPath(fallbackInventory({ inventories, items, rememberedId })!));
 
-  const { data: newest } = await supabase.from("inventories").select("id").eq("user_id", profile.id).is("deleted_at", null).order("created_at", { ascending: false }).limit(1).maybeSingle();
-  redirect(newest ? itemCameraPath(newest.id) : NEW_INVENTORY_CAMERA_PATH);
+  redirect(toEdit ? itemEditPath(target, { category }) : itemCameraPath(target, { category }));
 }

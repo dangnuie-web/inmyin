@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { CameraScreen } from "@/components/item/CameraScreen";
 import { requireProfile } from "@/lib/auth/profile";
-import { inventoryPath, itemEditPath } from "@/lib/inventory/paths";
+import { addFlowCategory, inventoryPath, itemEditPath } from "@/lib/inventory/paths";
 import { getMyInventoryDetail } from "@/lib/inventory/queries";
 
 export const metadata: Metadata = { title: "촬영모드 · INMYIN" };
@@ -17,8 +17,9 @@ export default async function ItemCameraPage(props: PageProps<"/my/inventories/[
 
   const inventory = await getMyInventoryDetail(profile.id, id);
   if (!inventory) notFound();
-  // 꽉 찼으면 찍기 전에 돌려보낸다. 거기에 "프리미엄으로 늘리기" 안내가 있다
+  // 꽉 찼으면 찍기 전에 돌려보낸다(/add 가 이미 걸러서 평소엔 안 걸린다 — 그사이 다른 기기에서 채웠을 때만). 거기에 "프리미엄으로 늘리기" 안내가 있다
   if (inventory.entries.length >= inventory.slotCount) redirect(inventoryPath(inventory.id));
 
-  return <CameraScreen closeHref={inventoryPath(inventory.id)} nextHref={itemEditPath(inventory.id)} />;
+  const category = addFlowCategory((await props.searchParams).category);
+  return <CameraScreen closeHref={inventoryPath(inventory.id)} nextHref={itemEditPath(inventory.id, { category })} />;
 }

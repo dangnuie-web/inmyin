@@ -14,7 +14,8 @@
     "test:demo": "node --test scripts/demo/demo-data.test.mjs scripts/demo/posts.test.mjs",
     "test:image": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/image/adjust.test.mjs lib/image/retouch.test.mjs lib/image/cutout-motion.test.mjs",
     "test:template": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/inmyin/templates.test.mjs",
-    "test": "npm run test:demo && npm run test:image && npm run test:template"
+    "test:inventory": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/inventory/target.test.mjs",
+    "test": "npm run test:demo && npm run test:image && npm run test:template && npm run test:inventory"
   },
   "dependencies": {
     "@imgly/background-removal": "^1.7.0",

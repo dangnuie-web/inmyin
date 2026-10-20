@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import { activeTabHref } from "./BottomTab";
 
 // 웹(1024px 이상)의 상단 메뉴 — 하단 탭 대신. 이름 · 순서 · 갈 곳은 하단 탭과 같다 (BottomTab, 2026-10-20 홈 · 발견 · 북마크 · 프로필). 고른 메뉴에 밑줄.
-// 하단 탭 가운데의 + (촬영)는 여기 없다 — 웹 상단의 "+ 추가"는 로드맵의 따로 된 항목
+// 하단 탭 가운데의 + (촬영)는 메뉴에 없다 — 대신 오른쪽 끝 account 자리에 "+ 추가"(WebNavAdd, 로그인했을 때만)
 const MENU = [
   { href: "/", label: "홈" },
   { href: "/discover", label: "발견" },
@@ -15,7 +15,7 @@ const MENU = [
   { href: "/my", label: "프로필" },
 ];
 
-// account — 오른쪽 끝의 로그아웃 · 로그인 자리. 로그인 여부는 서버에서 읽어야 해서 레이아웃이 서버 컴포넌트(WebNavAccount)로 넣어 준다
+// account — 오른쪽 끝의 "+ 추가" · 로그아웃(또는 로그인) 자리. 로그인 여부는 서버에서 읽어야 해서 레이아웃이 서버 컴포넌트(WebNavAccount)로 넣어 준다
 // 스크롤해도 맨 위에 붙어 있다(2026-10-20, 무늬 설계서 3-3). 갈래 줄은 흘러간다 — 폰의 StickyTop 은 웹에서 붙지 않는다
 export function WebNav({ account }: { account?: ReactNode }) {
   const current = activeTabHref(usePathname());

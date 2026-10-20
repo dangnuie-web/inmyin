@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import type { ItemStamp } from "./target";
 
 export type InventorySummary = {
   id: string;
@@ -108,12 +109,19 @@ export async function getMyInventoryDetail(
   };
 }
 
-// 내 인벤토리 전부, 순서(sort_order — 인벤토리 관리에서 바꾼다)대로. 다른 인벤토리 안에 담긴 것도 같이 나온다 (띠 · 관리)
-export async function getMyInventories(userId: string): Promise<InventorySummary[]> {
+// 아이템을 넣을 곳을 고를 때 쓰는 인벤토리 하나 (아이템 정보 입력 M-08 의 "넣을 곳" 판 · /add).
+// 줄 모양(사진 · 이름 · 12/25 · 담긴 곳)에 더해, 고른 뒤 칩으로 쓸 태그와 "최근 만든 곳"을 가릴 만든 때를 가진다
+export type InventoryChoice = InventorySummary & {
+  categories: string[];
+  createdAt: string;
+};
+
+// 내 인벤토리 전부, 순서(sort_order — 인벤토리 관리에서 바꾼다)대로. 다른 인벤토리 안에 담긴 것도 같이 나온다 (띠 · 관리 · 넣을 곳)
+export async function getMyInventories(userId: string): Promise<InventoryChoice[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("inventories")
-    .select("id, name, image_url, slot_count, parent_inventory_id, is_public, items(count)")
+    .select("id, name, image_url, slot_count, parent_inventory_id, is_public, categories, created_at, items(count)")
     .eq("user_id", userId)
     .is("deleted_at", null)
     .is("items.deleted_at", null)
@@ -131,7 +139,22 @@ export async function getMyInventories(userId: string): Promise<InventorySummary
       data.filter((child) => child.parent_inventory_id === inventory.id).length,
     parentId: inventory.parent_inventory_id,
     isPublic: inventory.is_public,
+    categories: inventory.categories,
+    createdAt: inventory.created_at,
   }));
+}
+
+// 내 아이템 전부의 어디 · 언제 · 카테고리 (지운 것 · 지운 인벤토리의 것은 빼고). 넣을 곳의 기본값을 고를 때 쓴다 (lib/inventory/target.ts)
+export async function getMyItemStamps(userId: string): Promise<ItemStamp[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("items")
+    .select("inventory_id, category, created_at, inventories!inner(deleted_at)")
+    .eq("user_id", userId)
+    .is("deleted_at", null)
+    .is("inventories.deleted_at", null);
+  if (error) throw error;
+  return data.map((item) => ({ inventoryId: item.inventory_id, category: item.category, createdAt: item.created_at }));
 }
 
 // 짐싸기(M-05)가 쓰는 인벤토리 하나. 목록의 한 줄(사진 · 이름)과 상세의 내용(태그 · 칸)을 같이 가진다

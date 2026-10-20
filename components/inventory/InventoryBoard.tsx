@@ -6,21 +6,18 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { deleteItem, restoreItem } from "@/app/(flow)/items/[itemId]/actions";
 import { bringInventory, takeOutInventory } from "@/app/(flow)/my/inventories/[id]/actions";
 import { DarkMenu } from "@/components/ui/DarkMenu";
-import { Icon } from "@/components/ui/Icon";
 import { Toast } from "@/components/ui/Toast";
-import { pickedPhoto, setPendingPhoto } from "@/lib/image/pending-photo";
-import { itemCameraPath, itemEditPath, itemUpdatePath, packingPath, type InventoryView } from "@/lib/inventory/paths";
+import { useAddItem } from "@/components/item/useAddItem";
+import { itemUpdatePath, packingPath, type InventoryView } from "@/lib/inventory/paths";
 import { withSubjectParticle } from "@/lib/korean";
 import type { FormState } from "@/lib/auth/rules";
 import type { InventorySummary, SlotEntry } from "@/lib/inventory/queries";
 import { InventoryPicker } from "./InventoryPicker";
-import { AddSlotCell, gridFor, type GridColumns, SLOT_ROW_CLASS, SlotRow, SlotRowThumb, UndoSlotCell, UndoSlotRow } from "./Slot";
+import { AddSlotButton, AddSlotCell, gridFor, type GridColumns, SlotRow, UndoSlotCell, UndoSlotRow } from "./Slot";
 import { LongPressSlotCell, LongPressSlotRow, SwipeRow, type SwipeSide } from "./SlotGestures";
 import { EmptyBag, EmptyLine } from "@/components/ui/EmptyBag";
 import { SMALL_OUTLINE_CLASS } from "@/components/profile/ProfileParts";
 import { InventoryTitleRow } from "./InventoryTitleRow";
-
-type MenuAnchor = "slot" | "floating" | null;
 
 // 화면에만 미리 반영해 둔 칸. 서버가 보낸 목록에는 없을 수 있어서, 끼워 넣을 자리와 함께 들고 있는다
 type PlacedEntry = { entry: SlotEntry; index: number };
@@ -81,7 +78,8 @@ export function InventoryBoard({ inventoryId, name, isPublic, controls, filtered
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [menu, setMenu] = useState<MenuAnchor>(null);
+  // + 칸(또는 + 줄)의 메뉴 "아이템 넣기 · 인벤토리 가져오기"가 떠 있는가
+  const [menuOpen, setMenuOpen] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const hideNotice = useCallback(() => setNotice(null), []);
 
@@ -133,18 +131,8 @@ export function InventoryBoard({ inventoryId, name, isPublic, controls, filtered
   const isFull = used >= slotCount;
   const isEmpty = shown.length === 0;
 
-  // + 칸이 화면 밖으로 나가면 플로팅 + 를 띄운다 (당니님 결정으로 없앨 것 — 인벤토리 고르기 작업에서 함께 걷어 낸다)
-  const addSlotRef = useRef<HTMLDivElement>(null);
-  // 컴퓨터에서 "아이템 넣기"를 누르면 여는 사진 고르기 창
-  const uploadRef = useRef<HTMLInputElement>(null);
-  const [addSlotVisible, setAddSlotVisible] = useState(true);
-  useEffect(() => {
-    const target = addSlotRef.current;
-    if (!target) return;
-    const observer = new IntersectionObserver(([entry]) => setAddSlotVisible(entry.isIntersecting));
-    observer.observe(target);
-    return () => observer.disconnect();
-  }, [view, isFull, isEmpty]);
+  // 아이템 넣기 — 이 인벤토리가 1순위라 고르는 단계 없이 바로 촬영(폰) · 사진 고르기(컴퓨터). 넣을 곳은 정보 입력(M-08)에서 바꿀 수 있다
+  const addItem = useAddItem({ inventoryId });
 
   // 방금 등록한(또는 되살린) 칸을 알려준다. 그리드의 칸은 "톡" 하고 나타나고, 리스트의 줄은 옅은 회색이 스친다.
   // 화면 안에 있으면 그려지기 전에 바로 시작하고, 밖에 있으면 스크롤로 데려와서 **도착한 순간** 시작한다 —
@@ -298,36 +286,12 @@ export function InventoryBoard({ inventoryId, name, isPublic, controls, filtered
       : [{ label: "꺼내기", onSelect: () => takeOut(entry.id) }];
 
   const menuItems = [
-    {
-      label: "아이템 넣기",
-      onSelect: () => {
-        // 촬영은 폰에서만 된다 (CLAUDE.md 규칙 5). 손가락으로 쓰는 기기면 촬영 화면(M-06)으로 — 갤러리에서 고르는 것도 거기서 한다.
-        // 마우스를 쓰는 컴퓨터면 사진 고르기 창을 바로 열어 편집(M-07)으로 간다
-        if (window.matchMedia("(pointer: coarse)").matches) return router.push(itemCameraPath(inventoryId));
-        uploadRef.current?.click();
-      },
-    },
+    { label: "아이템 넣기", onSelect: addItem.start },
     { label: "인벤토리 가져오기", onSelect: () => setPickerOpen(true) },
   ];
 
   const addButton = (size: "cell" | "row") => (
-    <button
-      type="button"
-      onClick={() => setMenu("slot")}
-      aria-label="추가"
-      className={size === "cell" ? "flex size-full items-center justify-center text-disabled" : `${SLOT_ROW_CLASS} text-left text-disabled`}
-    >
-      {size === "cell" ? (
-        <Icon name="plus" scale={2} />
-      ) : (
-        <>
-          <SlotRowThumb>
-            <Icon name="plus" />
-          </SlotRowThumb>
-          <span className="text-body">+를 눌러 아이템을 넣어 주세요.</span>
-        </>
-      )}
-    </button>
+    <AddSlotButton size={size} onClick={() => setMenuOpen(true)} aria-haspopup="menu" aria-expanded={menuOpen} />
   );
 
   return (
@@ -363,12 +327,12 @@ export function InventoryBoard({ inventoryId, name, isPublic, controls, filtered
           onUndo={undoDelete}
         >
           {(isLastColumn) => (
-            <div ref={addSlotRef} className="relative size-full">
+            <div className="relative size-full">
               {addButton("cell")}
-              {menu === "slot" && (
+              {menuOpen && (
                 <DarkMenu
                   items={menuItems}
-                  onClose={() => setMenu(null)}
+                  onClose={() => setMenuOpen(false)}
                   // 오른쪽 끝 칸에서는 메뉴가 화면 밖으로 나가지 않게 왼쪽으로 편다
                   className={isLastColumn ? "right-1/2 top-1/2" : "left-1/2 top-1/2"}
                 />
@@ -404,9 +368,9 @@ export function InventoryBoard({ inventoryId, name, isPublic, controls, filtered
           ))}
           {!isFull && (
             <li>
-              <div ref={addSlotRef} className="relative">
+              <div className="relative">
                 {addButton("row")}
-                {menu === "slot" && <DarkMenu items={menuItems} onClose={() => setMenu(null)} className="left-20 top-7" />}
+                {menuOpen && <DarkMenu items={menuItems} onClose={() => setMenuOpen(false)} className="left-20 top-7" />}
               </div>
             </li>
           )}
@@ -420,38 +384,8 @@ export function InventoryBoard({ inventoryId, name, isPublic, controls, filtered
         </Link>
       )}
 
-      {/* 플로팅 + — + 칸이 화면 밖일 때만. 사용량 숫자는 이름 줄로 옮겼다 (무늬 빈화면프로필설계 v01 5절).
-          폰은 하단 탭(61 + 홈 막대) 바로 위에 뜬다 — 프로필 격자가 하단 탭 있는 화면으로 옮겨 와서 */}
-      <div className="pointer-events-none sticky bottom-[calc(3.8125rem+max(0px,env(safe-area-inset-bottom)-0.625rem))] mt-auto h-0 lg:bottom-0">
-        {!isFull && !isEmpty && !addSlotVisible && (
-          <div className="pointer-events-auto absolute bottom-4 right-5.5">
-            <button
-              type="button"
-              onClick={() => setMenu("floating")}
-              aria-label="추가"
-              className="flex size-10.5 items-center justify-center rounded-full bg-ink text-white shadow-lg active:opacity-80"
-            >
-              <Icon name="plusBold" />
-            </button>
-            {menu === "floating" && <DarkMenu items={menuItems} onClose={() => setMenu(null)} className="bottom-full right-0 mb-2" />}
-          </div>
-        )}
-      </div>
-
       {pickerOpen && <InventoryPicker inventories={inventories} intoId={inventoryId} onPick={bring} onClose={() => setPickerOpen(false)} />}
-      <input
-        ref={uploadRef}
-        type="file"
-        accept="image/*"
-        hidden
-        onChange={(event) => {
-          const file = event.target.files?.[0];
-          event.target.value = "";
-          if (!file) return;
-          setPendingPhoto(pickedPhoto(file));
-          router.push(itemEditPath(inventoryId));
-        }}
-      />
+      {addItem.fileInput}
       <Toast message={notice} onDone={hideNotice} />
     </div>
   );

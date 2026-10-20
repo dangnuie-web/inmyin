@@ -53,6 +53,31 @@ const CELL_CLASS = "relative flex aspect-square items-center justify-center roun
 // 길게 누르거나 밀 때 브라우저가 끼어들지 않게 한다 — 아이폰의 링크 미리보기, 글자 선택, 링크 끌어가기
 const NO_BROWSER_GESTURES = "select-none [-webkit-touch-callout:none]";
 
+// + 칸 · + 줄 안의 버튼 — 인벤토리 격자(M-04)와 아이템 모아보기(M-13)가 같은 것을 쓴다(한 픽셀도 다르지 않게).
+// cell = 격자의 + 칸 안(AddSlotCell 에 넣는다), row = 리스트 맨 아래 "+를 눌러 아이템을 넣어 주세요." 줄
+export function AddSlotButton({ size, onClick, ...props }: { size: "cell" | "row"; onClick: () => void } & Pick<ComponentProps<"button">, "aria-haspopup" | "aria-expanded">) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label="아이템 넣기"
+      className={size === "cell" ? "flex size-full items-center justify-center text-disabled" : `${SLOT_ROW_CLASS} text-left text-disabled`}
+      {...props}
+    >
+      {size === "cell" ? (
+        <Icon name="plus" scale={2} />
+      ) : (
+        <>
+          <SlotRowThumb>
+            <Icon name="plus" />
+          </SlotRowThumb>
+          <span className="text-body">+를 눌러 아이템을 넣어 주세요.</span>
+        </>
+      )}
+    </button>
+  );
+}
+
 // 그리드의 + 칸. 메뉴가 칸 밖으로 펼쳐져야 해서 넘치는 부분을 자르지 않는다.
 // (빈 칸은 그리지 않는다 — 채워진 칸과 그 다음의 + 칸만 보인다)
 export function AddSlotCell({ children }: { children: ReactNode }) {

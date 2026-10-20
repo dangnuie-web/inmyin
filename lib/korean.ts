@@ -6,3 +6,11 @@ export function withSubjectParticle(word: string) {
   const hasFinalConsonant = isHangul && (code - 0xac00) % 28 !== 0;
   return `${word}${hasFinalConsonant ? "이" : "가"}`;
 }
+
+// "데스크는 칸이 가득 찼어요" / "가방은 …" — 앞말에 받침이 있으면 "은", 없으면 "는". 한글로 끝나지 않으면 "는"
+export function withTopicParticle(word: string) {
+  const code = word.charCodeAt(word.length - 1);
+  const isHangul = code >= 0xac00 && code <= 0xd7a3;
+  const hasFinalConsonant = isHangul && (code - 0xac00) % 28 !== 0;
+  return `${word}${hasFinalConsonant ? "은" : "는"}`;
+}

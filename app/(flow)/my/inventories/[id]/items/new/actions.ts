@@ -7,6 +7,7 @@ import type { FormState } from "@/lib/auth/rules";
 import { inventoryPath } from "@/lib/inventory/paths";
 import { cleanItemFields, type ItemFieldsInput } from "@/lib/item/rules";
 import { addCategoryToInventory } from "@/lib/item/save";
+import { withTopicParticle } from "@/lib/korean";
 import { createClient } from "@/lib/supabase/server";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -43,12 +44,22 @@ export async function createItem(input: NewItemInput): Promise<FormState> {
 
   const { data: inventory } = await supabase
     .from("inventories")
-    .select("id, categories")
+    .select("id, name, categories, slot_count")
     .eq("id", input.inventoryId)
     .eq("user_id", profile.id)
     .is("deleted_at", null)
     .maybeSingle();
   if (!inventory) return { error: "인벤토리를 찾을 수 없습니다." };
+
+  // 저장 전에 빈 칸을 한 번 더 센다 — 찍는 사이 다른 기기에서 채웠을 수 있다. 꽉 찼으면 화면이 "넣을 곳" 판을 열어 다른 곳을 고르게 한다
+  // (무늬 인벤토리고르기설계 v01 3-3). DB 트리거가 마지막으로 한 번 더 막는다. 카테고리를 태그에 더하기 전에 본다
+  const [itemCount, childCount] = await Promise.all([
+    supabase.from("items").select("id", { count: "exact", head: true }).eq("inventory_id", inventory.id).is("deleted_at", null),
+    supabase.from("inventories").select("id", { count: "exact", head: true }).eq("parent_inventory_id", inventory.id).is("deleted_at", null),
+  ]);
+  if ((itemCount.count ?? 0) + (childCount.count ?? 0) >= inventory.slot_count) {
+    return { error: `${withTopicParticle(inventory.name)} 칸이 가득 찼어요. 다른 인벤토리를 골라 주세요.`, reason: "full" };
+  }
 
   const categoryMessage = await addCategoryToInventory(supabase, inventory, cleaned.fields.category);
   if (categoryMessage) return { error: categoryMessage };

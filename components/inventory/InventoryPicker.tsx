@@ -2,7 +2,7 @@
 
 import { nestingBlocker } from "@/lib/inventory/nesting";
 import type { InventorySummary } from "@/lib/inventory/queries";
-import { INVENTORY_ROW_CLASS, InventoryPhoto } from "./InventoryRow";
+import { InventoryChoiceRow } from "./InventoryChoiceRow";
 
 type InventoryPickerProps = {
   // 내 인벤토리 전부
@@ -36,23 +36,7 @@ export function InventoryPicker({ inventories, intoId, onPick, onClose }: Invent
               const blocker = nestingBlocker(inventory, into, inventories);
               return (
                 <li key={inventory.id}>
-                  <button
-                    type="button"
-                    onClick={() => onPick(inventory)}
-                    disabled={blocker !== null}
-                    className={`${INVENTORY_ROW_CLASS} text-left active:opacity-60`}
-                  >
-                    <span className={blocker ? "opacity-30" : ""}>
-                      <InventoryPhoto inventory={inventory} />
-                    </span>
-                    <span className="flex min-w-0 flex-1 flex-col">
-                      <span className={`truncate text-title font-bold ${blocker ? "text-disabled" : ""}`}>{inventory.name}</span>
-                      {blocker && <span className="truncate text-caption text-ink-muted">{blocker}</span>}
-                    </span>
-                    <span className={`num text-caption ${blocker ? "text-disabled" : ""}`}>
-                      {inventory.usedSlots}/{inventory.slotCount}
-                    </span>
-                  </button>
+                  <InventoryChoiceRow inventory={inventory} caption={blocker} disabled={blocker !== null} onSelect={() => onPick(inventory)} />
                 </li>
               );
             })}

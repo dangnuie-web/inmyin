@@ -55,9 +55,33 @@ export function packingPath(inventoryId: string) {
   return `/my/inventories/${inventoryId}/packing`;
 }
 
-// 아이템 정보 입력(M-08)의 주소
-export function newItemPath(inventoryId: string) {
-  return `/my/inventories/${inventoryId}/items/new`;
+// 아이템 넣기 흐름(M-06 촬영 → M-07 사진편집 → M-08 정보 입력)이 이어 싣는 것.
+// category — 아이템 모아보기(M-13)에서 칩을 고른 채 + 를 눌렀으면 그 카테고리. M-08 이 미리 채운다 (무늬 인벤토리고르기설계 v01 3절)
+export type AddFlowOptions = { category?: string | null };
+
+// 주소의 ?category= 를 읽는다 (/add · M-06 · M-07 · M-08 page)
+export function addFlowCategory(value: string | string[] | undefined) {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function addFlowQuery(options: AddFlowOptions = {}) {
+  return options.category ? `?${new URLSearchParams({ category: options.category })}` : "";
+}
+
+// 아이템 정보 입력(M-08)의 주소. [id] 는 "넣을 곳"이 아니라 "기본으로 골라 둘 곳" — M-08 맨 위 "넣을 곳" 줄에서 바꿀 수 있다
+export function newItemPath(inventoryId: string, options?: AddFlowOptions) {
+  return `/my/inventories/${inventoryId}/items/new${addFlowQuery(options)}`;
+}
+
+// 하단 탭 + · 웹 "+ 추가" · 아이템 모아보기 + 가 가는 곳. 화면은 없고 서버가 기본 인벤토리를 골라 촬영(또는 사진편집)으로 보낸다.
+// toEdit — 컴퓨터에서 사진을 먼저 골랐다 → 촬영을 건너뛰고 사진편집으로.
+// 사진을 들고 가므로 꼭 router.push 로 간다 (<a href> · window.location 은 화면을 새로 읽어 사진을 잃는다)
+export function addItemPath(options: AddFlowOptions & { toEdit?: boolean } = {}) {
+  const params = new URLSearchParams();
+  if (options.toEdit) params.set("to", "edit");
+  if (options.category) params.set("category", options.category);
+  const query = params.toString();
+  return `/add${query ? `?${query}` : ""}`;
 }
 
 // 인벤토리 수정의 주소. 이름과 카테고리 태그를 고친다
@@ -69,13 +93,13 @@ export function inventoryUpdatePath(inventoryId: string) {
 export const NEW_INVENTORY_PATH = "/my/inventories/new";
 
 // 촬영 화면(M-06)의 주소. 아이템용과 인벤토리용이 따로 있다 — 찍은 뒤에 갈 곳이 다르다
-export function itemCameraPath(inventoryId: string) {
-  return `/my/inventories/${inventoryId}/items/camera`;
+export function itemCameraPath(inventoryId: string, options?: AddFlowOptions) {
+  return `/my/inventories/${inventoryId}/items/camera${addFlowQuery(options)}`;
 }
 export const NEW_INVENTORY_CAMERA_PATH = `${NEW_INVENTORY_PATH}/camera`;
 
 // 사진 편집(M-07)의 주소. 촬영 화면과 같은 이유로 둘이다
-export function itemEditPath(inventoryId: string) {
-  return `/my/inventories/${inventoryId}/items/edit`;
+export function itemEditPath(inventoryId: string, options?: AddFlowOptions) {
+  return `/my/inventories/${inventoryId}/items/edit${addFlowQuery(options)}`;
 }
 export const NEW_INVENTORY_EDIT_PATH = `${NEW_INVENTORY_PATH}/edit`;

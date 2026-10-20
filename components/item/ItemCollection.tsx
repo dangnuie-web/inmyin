@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { type GridColumns, gridColumnsClass, SlotCell, SlotRow } from "@/components/inventory/Slot";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import { AddSlotButton, AddSlotCell, type GridColumns, gridColumnsClass, SlotCell, SlotRow } from "@/components/inventory/Slot";
 import { ViewToggle } from "@/components/inventory/ViewToggle";
 import { CategoryTag } from "@/components/ui/CategoryTag";
 import { ChipRow } from "@/components/ui/ChipRow";
@@ -12,6 +13,7 @@ import type { InventoryView } from "@/lib/inventory/paths";
 import type { SlotEntry } from "@/lib/inventory/queries";
 import type { CollectedItem } from "@/lib/item/queries";
 import { NumText } from "@/components/ui/NumText";
+import { useAddItem } from "./useAddItem";
 
 type ItemCollectionProps = {
   // 최신순으로 온다
@@ -24,11 +26,17 @@ type ItemCollectionProps = {
   empty: EmptyState;
   // "최신순 | 오래된순" 정렬을 보여줄지 (북마크 탭). items 는 최근 것부터 온다고 본다
   sortable?: boolean;
+  // 맨 뒤에 + 칸을 둘지 — 내 것(/my/items)만. 남의 아이템 · 북마크는 없다 (무늬 인벤토리고르기설계 v01 5절)
+  addable?: boolean;
+  // 넣을 곳이 있는가 (인벤토리가 없거나, 빈 칸 있는 인벤토리가 하나라도 있다). 아니면 + 대신 "프리미엄으로 늘리기" 링크
+  canAdd?: boolean;
 };
 
 // M-13 · 아이템 모아보기. 인벤토리 구분 없이 아이템 전체를 최신순으로 본다.
 // 검색과 카테고리는 서버를 거치지 않고 여기서 바로 거른다 — 글자를 칠 때마다, 칩을 누를 때마다 즉시 바뀐다.
-export function ItemCollection({ items, capacity, columns, empty, sortable = false }: ItemCollectionProps) {
+// 내 것(addable)이면 격자 맨 뒤에 + 칸(리스트는 + 줄) — 인벤토리 격자와 같은 칸. 누르면 넣을 인벤토리는 /add 가 골라 두고(칩을 골랐으면 그 카테고리가 많은 곳)
+// 정보 입력(M-08)에서 바꾼다. + 칸이 스크롤로 화면 밖이면 오른쪽 아래에 떠 있는 + . 검색 중에는 + 를 숨긴다 — 결과 끝의 + 는 "검색 결과에 넣는다"로 읽힌다
+export function ItemCollection({ items, capacity, columns, empty, sortable = false, addable = false, canAdd = true }: ItemCollectionProps) {
   const [view, setView] = useState<InventoryView>("grid");
   const [oldestFirst, setOldestFirst] = useState(false);
   const [query, setQuery] = useState("");
@@ -46,6 +54,18 @@ export function ItemCollection({ items, capacity, columns, empty, sortable = fal
   const isFiltered = Boolean(category || words);
 
   const toEntry = (item: CollectedItem): SlotEntry => ({ kind: "item", deleted: false, ...item });
+
+  const addItem = useAddItem({ category });
+  const showAdd = addable && canAdd && !words && shown.length > 0;
+  const addSlotRef = useRef<HTMLLIElement>(null);
+  const [addSlotVisible, setAddSlotVisible] = useState(true);
+  useEffect(() => {
+    const target = addSlotRef.current;
+    if (!target) return;
+    const observer = new IntersectionObserver(([entry]) => setAddSlotVisible(entry.isIntersecting));
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [view, showAdd]);
 
   return (
     // 아래 여백 40 — 전에는 바닥 숫자 줄(76)이 이 자리를 잡아 줬다
@@ -99,7 +119,8 @@ export function ItemCollection({ items, capacity, columns, empty, sortable = fal
         isFiltered ? (
           <EmptyLine>찾는 아이템이 없어요.</EmptyLine>
         ) : (
-          <EmptyBag action={empty.action} secondary={empty.secondary}>
+          // 내 것이면 "아이템 넣기"도 + 칸과 같은 갈림(폰 촬영 · 컴퓨터 파일 창)으로
+          <EmptyBag action={addable && empty.action ? { label: empty.action.label, onClick: addItem.start } : empty.action} secondary={empty.secondary}>
             {empty.text}
           </EmptyBag>
         )
@@ -110,6 +131,13 @@ export function ItemCollection({ items, capacity, columns, empty, sortable = fal
               <SlotCell entry={toEntry(item)} owner={item.ownerNickname ? { nickname: item.ownerNickname, avatarUrl: item.ownerAvatarUrl ?? null } : undefined} />
             </li>
           ))}
+          {showAdd && (
+            <li ref={addSlotRef}>
+              <AddSlotCell>
+                <AddSlotButton size="cell" onClick={addItem.start} />
+              </AddSlotCell>
+            </li>
+          )}
         </ul>
       ) : (
         <ul className="mt-4 flex flex-col border-t border-border">
@@ -118,8 +146,37 @@ export function ItemCollection({ items, capacity, columns, empty, sortable = fal
               <SlotRow entry={toEntry(item)} caption={item.ownerNickname ? `${item.ownerNickname} · ${item.inventoryName}` : item.inventoryName} />
             </li>
           ))}
+          {showAdd && (
+            <li ref={addSlotRef}>
+              <AddSlotButton size="row" onClick={addItem.start} />
+            </li>
+          )}
         </ul>
       )}
+
+      {addable && !canAdd && shown.length > 0 && (
+        // + 를 그냥 없애면 기능이 사라진 줄 안다 (인벤토리 격자와 같은 줄). 여기는 사진을 들고 있지 않아서 떠나도 된다
+        <Link href="/my/plan" className="mx-auto mt-6 text-label text-ink-muted underline underline-offset-4">
+          칸이 가득 찼어요 · 프리미엄으로 늘리기
+        </Link>
+      )}
+
+      {/* 떠 있는 + — + 칸이 화면 밖일 때만. 폰은 하단 탭(61 + 홈 막대) 바로 위에 뜬다 */}
+      {addable && (
+        <div className="pointer-events-none sticky bottom-[calc(3.8125rem+max(0px,env(safe-area-inset-bottom)-0.625rem))] mt-auto h-0 lg:bottom-0">
+          {showAdd && !addSlotVisible && (
+            <button
+              type="button"
+              onClick={addItem.start}
+              aria-label="아이템 넣기"
+              className="pointer-events-auto absolute bottom-4 right-5.5 flex size-10.5 items-center justify-center rounded-full bg-ink text-white shadow-lg active:opacity-80"
+            >
+              <Icon name="plusBold" />
+            </button>
+          )}
+        </div>
+      )}
+      {addable && addItem.fileInput}
     </div>
   );
 }
