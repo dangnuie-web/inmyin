@@ -24,10 +24,10 @@ export function PreviewScreen({ imageUrl, onClose, onPost, onSave }: PreviewScre
         </div>
       </div>
       <div className="mt-10 flex flex-col items-center gap-3">
-        <button type="button" onClick={onPost} className="h-11 w-52 rounded-full border border-ink bg-white text-body font-bold text-ink active:opacity-60">
+        <button type="button" onClick={onPost} className="h-11.5 w-52 rounded-full border border-disabled bg-white text-body font-bold text-ink active:opacity-60">
           포스팅 하기
         </button>
-        <button type="button" onClick={onSave} className="h-11 w-52 rounded-full bg-ink text-body font-bold text-white active:opacity-80">
+        <button type="button" onClick={onSave} className="h-11.5 w-52 rounded-full bg-ink text-body font-bold text-white active:opacity-80">
           JPG 이미지 저장하기
         </button>
       </div>

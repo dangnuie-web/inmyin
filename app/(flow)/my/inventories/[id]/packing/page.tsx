@@ -35,7 +35,7 @@ export default async function PackingPage(props: PageProps<"/my/inventories/[id]
       actions={<MyProfileActions handle={profile.handle} nickname={profile.nickname} />}
     >
       <div className="hidden justify-end px-5 pt-4 lg:flex">
-        <Link href={inventoryPath(id)} className="rounded-full border border-ink bg-white px-5 py-1 text-body font-bold active:opacity-60">
+        <Link href={inventoryPath(id)} className="flex h-8 shrink-0 items-center justify-center rounded-sm bg-ink px-3.5 text-label font-bold text-white active:opacity-80">
           완료
         </Link>
       </div>

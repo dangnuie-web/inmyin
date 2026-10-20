@@ -13,13 +13,13 @@ type ViewToggleProps = { current: InventoryView } & (
   | { onSelect: (view: InventoryView) => void; hrefFor?: undefined }
 );
 
-// 피그마 `그리드-리스트 토글`. 색만 피그마와 다르다 — 회색 바탕은 옆의 카테고리 칩과 섞여 보여서
-// 검정 바탕에 흰 아이콘으로 정했다. 지금 보기 방식은 흰색, 다른 쪽은 회색
+// 피그마 `그리드-리스트 토글`. 버튼이 아니라 보기 상태라 검정 알약에서 회색 바탕으로 내렸다(무늬 흑백버튼설계 v01 3-5) —
+// 옆의 카테고리 칩이 글자만 되어 섞이지 않는다. 지금 보기 방식은 검정, 다른 쪽은 회색
 export function ViewToggle({ current, hrefFor, onSelect }: ViewToggleProps) {
   return (
-    <div className="flex h-7 shrink-0 items-center gap-3.5 rounded-full bg-ink px-3.5">
+    <div className="flex h-7 shrink-0 items-center gap-3.5 rounded-full bg-gray-2 px-3.5">
       {VIEWS.map(({ view, label }) => {
-        const className = view === current ? "text-white" : "text-ink-muted";
+        const className = view === current ? "text-ink" : "text-ink-muted";
         return hrefFor ? (
           <Link
             key={view}

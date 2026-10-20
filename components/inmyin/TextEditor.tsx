@@ -110,7 +110,7 @@ export function TextEditor({ initial, editing, onSubmit }: TextEditorProps) {
 
 function Chip({ label, on, onClick }: { label: string; on: boolean; onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} aria-pressed={on} className={`rounded-md border border-border px-4 py-1 text-label font-semibold ${on ? "bg-gray-2 text-ink" : "bg-white text-disabled"}`}>
+    <button type="button" onClick={onClick} aria-pressed={on} className={`rounded-md border border-border px-4 py-1 text-label font-semibold ${on ? "bg-gray-2 text-ink" : "bg-white text-ink-muted"}`}>
       {label}
     </button>
   );

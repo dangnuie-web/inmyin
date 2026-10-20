@@ -152,7 +152,7 @@ function PackingHalf({ inventories, inventory, entries, otherId, arrivedId, onOp
         ))}
       </ul>
 
-      <p className="pointer-events-none absolute inset-x-0 bottom-2 mx-auto w-fit rounded-full bg-white px-3 py-0.5 text-label font-bold">
+      <p className="pointer-events-none absolute inset-x-0 bottom-2 mx-auto w-fit rounded-full bg-white px-3 py-0.5 text-caption text-ink-muted">
         <NumText text={`${entries.length}/${inventory.slotCount}`} />
       </p>
     </section>

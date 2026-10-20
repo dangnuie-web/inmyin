@@ -100,7 +100,7 @@ export default async function OtherInventoryPage(props: PageProps<"/u/[handle]/i
 
       {/* 화면 아래에 붙어 있는 숫자 — 보이는 것 / 칸 수 */}
       <div className="pointer-events-none sticky bottom-0 mt-auto flex h-19 items-center justify-center pb-[env(safe-area-inset-bottom)]">
-        <p className="rounded-full bg-white px-3 py-0.5 text-label font-bold">
+        <p className="rounded-full bg-white px-3 py-0.5 text-caption text-ink-muted">
           <NumText text={`${inventory.entries.length}/${inventory.slotCount}`} />
         </p>
       </div>

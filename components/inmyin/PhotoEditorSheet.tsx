@@ -93,7 +93,7 @@ function PhotoTuner({ file, onPickFile, onSubmit }: PhotoEditorSheetProps & { fi
         <button type="button" onClick={toggleCutout} disabled={busy !== null} aria-pressed={cutout} className={CHIP_CLASS(cutout)}>
           배경 지우기
         </button>
-        <button type="button" onClick={onPickFile} disabled={busy !== null} className="rounded-md border border-border bg-white px-4 py-1 text-label font-semibold text-ink active:opacity-60 disabled:opacity-40">
+        <button type="button" onClick={onPickFile} disabled={busy !== null} className="flex h-8 shrink-0 items-center justify-center rounded-sm border border-disabled bg-white px-3.5 text-label font-bold text-ink active:opacity-60 disabled:opacity-40">
           다른 사진
         </button>
       </div>
@@ -114,7 +114,7 @@ function PhotoTuner({ file, onPickFile, onSubmit }: PhotoEditorSheetProps & { fi
           {error}
         </p>
       )}
-      <button type="button" onClick={submit} disabled={!current || busy !== null} className="h-12 rounded-md bg-ink text-body font-bold text-white active:opacity-80 disabled:opacity-40">
+      <button type="button" onClick={submit} disabled={!current || busy !== null} className="h-14 rounded-md bg-ink text-body font-bold text-white active:opacity-80 disabled:opacity-40">
         {busy === "cropping" ? "올리는 중…" : "올리기"}
       </button>
     </div>

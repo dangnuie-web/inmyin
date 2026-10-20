@@ -53,7 +53,7 @@ export default async function InventoryDetailPage(props: PageProps<"/my/inventor
   const entries = category ? inventory.entries.filter((entry) => entry.category === category) : inventory.entries;
 
   const packing = (
-    <Link href={packingPath(inventory.id)} className="rounded-sm border border-border bg-white px-3 py-0.5 text-body font-bold active:opacity-60">
+    <Link href={packingPath(inventory.id)} className="flex h-8 shrink-0 items-center justify-center rounded-sm border border-disabled bg-white px-3.5 text-label font-bold text-ink active:opacity-60">
       짐싸기
     </Link>
   );

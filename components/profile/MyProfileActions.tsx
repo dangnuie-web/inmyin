@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
-import { PROFILE_ACTION_CLASS } from "./ProfileParts";
+import { PROFILE_ACTION_CLASS, PROFILE_ACTION_OUTLINE_CLASS } from "./ProfileParts";
 import { ShareProfileButton } from "./ShareProfileButton";
 
 // 내 프로필 줄의 버튼들 — 프로필 관리 · 프로필 공유. 폰의 M-01 몸통과 웹의 프로필 틀(내 화면들)이 같이 쓴다
@@ -10,7 +10,7 @@ export function MyProfileActions({ handle, nickname }: { handle: string; nicknam
       <Link href="/my/edit" className={PROFILE_ACTION_CLASS}>
         프로필 관리
       </Link>
-      <ShareProfileButton handle={handle} nickname={nickname} className={PROFILE_ACTION_CLASS} />
+      <ShareProfileButton handle={handle} nickname={nickname} className={PROFILE_ACTION_OUTLINE_CLASS} />
     </>
   );
 }

@@ -162,7 +162,7 @@ function Chips<T extends string>({ options, current, onPick }: { options: readon
           type="button"
           onClick={() => onPick(option.id)}
           aria-pressed={option.id === current}
-          className={`rounded-md border border-border px-4 py-1 text-label font-semibold ${option.id === current ? "bg-gray-2 text-ink" : "bg-white text-disabled"}`}
+          className={`rounded-md border border-border px-4 py-1 text-label font-semibold ${option.id === current ? "bg-gray-2 text-ink" : "bg-white text-ink-muted"}`}
         >
           {option.label}
         </button>

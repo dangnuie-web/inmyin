@@ -68,7 +68,7 @@ export default async function MyProfilePage() {
         <section className="border-b border-gray-3 pb-7">
           <div className="flex h-16 items-center px-5">
             <SectionTitle title="ITEM" note={`TOTAL ${stats.itemCount}/${maxInventories * slotCount}`} />
-            <Link href="/my/items" className="ml-auto rounded-md bg-ink px-2.5 text-label font-bold text-white active:opacity-80">
+            <Link href="/my/items" className="ml-auto flex h-8 shrink-0 items-center justify-center rounded-sm border border-disabled bg-white px-3.5 text-label font-bold text-ink active:opacity-60">
               더보기
             </Link>
           </div>
@@ -84,10 +84,10 @@ export default async function MyProfilePage() {
             <SectionTitle title="INMYIN" note={`게시물 ${stats.postCount}`} />
             {/* 더보기 → 내 INMYIN 목록, 만들기 → 에디터(M-09) */}
             <span className="ml-auto flex gap-1.5">
-              <Link href="/my/inmyin" className="rounded-md border border-ink bg-white px-2.5 text-label font-bold text-ink active:opacity-60">
+              <Link href="/my/inmyin" className="flex h-8 shrink-0 items-center justify-center rounded-sm border border-disabled bg-white px-3.5 text-label font-bold text-ink active:opacity-60">
                 더보기
               </Link>
-              <Link href="/my/inmyin/new" className="rounded-md bg-ink px-2.5 text-label font-bold text-white active:opacity-80">
+              <Link href="/my/inmyin/new" className="flex h-8 shrink-0 items-center justify-center rounded-sm bg-ink px-3.5 text-label font-bold text-white active:opacity-80">
                 만들기
               </Link>
             </span>

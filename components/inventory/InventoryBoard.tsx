@@ -390,7 +390,7 @@ export function InventoryBoard({ inventoryId, inventories, addedId, deletedId, e
 
       {/* 화면 아래에 붙어 있는 줄 — 가운데 사용량, 오른쪽 플로팅 + */}
       <div className="pointer-events-none sticky bottom-0 mt-auto flex h-19 items-center justify-center pb-[env(safe-area-inset-bottom)]">
-        <p className="pointer-events-auto rounded-full bg-white px-3 py-0.5 text-label font-bold">
+        <p className="pointer-events-auto rounded-full bg-white px-3 py-0.5 text-caption text-ink-muted">
           <NumText text={`${used}/${slotCount}`} />
         </p>
         {!isFull && !addSlotVisible && (

@@ -113,7 +113,7 @@ export function ItemCollection({ items, capacity, columns, emptyText, sortable =
 
       {/* 화면 아래에 붙어 있는 숫자. 거르고 있을 때는 찾은 개수를, 아니면 전체 사용량을 보여준다 */}
       <div className="pointer-events-none sticky bottom-0 mt-auto flex h-19 items-center justify-center pb-[env(safe-area-inset-bottom)]">
-        <p className="rounded-full bg-white px-3 py-0.5 text-label font-bold"><NumText text={isFiltered || capacity === null ? `${shown.length}개` : `${items.length}/${capacity}`} /></p>
+        <p className="rounded-full bg-white px-3 py-0.5 text-caption text-ink-muted"><NumText text={isFiltered || capacity === null ? `${shown.length}개` : `${items.length}/${capacity}`} /></p>
       </div>
     </div>
   );

@@ -70,7 +70,7 @@ export default async function OtherProfilePage(props: PageProps<"/u/[handle]">) 
         <section className="border-b border-gray-3 pb-7">
           <div className="flex h-16 items-center px-5">
             <SectionTitle title="ITEM" note={`${person.itemCount}`} />
-            <Link href={otherItemsPath(person.handle)} className="ml-auto rounded-md bg-ink px-2.5 text-label font-bold text-white active:opacity-80">
+            <Link href={otherItemsPath(person.handle)} className="ml-auto flex h-8 shrink-0 items-center justify-center rounded-sm border border-disabled bg-white px-3.5 text-label font-bold text-ink active:opacity-60">
               더보기
             </Link>
           </div>
@@ -80,7 +80,7 @@ export default async function OtherProfilePage(props: PageProps<"/u/[handle]">) 
         <section>
           <div className="flex h-16 items-center px-5">
             <SectionTitle title="INMYIN" note={`게시물 ${person.postCount}`} />
-            <Link href={otherPostsPath(person.handle)} className="ml-auto rounded-md bg-ink px-2.5 text-label font-bold text-white active:opacity-80">
+            <Link href={otherPostsPath(person.handle)} className="ml-auto flex h-8 shrink-0 items-center justify-center rounded-sm border border-disabled bg-white px-3.5 text-label font-bold text-ink active:opacity-60">
               더보기
             </Link>
           </div>

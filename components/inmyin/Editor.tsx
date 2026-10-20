@@ -499,10 +499,10 @@ export function Editor({ inventories, columns, userId, handle }: EditorProps) {
                     type="button"
                     onClick={remove}
                     aria-label="지우기"
-                    className="absolute z-10 flex size-6 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border border-ink bg-white text-body leading-none active:opacity-60"
+                    className="absolute z-10 flex size-6 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border border-ink bg-white text-ink active:opacity-60"
                     style={{ left: Math.min(overlay.x + overlay.width, size.width - 12), top: Math.max(overlay.y, 12) }}
                   >
-                    ×
+                    <Icon name="close24" scale={0.625} />
                   </button>
                   {menuOpen && (
                     <div
