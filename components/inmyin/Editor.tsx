@@ -1,7 +1,6 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPost } from "@/app/(flow)/my/inmyin/new/actions";
 import { HeaderMini } from "@/components/ui/HeaderMini";
@@ -29,12 +28,14 @@ const Canvas = dynamic(() => import("./Canvas").then((module) => module.Canvas),
 // 되돌리기로 돌아갈 수 있는 걸음 수
 const HISTORY_LIMIT = 50;
 
-// 헤더 오른쪽의 버튼들. 그림은 피그마에서 받은 파일 (public/icons/editor). 스티커 · 사진은 ＋ 판 안으로 들어갔다 —
-// 아이콘을 더 늘리지 않는다 (인스타 스토리처럼 ＋ 하나)
+// 헤더 오른쪽의 버튼 넷. 그림은 아이콘 세트 v01(2026-10-20 무늬, components/ui/Icon.tsx), 밑에 11px 회색 이름.
+// 스티커 · 사진은 ＋ 판 안으로 들어갔다 — 아이콘을 더 늘리지 않는다 (인스타 스토리처럼 ＋ 하나)
 const TOOLS = {
-  undo: { icon: "undo", label: "되돌리기" },
-  capture: { icon: "capture", label: "이미지 만들기" },
-  broom: { icon: "broom", label: "전부 지우기" },
+  undo: { icon: "undo24", label: "되돌리기" },
+  add: { icon: "plus24", label: "추가" },
+  // 묻지 않고 지운다 — 되돌리기로 돌아올 수 있고, 지운 뒤 토스트가 그렇게 알린다
+  clear: { icon: "trash24", label: "전부 지우기" },
+  done: { icon: "done", label: "완성" },
 } as const;
 
 // 캔버스의 모습 하나 — 되돌리기는 이것을 통째로 기억한다
@@ -315,12 +316,10 @@ export function Editor({ inventories, columns, userId }: EditorProps) {
   const toolbar = (
     <div className="flex items-center gap-4">
       <ToolButton tool="undo" onClick={undo} disabled={history.length === 0} />
-      {/* ＋ — 스티커 · 사진 · 텍스트 · 배경이 든 판. 피그마의 plus 아이콘을 헤더 아이콘 크기(24)로 */}
-      <button type="button" onClick={() => setSheet("stickers")} aria-label="더하기" className="flex size-6 items-center justify-center active:opacity-60">
-        <Icon name="plusBold" />
-      </button>
-      <ToolButton tool="broom" onClick={clearAll} disabled={objects.length === 0} />
-      <ToolButton tool="capture" onClick={makeImage} />
+      {/* ＋ — 스티커 · 사진 · 텍스트 · 배경이 든 판 */}
+      <ToolButton tool="add" onClick={() => setSheet("stickers")} />
+      <ToolButton tool="clear" onClick={clearAll} disabled={objects.length === 0} />
+      <ToolButton tool="done" onClick={makeImage} />
     </div>
   );
 
@@ -433,14 +432,22 @@ export function Editor({ inventories, columns, userId }: EditorProps) {
   );
 }
 
-function ToolIcon({ tool }: { tool: keyof typeof TOOLS }) {
-  return <Image src={`/icons/editor/${TOOLS[tool].icon}.png`} alt="" width={24} height={24} unoptimized className="size-6" />;
-}
-
+// 아이콘 위 · 이름 아래 세로 묶음 (24 + 2 + 13 = 39, 헤더 64 안). 이름은 11px 회색, aria-label 도 같은 말.
+// 비활성이면 아이콘 · 이름이 함께 흐려진다
 function ToolButton({ tool, onClick, disabled = false }: { tool: keyof typeof TOOLS; onClick: () => void; disabled?: boolean }) {
+  const { icon, label } = TOOLS[tool];
   return (
-    <button type="button" onClick={onClick} disabled={disabled} aria-label={TOOLS[tool].label} className="active:opacity-60 disabled:opacity-30">
-      <ToolIcon tool={tool} />
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      className="flex flex-col items-center gap-0.5 active:opacity-60 disabled:opacity-30"
+    >
+      <Icon name={icon} />
+      <span aria-hidden className="whitespace-nowrap text-[11px] leading-[1.2] font-medium tracking-[-0.01em] text-ink-muted">
+        {label}
+      </span>
     </button>
   );
 }

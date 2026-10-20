@@ -22,13 +22,3 @@ export const OPEN_SOURCE_LICENSES = [
   // 본문 글꼴 (app/fonts — 저장소에 파일과 라이선스 원문 WantedSans-OFL.txt 를 같이 둔다)
   { name: "Wanted Sans", license: "SIL OFL 1.1", url: "https://github.com/wanteddev/wanted-sans" },
 ] as const;
-
-// 에디터 헤더의 아이콘 그림 (public/icons/editor). Flaticon 무료 라이선스라 출처 표시가 꼭 있어야 한다 —
-// 작가마다 한 줄 "Icon made by (작가) from www.flaticon.com". 아이콘을 더하거나 빼면 여기도 고친다.
-// 작가 이름은 그 아이콘 페이지로 잇는다 (페이지에 작가가 나온다)
-export const FLATICON_URL = "https://www.flaticon.com";
-export const ICON_CREDITS = [
-  { author: "IYAHICON", url: "https://www.flaticon.com/free-icon/undo_7345038", icon: "undo" },
-  { author: "fiki", url: "https://www.flaticon.com/free-icon/focus_3668277", icon: "capture" },
-  { author: "The Icon Tree", url: "https://www.flaticon.com/free-icon/broom_15784325", icon: "broom" },
-] as const;

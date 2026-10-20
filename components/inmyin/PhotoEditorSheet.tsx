@@ -21,7 +21,7 @@ export function PhotoEditorSheet({ file, onPickFile, onSubmit }: PhotoEditorShee
   if (!file) {
     return (
       <button type="button" onClick={onPickFile} className="flex h-14 w-full items-center justify-center gap-2 rounded-md bg-ink text-label font-bold text-white active:opacity-80">
-        <Icon name="gallery" className="size-6" />
+        <Icon name="photo" />
         갤러리에서 고르기
       </button>
     );

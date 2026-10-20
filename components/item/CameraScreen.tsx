@@ -190,7 +190,8 @@ export function CameraScreen({ closeHref, nextHref }: CameraScreenProps) {
           aria-label="갤러리에서 선택"
           className="ml-13.75 flex size-13.5 items-center justify-center rounded-full bg-gray-3 text-ink active:opacity-80"
         >
-          <Icon name="gallery" />
+          {/* 아이콘 세트 v01 의 사진 한 장 — 원 54 안에 28 로 (선 2.04) */}
+          <Icon name="photo" scale={28 / 24} />
         </button>
         <button
           type="button"

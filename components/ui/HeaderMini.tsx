@@ -3,6 +3,8 @@ import type { ReactNode } from "react";
 import { Icon } from "./Icon";
 
 const LABELS = { back: "뒤로", close: "닫기", settings: "설정" };
+// 뒤로 · 닫기는 아이콘 세트 v01(24 칸, 2026-10-20 무늬)로 그린다. 설정은 피그마 64 칸 그대로
+const GLYPHS = { back: "back24", close: "close24", settings: "settings" } as const;
 
 type HeaderMiniProps = {
   // 왼쪽 아이콘. 피그마 `이동` 컴포넌트의 변형과 같다. 설정(톱니)은 내 프로필(M-01)에서 쓴다
@@ -22,15 +24,16 @@ type HeaderMiniProps = {
 // 피그마 `헤더미니`. 아이콘 + 제목 한 줄
 export function HeaderMini({ icon, href, onClick, title, tone = "light", action, className = "" }: HeaderMiniProps) {
   return (
-    // 뒤로 화살표는 64px 아이콘 칸의 25px 지점에 그려져 있다. 보이는 끝이 화면 여백 20px 선에 오도록 칸을 5px 왼쪽으로 민다
-    <header className={`-ml-1.25 flex items-center gap-2 ${tone === "dark" ? "text-white" : "text-ink"} ${className}`}>
+    // 누르는 칸은 64 × 64 그대로, 24 그림을 가운데 둔다. 보이는 왼쪽 끝이 화면 여백 20px 선에 오도록 칸을 왼쪽으로 민다 —
+    // ‹ 는 그림 끝이 칸의 20 + 6.9 = 26.9 지점이라 7px(-ml-1.75), × 는 24.6 이라 5px(-ml-1.25). 톱니는 전처럼 5px
+    <header className={`${icon === "back" ? "-ml-1.75" : "-ml-1.25"} flex items-center gap-2 ${tone === "dark" ? "text-white" : "text-ink"} ${className}`}>
       {href ? (
-        <Link href={href} aria-label={LABELS[icon]} className="active:opacity-60">
-          <Icon name={icon} />
+        <Link href={href} aria-label={LABELS[icon]} className="flex size-16 items-center justify-center active:opacity-60">
+          <Icon name={GLYPHS[icon]} />
         </Link>
       ) : (
-        <button type="button" onClick={onClick} aria-label={LABELS[icon]} className="active:opacity-60">
-          <Icon name={icon} />
+        <button type="button" onClick={onClick} aria-label={LABELS[icon]} className="flex size-16 items-center justify-center active:opacity-60">
+          <Icon name={GLYPHS[icon]} />
         </button>
       )}
       <h1 className="min-w-0 flex-1 truncate text-link font-bold">{title}</h1>

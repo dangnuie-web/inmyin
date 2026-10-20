@@ -211,12 +211,13 @@ export function PhotoEditor({ closeHref, nextHref }: PhotoEditorProps) {
               className="flex items-center gap-2.5 text-label font-bold active:opacity-80 disabled:opacity-40"
             >
               배경제거
+              {/* 꺼짐 = 회색 원 + 선 별, 켜짐 = 흰 원 + 채운 별 (보라 대신 — 무늬 아이콘 설계 v01 4절) */}
               <span
-                className={`flex size-11.5 items-center justify-center rounded-full ${
-                  removed ? "bg-point text-white" : "bg-gray-3 text-ink"
-                } ${removing ? "animate-pulse" : ""}`}
+                className={`flex size-11.5 items-center justify-center rounded-full text-ink ${removed ? "bg-white" : "bg-gray-3"} ${
+                  removing ? "animate-pulse" : ""
+                }`}
               >
-                <Icon name="sparkle" />
+                <Icon name={removed ? "sparkleFilled" : "sparkle"} />
               </span>
             </button>
           }
@@ -268,9 +269,7 @@ export function PhotoEditor({ closeHref, nextHref }: PhotoEditorProps) {
               className="flex h-9 items-center gap-1 text-label text-gray-mid active:opacity-80"
             >
               세부 조정
-              <span aria-hidden className={`inline-block transition-transform ${detailOpen ? "rotate-180" : ""}`}>
-                ⌄
-              </span>
+              <Icon name="chevronDown" scale={0.75} className={`transition-transform ${detailOpen ? "rotate-180" : ""}`} />
             </button>
           </div>
 

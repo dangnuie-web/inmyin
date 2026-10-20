@@ -19,7 +19,7 @@ type ItemPickerProps = {
   onPick: (entry: SlotEntry) => void;
 };
 
-// 에디터(M-09)의 아이템 고르기 — 인벤토리 띠 → 그리드/리스트 토글 + 카테고리 칩 → 칸들 → n/25.
+// 에디터(M-09)의 아이템 고르기 — 인벤토리 띠 → 이름 줄 "데스크 3/25" → 그리드/리스트 토글 + 카테고리 칩 → 칸들.
 // 짐싸기 판(PackingHalf)과 같은 꼴이고, 칸을 누르면 캔버스에 올라간다. 담긴 인벤토리는 올릴 수 없어 빠진다
 export function ItemPicker({ inventories, columns, placedItemIds, onPick }: ItemPickerProps) {
   const [openId, setOpenId] = useState<string | null>(inventories[0]?.id ?? null);
@@ -51,6 +51,14 @@ export function ItemPicker({ inventories, columns, placedItemIds, onPick }: Item
         />
       </div>
 
+      {/* 고른 인벤토리의 이름과 찬 칸 수. 전에는 서랍 바닥에 떠 있던 알약이라 캔버스 개수로 읽혔다 (무늬 아이콘 설계 v01 5절) */}
+      <p className="mt-2 flex items-baseline gap-1.5 px-5 text-caption">
+        <span className="min-w-0 truncate font-bold text-ink">{inventory.name}</span>
+        <span className="shrink-0 text-ink-muted">
+          <NumText text={`${items.length}/${inventory.slotCount}`} />
+        </span>
+      </p>
+
       {/* 피그마: 토글 · 칩 한 줄 (M-04 와 같은 부품) */}
       <div className="mt-3 flex items-center gap-2.5 pl-5">
         <ViewToggle current={view} onSelect={setView} />
@@ -65,8 +73,7 @@ export function ItemPicker({ inventories, columns, placedItemIds, onPick }: Item
       {shown.length === 0 ? (
         <p className="mt-8 px-5 text-center text-label text-ink-muted">{items.length === 0 ? "이 인벤토리에는 아이템이 없어요." : "이 태그의 아이템이 없어요."}</p>
       ) : view === "grid" ? (
-        // 아래 여백 — 맨 아랫줄이 떠 있는 n/25 에 가리지 않게
-        <ul className={`mt-4 grid min-h-0 flex-1 content-start gap-3.5 overflow-y-auto px-5 pb-10 ${gridFor(inventory.slotCount, columns).className}`}>
+        <ul className={`mt-4 grid min-h-0 flex-1 content-start gap-3.5 overflow-y-auto px-5 pb-5 ${gridFor(inventory.slotCount, columns).className}`}>
           {shown.map((entry) => (
             <li key={entry.id} className={placedItemIds.has(entry.id) ? "rounded-sm ring-2 ring-gray-3" : ""}>
               <PackingSlotCell entry={entry} onPick={() => onPick(entry)} actionLabel="올리기" />
@@ -74,7 +81,7 @@ export function ItemPicker({ inventories, columns, placedItemIds, onPick }: Item
           ))}
         </ul>
       ) : (
-        <ul className="mt-4 min-h-0 flex-1 overflow-y-auto pb-10">
+        <ul className="mt-4 min-h-0 flex-1 overflow-y-auto pb-5">
           {shown.map((entry) => (
             <li key={entry.id}>
               <button type="button" onClick={() => onPick(entry)} className={`${SLOT_ROW_CLASS} text-left active:opacity-80 ${placedItemIds.has(entry.id) ? "bg-gray-1" : ""}`}>
@@ -87,10 +94,6 @@ export function ItemPicker({ inventories, columns, placedItemIds, onPick }: Item
           ))}
         </ul>
       )}
-
-      <p className="pointer-events-none absolute inset-x-0 bottom-2 mx-auto w-fit rounded-full bg-white px-3 py-0.5 text-label font-bold">
-        <NumText text={`${items.length}/${inventory.slotCount}`} />
-      </p>
     </section>
   );
 }
