@@ -99,7 +99,7 @@ export async function getUserPosts(userId: string): Promise<FeedPost[]> {
   return data.map(toFeedPost);
 }
 
-// 내가 북마크한 게시물, 최근에 누른 순 (Bookmark 탭의 INMYIN 갈래 V-02). 그사이 지워진 것은 DB 규칙이 빼 준다
+// 내가 북마크한 게시물, 최근에 누른 순 (북마크 탭의 INMYIN 갈래 V-02). 그사이 지워진 것은 DB 규칙이 빼 준다
 export async function getMyBookmarkedPosts(userId: string): Promise<FeedPost[]> {
   const supabase = await createClient();
   const { data: bookmarks, error: bookmarksError } = await supabase.from("bookmarks").select("target_id").eq("user_id", userId).eq("target_type", "post").order("created_at", { ascending: false });

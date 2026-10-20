@@ -22,7 +22,7 @@ export const metadata: Metadata = { title: "인벤토리 · INMYIN" };
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
-// M-04 · My › 인벤토리 상세. 하단 탭이 없는 화면이라 (flow) 묶음에 둔다.
+// M-04 · 프로필 › 인벤토리 상세. 하단 탭이 없는 화면이라 (flow) 묶음에 둔다.
 export default async function InventoryDetailPage(props: PageProps<"/my/inventories/[id]">) {
   const profile = await requireProfile();
   const { id } = await props.params;
@@ -59,7 +59,7 @@ export default async function InventoryDetailPage(props: PageProps<"/my/inventor
   );
 
   return (
-    // 폰은 헤더 아래 바로, 웹은 프로필 틀의 INVENTORY 탭 안의 회색 판 (피그마 M-04 웹)
+    // 폰은 헤더 아래 바로, 웹은 프로필 틀의 인벤토리 탭 안의 회색 판 (피그마 M-04 웹)
     <ProfileShell
       person={{ ...profile, avatarUrl: profile.avatar_url, followerCount: stats.followerCount, followingCount: stats.followingCount }}
       mine
@@ -69,7 +69,7 @@ export default async function InventoryDetailPage(props: PageProps<"/my/inventor
     >
       <RememberInventory id={inventory.id} />
       <StickyTop phoneOnly>
-        <HeaderMini icon="back" href="/my/inventories" title="INVENTORY" action={packing} />
+        <HeaderMini icon="back" href="/my/inventories" title="인벤토리" action={packing} />
       </StickyTop>
       <div className="hidden justify-end px-5 pt-4 lg:flex">{packing}</div>
 

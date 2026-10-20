@@ -13,7 +13,7 @@ export const PROFILE_ACTION_CLASS = "flex h-9.5 flex-1 items-center justify-cent
 // 프로필 공유처럼 편집 · 팔로우 옆에 서는 보조 버튼. 한 줄에 검정은 하나 — 무늬 흑백버튼설계 v01 3-4
 export const PROFILE_ACTION_OUTLINE_CLASS = "flex h-9.5 flex-1 items-center justify-center rounded-sm border border-disabled bg-white text-label font-bold text-ink active:opacity-60";
 
-// 줄의 제목. 큰 영문 제목 옆에 작은 숫자가 붙는다 (INVENTORY 5/25)
+// 줄의 제목. 큰 제목 옆에 작은 숫자가 붙는다 (인벤토리 5/25)
 export function SectionTitle({ title, note }: { title: string; note: string }) {
   return (
     <h2 className="flex items-baseline gap-3 text-link font-bold">
@@ -29,7 +29,7 @@ export function EmptyNote({ children }: { children: ReactNode }) {
   return <p className="break-keep px-5 text-label text-ink-muted">{children}</p>;
 }
 
-// ITEM 줄의 최근 아이템. 한 화면에 딱 다섯 칸이 보인다 — 칸 사이 간격 넷(9px × 4)을 뺀 너비를 다섯으로 나눈다
+// 아이템 줄의 최근 아이템. 한 화면에 딱 다섯 칸이 보인다 — 칸 사이 간격 넷(9px × 4)을 뺀 너비를 다섯으로 나눈다
 export function RecentItems({ items }: { items: ProfileItem[] }) {
   return (
     <ul className="flex gap-2.25 overflow-x-auto px-5 [scrollbar-width:none]">

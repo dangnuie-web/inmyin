@@ -24,7 +24,7 @@ export const metadata: Metadata = { title: "INMYIN" };
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
-// H-04 · Home › INMYIN 상세. 아이템 상세(H-02)와 같은 틀 — 작성자 줄 · 이미지(아이템 라벨 = 탭 영역) · 제목 [하트 · 댓글 · 북마크] · 내용 · 댓글.
+// H-04 · 홈 › INMYIN 상세. 아이템 상세(H-02)와 같은 틀 — 작성자 줄 · 이미지(아이템 라벨 = 탭 영역) · 제목 [하트 · 댓글 · 북마크] · 내용 · 댓글.
 // 목록(H-03) · 프로필의 카드에서 온다. 하단 탭이 없는 화면이라 (flow) 묶음에 둔다.
 // 로그인 없이도 열린다 (구경) — 하트 · 북마크 · 팔로우 · 댓글을 누르면 로그인으로
 export default async function PostDetailPage(props: PageProps<"/inmyin/[postId]">) {

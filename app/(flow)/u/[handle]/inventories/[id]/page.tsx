@@ -52,7 +52,7 @@ export default async function OtherInventoryPage(props: PageProps<"/u/[handle]/i
   const hrefFor = (entry: SlotEntry) => (entry.kind === "item" ? itemPath(entry.id) : otherInventoryPath(handle, entry.id));
 
   return (
-    // 폰은 헤더 아래 바로, 웹은 프로필 틀의 INVENTORY 탭 안의 회색 판 (피그마 H-08 웹)
+    // 폰은 헤더 아래 바로, 웹은 프로필 틀의 인벤토리 탭 안의 회색 판 (피그마 H-08 웹)
     <ProfileShell
       person={person}
       mine={false}
@@ -61,7 +61,7 @@ export default async function OtherInventoryPage(props: PageProps<"/u/[handle]/i
       actions={<OtherProfileActions userId={person.id} handle={person.handle} nickname={person.nickname} following={following} blocked={blocked} guest={!profile} />}
     >
       <StickyTop phoneOnly>
-        <BackHeader title="INVENTORY" />
+        <BackHeader title="인벤토리" />
       </StickyTop>
       <main className="flex flex-1 flex-col lg:mx-5 lg:mt-4 lg:rounded-xl lg:bg-gray-1 lg:pb-4">
       <div className="mt-5">

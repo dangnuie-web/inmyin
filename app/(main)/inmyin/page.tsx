@@ -18,7 +18,7 @@ const SORTS: { id: PostSort; label: string }[] = [
   { id: "latest", label: "최신순" },
 ];
 
-// H-03 · Home › INMYIN 목록. 모든 사람의 게시물을 카드로. 카테고리(게시물에 든 아이템의 태그)와 정렬은 주소(?category=&sort=)에 실어 서버가 거른다.
+// H-03 · 홈 › INMYIN 목록. 모든 사람의 게시물을 카드로. 카테고리(게시물에 든 아이템의 태그)와 정렬은 주소(?category=&sort=)에 실어 서버가 거른다.
 // 피그마 웹은 카테고리를 동그란 사진 칩으로 그렸지만, 폰의 H-01 과 같은 칩(CategoryTag)으로 맞췄다 — 태그마다 대표 사진이 없다
 // 로그인 없이도 열린다 (구경)
 export default async function InmyinFeedPage(props: PageProps<"/inmyin">) {
@@ -58,7 +58,7 @@ export default async function InmyinFeedPage(props: PageProps<"/inmyin">) {
       </p>
 
       {posts.length === 0 ? (
-        <p className="mt-16 px-5 text-center text-body text-ink-muted">{category ? "이 태그의 INMYIN 이 아직 없어요." : "아직 INMYIN 이 없어요. My 에서 첫 INMYIN 을 만들어 보세요."}</p>
+        <p className="mt-16 px-5 text-center text-body text-ink-muted">{category ? "이 태그의 INMYIN 이 아직 없어요." : "아직 INMYIN 이 없어요. 프로필에서 첫 INMYIN 을 만들어 보세요."}</p>
       ) : (
         <ul className="mt-4 grid grid-cols-2 gap-x-3.5 gap-y-6 px-5 pb-10 lg:grid-cols-5 lg:gap-x-5 lg:gap-y-7 xl:grid-cols-6">
           {posts.map((post) => (

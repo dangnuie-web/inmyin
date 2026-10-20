@@ -36,7 +36,7 @@ export default async function FollowsPage(props: PageProps<"/u/[handle]/follows"
         <BackHeader title={lists.user.nickname} />
       </StickyTop>
 
-      {/* 두 갈래. Home 의 갈래와 같은 모양 — 고른 쪽에만 밑줄 */}
+      {/* 두 갈래. 홈의 갈래와 같은 모양 — 고른 쪽에만 밑줄 */}
       <nav aria-label="팔로워 · 팔로잉" className="flex items-end gap-9 px-5 pt-3 text-body font-bold text-ink">
         {tabs.map((entry) => (
           <Link

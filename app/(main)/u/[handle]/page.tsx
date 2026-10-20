@@ -41,11 +41,11 @@ export default async function OtherProfilePage(props: PageProps<"/u/[handle]">) 
 
   return (
     <ProfileShell {...shellProps} tab="inventory">
-      {/* 폰: 프로필 줄 · 버튼 · 세 줄(INVENTORY › ITEM › INMYIN) */}
+      {/* 폰: 프로필 줄 · 버튼 · 세 줄(인벤토리 › 아이템 › INMYIN) */}
         <div className="flex flex-1 flex-col pb-6 lg:hidden">
         {/* ⋮ 메뉴 — 차단하기 / 차단 해제. 차단했으면 아래의 숫자와 목록은 DB 규칙 때문에 비어 보인다 */}
         <StickyTop>
-          <BackHeader title="PROFILE" action={<OtherProfileCorner userId={person.id} blocked={blocked} guest={!profile} />} />
+          <BackHeader title="프로필" action={<OtherProfileCorner userId={person.id} blocked={blocked} guest={!profile} />} />
         </StickyTop>
 
         <section className="flex items-center gap-8.5 px-5 pt-1">
@@ -63,13 +63,13 @@ export default async function OtherProfilePage(props: PageProps<"/u/[handle]">) 
         </div>
 
         <Link href={otherInventoriesPath(person.handle)} className="mt-8.5 flex h-15.5 items-center border-y border-gray-3 px-5 active:opacity-60">
-          <SectionTitle title="INVENTORY" note={`${inventories.length}`} />
+          <SectionTitle title="인벤토리" note={`${inventories.length}`} />
           <Icon name="back24" className="-mr-1.75 ml-auto rotate-180" />
         </Link>
 
         <section className="border-b border-gray-3 pb-7">
           <div className="flex h-16 items-center px-5">
-            <SectionTitle title="ITEM" note={`${person.itemCount}`} />
+            <SectionTitle title="아이템" note={`${person.itemCount}`} />
             <Link href={otherItemsPath(person.handle)} className="ml-auto flex h-8 shrink-0 items-center justify-center rounded-sm border border-disabled bg-white px-3.5 text-label font-bold text-ink active:opacity-60">
               더보기
             </Link>
@@ -88,7 +88,7 @@ export default async function OtherProfilePage(props: PageProps<"/u/[handle]">) 
         </section>
         </div>
 
-      {/* 웹: 프로필 틀의 INVENTORY 탭 = 그 사람의 인벤토리 목록 (H-07 과 같은 몸통) */}
+      {/* 웹: 프로필 틀의 인벤토리 탭 = 그 사람의 인벤토리 목록 (H-07 과 같은 몸통) */}
       <div className="hidden flex-1 flex-col lg:flex">
         <VisibleInventoryList handle={handle} inventories={inventories} />
       </div>

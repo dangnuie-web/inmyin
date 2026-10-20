@@ -12,7 +12,7 @@ import { StickyTop } from "@/components/ui/StickyTop";
 
 export const metadata: Metadata = { title: "아이템 · INMYIN" };
 
-// M-13 · 아이템 모아보기. 폰은 내 프로필(M-01)의 ITEM › 더보기에서 오고 하단 탭이 없다. 웹은 프로필 틀의 ITEM 탭 안에
+// M-13 · 아이템 모아보기. 폰은 내 프로필(M-01)의 아이템 › 더보기에서 오고 하단 탭이 없다. 웹은 프로필 틀의 아이템 탭 안에
 export default async function MyItemsPage() {
   const profile = await requireProfile();
   const [items, stats] = await Promise.all([getMyItemCollection(profile.id), getMyProfileStats(profile.id)]);

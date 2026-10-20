@@ -25,7 +25,7 @@ type ProfileShellProps = {
   children: ReactNode;
 };
 
-// 프로필 틀 — 피그마 M-01 · H-06 (웹). 웹(1024px 이상)에서는 프로필 줄 아래 INVENTORY · ITEM · INMYIN 탭이 있고,
+// 프로필 틀 — 피그마 M-01 · H-06 (웹). 웹(1024px 이상)에서는 프로필 줄 아래 인벤토리 · 아이템 · INMYIN 탭이 있고,
 // 인벤토리 목록 · 인벤토리 상세 · 아이템 모아보기가 그 탭 안에서 펼쳐진다. 폰에서는 화면들이 따로따로라 프로필 줄과 탭은 숨고
 // children 만 보인다 — 그래서 children 은 한 번만 그려진다 (같은 부품을 폰용 · 웹용으로 두 번 그리지 않는다)
 export function ProfileShell({
@@ -39,12 +39,12 @@ export function ProfileShell({
   const tabs: { id: ProfileShellTab; label: string; href: string }[] = [
     {
       id: "inventory",
-      label: "INVENTORY",
+      label: "인벤토리",
       href: mine ? "/my/inventories" : otherInventoriesPath(person.handle),
     },
     {
       id: "items",
-      label: "ITEM",
+      label: "아이템",
       href: mine ? "/my/items" : otherItemsPath(person.handle),
     },
     {

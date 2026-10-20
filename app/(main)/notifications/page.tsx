@@ -9,7 +9,7 @@ import { StickyTop } from "@/components/ui/StickyTop";
 
 export const metadata: Metadata = { title: "알림 · INMYIN" };
 
-// N-01 · 알림. Home 갈래 줄 오른쪽 끝의 종에서 온다. 팔로우 · 하트 · 댓글과 공지가 최신순으로.
+// N-01 · 알림. 홈 갈래 줄 오른쪽 끝의 종에서 온다. 팔로우 · 하트 · 댓글과 공지가 최신순으로.
 // 마지막으로 본 시각보다 새것은 옅은 바탕. 열면 "여기까지 봤다"고 적어 종의 빨간 점을 끈다 (MarkSeen)
 export default async function NotificationsPage() {
   const profile = await requireProfile();

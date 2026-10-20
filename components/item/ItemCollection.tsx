@@ -21,7 +21,7 @@ type ItemCollectionProps = {
   columns: GridColumns;
   // 아이템이 하나도 없을 때의 글자. 화면마다 다르다 (내 것 · 남의 것 · 좋아요)
   emptyText: string;
-  // "최근 추가순 | 오래된 순" 정렬을 보여줄지 (Bookmark 탭). items 는 최근 것부터 온다고 본다
+  // "최신순 | 오래된순" 정렬을 보여줄지 (북마크 탭). items 는 최근 것부터 온다고 본다
   sortable?: boolean;
 };
 
@@ -77,14 +77,14 @@ export function ItemCollection({ items, capacity, columns, emptyText, sortable =
       />
 
       {sortable && (
-        // 피그마 V-01: 오른쪽 끝에 "최근 추가순 | 오래된 순". 고른 쪽이 검정
+        // 피그마 V-01: 오른쪽 끝에 "최신순 | 오래된순"(정렬 문구는 "~순" 붙여 씀, 2026-10-20). 고른 쪽이 검정
         <p className="mt-4 flex justify-end gap-2 px-5 text-caption">
           <button type="button" onClick={() => setOldestFirst(false)} aria-pressed={!oldestFirst} className={`font-bold ${oldestFirst ? "text-ink-muted" : "text-ink"}`}>
-            최근 추가순
+            최신순
           </button>
           <span aria-hidden className="text-gray-3">|</span>
           <button type="button" onClick={() => setOldestFirst(true)} aria-pressed={oldestFirst} className={`font-bold ${oldestFirst ? "text-ink" : "text-ink-muted"}`}>
-            오래된 순
+            오래된순
           </button>
         </p>
       )}

@@ -114,7 +114,7 @@ export function InventoryList({ inventories, maxInventories }: InventoryListProp
 
   return (
     <>
-      {/* TOTAL 알약과 줄 사이, 줄과 줄 사이 모두 16px. 웹은 두 줄로 (피그마 M-01 웹), 줄마다 아래 선 */}
+      {/* 전체 숫자과 줄 사이, 줄과 줄 사이 모두 16px. 웹은 두 줄로 (피그마 M-01 웹), 줄마다 아래 선 */}
       <ul className="mt-4 flex flex-col gap-4 lg:grid lg:grid-cols-2 lg:gap-x-12 lg:gap-y-0 lg:[&>li]:border-b lg:[&>li]:border-border">
         {rows.map(({ inventory, deleted }) => (
           <li key={inventory.id} className={inventory.id === restoredId ? "animate-row-flash" : ""}>

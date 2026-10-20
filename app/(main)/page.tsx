@@ -9,7 +9,7 @@ import { StickyTop } from "@/components/ui/StickyTop";
 
 export const metadata: Metadata = { title: "INMYIN" };
 
-// H-01 · Home › 아이템. 모든 사람의 공개 아이템이 최신순으로 모인다 (내 것도 남들 사이에 같이 보인다).
+// H-01 · 홈 › 아이템. 모든 사람의 공개 아이템이 최신순으로 모인다 (내 것도 남들 사이에 같이 보인다).
 // 검색어와 카테고리는 주소(?q=&category=)에서 읽어 서버가 거른다
 export default async function Home(props: PageProps<"/">) {
   const profile = await requireProfile();

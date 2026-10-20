@@ -11,7 +11,7 @@ import { StickyTop } from "@/components/ui/StickyTop";
 
 export const metadata: Metadata = { title: "인벤토리 · INMYIN" };
 
-// M-03 · My › 인벤토리 목록. 폰은 헤더 아래 목록, 웹은 프로필 틀의 INVENTORY 탭 안에.
+// M-03 · 프로필 › 인벤토리 목록. 폰은 헤더 아래 목록, 웹은 프로필 틀의 인벤토리 탭 안에.
 // 있는 인벤토리와 그 다음의 + 줄 하나만 그린다. 빈 자리는 그리지 않는다. 줄을 밀면 수정 · 삭제 (InventoryList)
 export default async function InventoriesPage() {
   const profile = await requireProfile();
@@ -27,7 +27,7 @@ export default async function InventoriesPage() {
       actions={<MyProfileActions handle={profile.handle} nickname={profile.nickname} />}
     >
       <StickyTop phoneOnly>
-        <HeaderMini icon="back" href="/my" title="INVENTORY" />
+        <HeaderMini icon="back" href="/my" title="인벤토리" />
       </StickyTop>
       <MyInventoriesSection inventories={inventories} maxInventories={maxInventories} slotCount={slotCount} />
     </ProfileShell>

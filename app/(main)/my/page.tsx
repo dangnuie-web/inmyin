@@ -16,7 +16,7 @@ import { StickyTop } from "@/components/ui/StickyTop";
 
 export const metadata: Metadata = { title: "프로필 · INMYIN" };
 
-// M-01 · My › 내 프로필. My 탭의 기본 화면. 여기서 설정 · 인벤토리 · 아이템으로 갈라진다.
+// M-01 · 프로필 › 내 프로필. 프로필 탭의 기본 화면. 여기서 설정 · 인벤토리 · 아이템으로 갈라진다.
 // 타유저 프로필(H-06)과 같은 틀이고, 위쪽 버튼(프로필 관리 · 공유)과 갈 곳(내 화면들)만 다르다
 export default async function MyProfilePage() {
   const profile = await requireProfile();
@@ -31,10 +31,10 @@ export default async function MyProfilePage() {
       corner={<MyProfileCorner />}
       actions={<MyProfileActions handle={profile.handle} nickname={profile.nickname} />}
     >
-      {/* 폰: 프로필 줄 · 버튼 · 세 줄(INVENTORY › ITEM › INMYIN) */}
+      {/* 폰: 프로필 줄 · 버튼 · 세 줄(인벤토리 › 아이템 › INMYIN) */}
       <div className="flex flex-1 flex-col pb-6 lg:hidden">
         <StickyTop>
-          <HeaderMini icon="settings" href="/my/settings" title="PROFILE" />
+          <HeaderMini icon="settings" href="/my/settings" title="프로필" />
         </StickyTop>
 
         <section className="flex items-center gap-8.5 px-5 pt-1">
@@ -60,14 +60,14 @@ export default async function MyProfilePage() {
         </div>
 
         <Link href="/my/inventories" className="mt-8.5 flex h-15.5 items-center border-y border-gray-3 px-5 active:opacity-60">
-          <SectionTitle title="INVENTORY" note={`${inventories.length}/${maxInventories}`} />
+          <SectionTitle title="인벤토리" note={`${inventories.length}/${maxInventories}`} />
           {/* 뒤로 ‹ 를 뒤집어 쓴다. 그림 오른쪽 끝이 화면 여백 20 에 오게 -7 */}
           <Icon name="back24" className="-mr-1.75 ml-auto rotate-180" />
         </Link>
 
         <section className="border-b border-gray-3 pb-7">
           <div className="flex h-16 items-center px-5">
-            <SectionTitle title="ITEM" note={`TOTAL ${stats.itemCount}/${maxInventories * slotCount}`} />
+            <SectionTitle title="아이템" note={`전체 ${stats.itemCount}/${maxInventories * slotCount}`} />
             <Link href="/my/items" className="ml-auto flex h-8 shrink-0 items-center justify-center rounded-sm border border-disabled bg-white px-3.5 text-label font-bold text-ink active:opacity-60">
               더보기
             </Link>
@@ -96,7 +96,7 @@ export default async function MyProfilePage() {
         </section>
       </div>
 
-      {/* 웹: 프로필 틀의 INVENTORY 탭 = 인벤토리 목록 (M-03 과 같은 몸통) */}
+      {/* 웹: 프로필 틀의 인벤토리 탭 = 인벤토리 목록 (M-03 과 같은 몸통) */}
       <div className="hidden flex-1 flex-col lg:flex">
         <MyInventoriesSection inventories={inventories} maxInventories={maxInventories} slotCount={slotCount} />
       </div>

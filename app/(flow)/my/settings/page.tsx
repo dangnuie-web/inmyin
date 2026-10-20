@@ -15,7 +15,7 @@ export const metadata: Metadata = { title: "설정 · INMYIN" };
 
 const ROW_CLASS = "flex h-12 w-full items-center border-b border-gray-3 text-left text-body active:opacity-60";
 
-// M-02 · My › 설정. 내 프로필(M-01)의 톱니에서 온다. 하단 탭이 없다.
+// M-02 · 프로필 › 설정. 내 프로필(M-01)의 톱니에서 온다. 하단 탭이 없다.
 export default async function SettingsPage() {
   const profile = await requireProfile();
   const isPremium = profile.plan === "premium";

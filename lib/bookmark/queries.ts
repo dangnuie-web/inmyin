@@ -19,7 +19,7 @@ export async function hasBookmarked(userId: string, targetType: BookmarkTarget, 
 // 한 번에 물어볼 아이템 id 수. 주소에 id 를 나열해서 묻기 때문에 너무 많으면 주소가 길어 잘린다
 const ITEM_CHUNK = 200;
 
-// 내가 북마크한 아이템들, 최근에 누른 순 (Bookmark 탭 V-01). 개수 제한은 없다.
+// 내가 북마크한 아이템들, 최근에 누른 순 (북마크 탭 V-01). 개수 제한은 없다.
 // 북마크 표는 아이템 표를 직접 가리키지 않아서(게시물과 공용) 북마크를 먼저 읽고 그 아이템들을 200개씩 나눠 다시 읽는다 —
 // 그사이 비공개가 되거나 지워진 것은 DB 규칙이 빼 준다
 export async function getMyBookmarkedItems(userId: string): Promise<CollectedItem[]> {

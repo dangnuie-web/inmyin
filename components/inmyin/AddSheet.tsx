@@ -73,7 +73,7 @@ export function AddSheet({ tab, onTab, template, onTemplate, background, onBackg
     <div className="fixed inset-0 z-30 flex flex-col justify-end">
       <button type="button" aria-label="닫기" onClick={onClose} className="absolute inset-0 cursor-default bg-ink/20" />
       <div role="dialog" aria-label="더하기" className="relative mx-auto flex max-h-[60dvh] min-h-[44dvh] w-full max-w-md flex-col rounded-t-xl bg-white pb-[max(1.5rem,env(safe-area-inset-bottom))]">
-        {/* Home 의 갈래와 같은 모양 — 고른 쪽에만 밑줄 */}
+        {/* 홈의 갈래와 같은 모양 — 고른 쪽에만 밑줄 */}
         <nav aria-label="더하기 갈래" className="flex items-end gap-7 px-5 pt-6 text-body font-bold text-ink">
           {TABS.map((entry) => (
             <button

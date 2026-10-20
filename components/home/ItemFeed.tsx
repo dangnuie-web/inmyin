@@ -28,7 +28,7 @@ type ItemFeedProps = {
 // 글자를 치고 이만큼 멈추면 서버에 물어본다
 const SEARCH_DELAY_MS = 350;
 
-// H-01 · Home › 아이템 피드. 모아보기(M-13)와 같은 생김새지만, 남의 것이 계속 늘어나는 목록이라
+// H-01 · 홈 › 아이템 피드. 모아보기(M-13)와 같은 생김새지만, 남의 것이 계속 늘어나는 목록이라
 // 검색 · 카테고리는 주소에 실어 서버가 거르고, 아래로는 "더 보기"로 한 장씩 더 읽는다
 export function ItemFeed({ items, q, category, categories, columns }: ItemFeedProps) {
   const router = useRouter();

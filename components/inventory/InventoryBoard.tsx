@@ -122,7 +122,7 @@ export function InventoryBoard({ inventoryId, inventories, addedId, deletedId, e
 
   // + 칸이 화면 밖으로 나가면 플로팅 + 를 띄운다
   const addSlotRef = useRef<HTMLDivElement>(null);
-  // 컴퓨터에서 "새 아이템 등록"을 누르면 여는 사진 고르기 창
+  // 컴퓨터에서 "아이템 넣기"를 누르면 여는 사진 고르기 창
   const uploadRef = useRef<HTMLInputElement>(null);
   const [addSlotVisible, setAddSlotVisible] = useState(true);
   useEffect(() => {
@@ -286,7 +286,7 @@ export function InventoryBoard({ inventoryId, inventories, addedId, deletedId, e
 
   const menuItems = [
     {
-      label: "새 아이템 등록",
+      label: "아이템 넣기",
       onSelect: () => {
         // 촬영은 폰에서만 된다 (CLAUDE.md 규칙 5). 손가락으로 쓰는 기기면 촬영 화면(M-06)으로 — 갤러리에서 고르는 것도 거기서 한다.
         // 마우스를 쓰는 컴퓨터면 사진 고르기 창을 바로 열어 편집(M-07)으로 간다
@@ -311,7 +311,7 @@ export function InventoryBoard({ inventoryId, inventories, addedId, deletedId, e
           <SlotRowThumb>
             <Icon name="plus" />
           </SlotRowThumb>
-          <span className="text-body">+를 눌러 아이템을 추가해주세요.</span>
+          <span className="text-body">+를 눌러 아이템을 넣어 주세요.</span>
         </>
       )}
     </button>

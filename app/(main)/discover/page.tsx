@@ -11,8 +11,8 @@ import { StickyTop } from "@/components/ui/StickyTop";
 export const metadata: Metadata = { title: "발견 · INMYIN" };
 
 const MODES: { id: DiscoverMode; label: string }[] = [
-  { id: "recommend", label: "추천" },
-  { id: "popular", label: "인기" },
+  { id: "recommend", label: "추천순" },
+  { id: "popular", label: "인기순" },
 ];
 
 // H-05 · 발견 (하단 탭의 두 번째, 2026-10-20 홈 갈래에서 나옴). 사람을 찾는 탭 — 추천(누적 북마크 100 미만인 사람 중 최근 1시간 북마크 순) · 인기(최근 24시간 북마크 순).
@@ -39,7 +39,7 @@ export default async function DiscoverPage(props: PageProps<"/discover">) {
         </div>
       </StickyTop>
 
-      {/* 피그마 H-05: 오른쪽 끝에 추천 | 인기 */}
+      {/* 피그마 H-05: 오른쪽 끝에 추천순 | 인기순 */}
       <p className="mt-5 flex justify-end gap-1 px-5 text-label">
         {MODES.map((entry, index) => (
           <span key={entry.id} className="flex gap-1">

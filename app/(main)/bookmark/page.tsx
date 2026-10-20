@@ -9,7 +9,7 @@ import { getMyBookmarkedPosts } from "@/lib/inmyin/queries";
 import { planLimits } from "@/lib/plans";
 import { StickyTop } from "@/components/ui/StickyTop";
 
-export const metadata: Metadata = { title: "Bookmark · INMYIN" };
+export const metadata: Metadata = { title: "북마크 · INMYIN" };
 
 const TABS = [
   { id: "items", label: "아이템", href: "/bookmark" },
@@ -27,7 +27,7 @@ export default async function BookmarkPage(props: PageProps<"/bookmark">) {
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col lg:max-w-web">
-      {/* Home 의 갈래와 같은 모양 — 고른 쪽에만 밑줄 */}
+      {/* 홈의 갈래와 같은 모양 — 고른 쪽에만 밑줄 */}
       <StickyTop className="mb-5">
         <nav aria-label="북마크 갈래" className="flex items-end gap-9 px-5 pt-5 text-body font-bold text-ink">
           {TABS.map((entry) =>

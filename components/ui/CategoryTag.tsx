@@ -4,7 +4,7 @@ import { Icon } from "@/components/ui/Icon";
 type CategoryTagProps = {
   label: string;
   // 고른 것. 거르는 칩(href · onClick)은 글자만 — 고름 = 검정 굵게, 기본 = 회색(ink-muted). 버튼이 아니라 상태라서 상자를 뺐다
-  // (무늬 흑백버튼설계 v01 3-5, Home 갈래 · 정렬 글자와 같은 문법). 편집 태그(onRemove) · 그냥 표시(span)는 상자 그대로 — 회색 바탕
+  // (무늬 흑백버튼설계 v01 3-5, 홈 갈래 · 정렬 글자와 같은 문법). 편집 태그(onRemove) · 그냥 표시(span)는 상자 그대로 — 회색 바탕
   selected?: boolean;
   // 필터처럼 눌러서 고르는 곳에서 준다. 주소로 고르면 href, 화면 안에서 고르면 onClick
   href?: string;

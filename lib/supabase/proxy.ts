@@ -9,7 +9,7 @@ import type { Database } from "./database.types";
 const PUBLIC_PATHS = ["/login", "/signup", "/reset-password", "/auth", "/design", "/manifest.webmanifest", "/serwist", "/offline", "/terms", "/privacy", "/welcome"];
 // 로그인 없이 구경할 수 있는 화면 — 발견 · INMYIN 목록 · INMYIN 상세 · 아이템 상세 · 타유저 프로필(인벤토리 · 아이템 · INMYIN · 팔로워).
 // 남의 공개된 것만 보이는 것은 DB 규칙(RLS)이 지킨다. 같은 묶음이라도 /items/[id]/edit 처럼 고치는 화면은 여기에 들지 않는다.
-// My · Bookmark · 알림 · 촬영 · 에디터는 그대로 로그인 필요
+// 프로필 · 북마크 · 알림 · 촬영 · 에디터는 그대로 로그인 필요
 const GUEST_BROWSE_PATTERNS = [
   /^\/discover$/,
   /^\/inmyin$/,

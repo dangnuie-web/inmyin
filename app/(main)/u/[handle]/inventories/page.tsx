@@ -13,7 +13,7 @@ import { StickyTop } from "@/components/ui/StickyTop";
 
 export const metadata: Metadata = { title: "인벤토리 · INMYIN" };
 
-// H-07 · 타유저의 인벤토리 목록. 폰은 헤더 아래 목록, 웹은 프로필 틀의 INVENTORY 탭 안에. 비공개 인벤토리는 DB 규칙이 뺀다
+// H-07 · 타유저의 인벤토리 목록. 폰은 헤더 아래 목록, 웹은 프로필 틀의 인벤토리 탭 안에. 비공개 인벤토리는 DB 규칙이 뺀다
 export default async function OtherInventoriesPage(props: PageProps<"/u/[handle]/inventories">) {
   // 로그인 없이도 열린다 (구경) — 그때는 팔로우를 누르면 로그인으로, ⋮(차단) 메뉴는 없다
   const profile = await getViewer();
@@ -34,7 +34,7 @@ export default async function OtherInventoriesPage(props: PageProps<"/u/[handle]
       actions={<OtherProfileActions userId={person.id} handle={person.handle} nickname={person.nickname} following={following} blocked={blocked} guest={!profile} />}
     >
       <StickyTop phoneOnly>
-        <BackHeader title="INVENTORY" />
+        <BackHeader title="인벤토리" />
       </StickyTop>
       <VisibleInventoryList handle={handle} inventories={inventories} />
     </ProfileShell>
