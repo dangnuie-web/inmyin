@@ -17,7 +17,20 @@ type ObjectBase = {
   width: number;
   height: number;
   rotation: number;
+  // 틀(lib/inmyin/templates.ts)이 놓은 것이면 그 표시. 손으로 옮기거나 고치면 지워진다 — 그 뒤로 틀이 다시 건드리지 않는다
+  template?: TemplateMark;
 };
+
+// 틀이 놓은 것의 표시.
+// item — 틀 자리에 든 아이템. slot 은 들어온 순서(0 부터). 자리 수를 넘친 것도 순서는 있다 (가운데에 놓이고, 앞자리가 비면 당겨 들어간다)
+// text — 틀이 쓴 글자. key 로 무엇인지("title" · "subtitle" · "label:<아이템 개체 id>" · "number:<아이템 개체 id>"),
+//        ax · ay · anchor 는 글자 상자의 어디(가운데 · 왼쪽 끝 · 오른쪽 끝)를 어디에 맞출지 — 글자 폭을 잰 뒤 x 를 다시 맞추려고
+export type TemplateMark =
+  | { role: "item"; slot: number }
+  | { role: "text"; key: string; ax: number; ay: number; anchor: "center" | "left" | "right" };
+
+// 문서에 고른 틀. detached — 사용자가 옮기거나 고치거나 지워서 틀이 더는 다시 쓰지 않는 글자의 key
+export type CanvasTemplate = { id: "A" | "B"; detached: string[] };
 
 export type ImageObject = ObjectBase & {
   kind: "item" | "photo" | "sticker";
@@ -58,6 +71,8 @@ export type CanvasDocument = {
   height: typeof CANVAS_HEIGHT;
   background: CanvasBackground;
   objects: CanvasObject[];
+  // 고른 틀. 없으면 틀 없이 자유롭게 (예전 문서도 이 칸이 없다)
+  template?: CanvasTemplate | null;
 };
 
 export const WHITE = "#ffffff";

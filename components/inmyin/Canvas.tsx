@@ -3,9 +3,10 @@
 import type Konva from "konva";
 import type { KonvaEventObject } from "konva/lib/Node";
 import { useEffect, useRef, useState, type RefObject } from "react";
-import { Image as KonvaImage, Label, Layer, Stage, Tag, Text, Transformer } from "react-konva";
+import { Image as KonvaImage, Label, Layer, Rect, Stage, Tag, Text, Transformer } from "react-konva";
 import { CANVAS_WIDTH, type CanvasBackground, type CanvasObject, type ImageObject, type TextObject } from "@/lib/inmyin/canvas";
 import { loadTextFont, textFont } from "@/lib/inmyin/fonts";
+import { shrinkSlot, TEMPLATE_NUMBERS, type TemplateSlot } from "@/lib/inmyin/templates";
 import { Background } from "./Background";
 import { useImage } from "./useImage";
 
@@ -34,14 +35,19 @@ type CanvasProps = {
   onOverlay: (rect: OverlayRect | null) => void;
   // 에디터가 "이미지 만들기"에서 부른다 — 캔버스를 통째로 JPG 로. pixelRatio 는 1080 / 화면 폭
   captureRef: RefObject<CaptureFn | null>;
+  // 틀의 빈 자리 — 점선 회색 판. 이미지로 뽑을 때는 숨긴다
+  emptySlots?: TemplateSlot[];
 };
+
+// 빈 자리 판의 이름 — 이미지로 뽑기 전에 이 이름으로 찾아 숨긴다
+const EMPTY_SLOT_NAME = "template-empty-slot";
 
 export type CaptureFn = (pixelRatio: number) => Promise<Blob>;
 
 // INMYIN 캔버스 (M-09). 그림은 1080×1350 기준 좌표로 들고 있고, Stage 를 통째로 줄여서 화면에 맞춘다.
 // 누르면 고르기, 끌면 옮기기, 모서리 손잡이로 키우기, 위의 손잡이로 돌리기 — 전부 Konva 가 한다.
 // 브라우저에서만 도는 부품이라 Editor 가 dynamic(ssr: false) 로 부른다
-export function Canvas({ background, objects, width, height, selectedId, onPress, onTap, onChange, onMeasure, onOverlay, captureRef }: CanvasProps) {
+export function Canvas({ background, objects, width, height, selectedId, onPress, onTap, onChange, onMeasure, onOverlay, captureRef, emptySlots = [] }: CanvasProps) {
   const stageRef = useRef<Konva.Stage>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
   const nodes = useRef(new Map<string, Konva.Node>());
@@ -69,7 +75,15 @@ export function Canvas({ background, objects, width, height, selectedId, onPress
     captureRef.current = async (pixelRatio) => {
       const stage = stageRef.current;
       if (!stage) throw new Error("캔버스가 아직 준비되지 않았어요.");
-      const dataUrl = stage.toDataURL({ pixelRatio, mimeType: "image/jpeg", quality: 0.92 });
+      // 빈 자리 판은 만드는 동안만 보이는 안내라 이미지에는 안 찍는다
+      const slots = stage.find(`.${EMPTY_SLOT_NAME}`);
+      slots.forEach((node) => node.hide());
+      let dataUrl: string;
+      try {
+        dataUrl = stage.toDataURL({ pixelRatio, mimeType: "image/jpeg", quality: 0.92 });
+      } finally {
+        slots.forEach((node) => node.show());
+      }
       return (await fetch(dataUrl)).blob();
     };
     return () => {
@@ -86,6 +100,9 @@ export function Canvas({ background, objects, width, height, selectedId, onPress
     <Stage ref={stageRef} width={width} height={height} scaleX={scale} scaleY={scale} onMouseDown={onStagePress} onTouchStart={onStagePress}>
       <Layer>
         <Background background={background} />
+        {emptySlots.map((slot, index) => (
+          <EmptySlot key={index} slot={slot} />
+        ))}
         {objects.map((object) => {
           const shared = {
             register: (node: Konva.Node | null) => (node ? nodes.current.set(object.id, node) : nodes.current.delete(object.id)),
@@ -120,6 +137,35 @@ export function Canvas({ background, objects, width, height, selectedId, onPress
       </Layer>
     </Stage>
   );
+}
+
+// 틀의 빈 자리 하나 — 상자를 조금 줄인 점선 회색 판, 자리 가운데를 축으로 자리만큼 돈다. 눌림은 받지 않는다 (밑의 바닥처럼)
+function EmptySlot({ slot }: { slot: TemplateSlot }) {
+  const look = TEMPLATE_NUMBERS.emptySlot;
+  const box = shrinkSlot(slot);
+  return (
+    <Rect
+      name={EMPTY_SLOT_NAME}
+      listening={false}
+      x={box.x + box.width / 2}
+      y={box.y + box.height / 2}
+      offsetX={box.width / 2}
+      offsetY={box.height / 2}
+      width={box.width}
+      height={box.height}
+      rotation={slot.rotation}
+      cornerRadius={look.radius}
+      fill={rgba(look.fill, look.fillOpacity)}
+      stroke={look.stroke}
+      strokeWidth={look.strokeWidth}
+      dash={look.dash}
+    />
+  );
+}
+
+function rgba(hex: string, alpha: number) {
+  const value = parseInt(hex.replace("#", ""), 16);
+  return `rgba(${(value >> 16) & 255}, ${(value >> 8) & 255}, ${value & 255}, ${alpha})`;
 }
 
 type NodeProps = {

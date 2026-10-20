@@ -11,5 +11,5 @@ export const metadata: Metadata = { title: "INMYIN 에디터 · INMYIN" };
 export default async function InmyinEditorPage() {
   const profile = await requireProfile();
   const inventories = await getMyPackingInventories(profile.id);
-  return <Editor inventories={inventories} columns={toGridColumns(profile.grid_columns)} userId={profile.id} />;
+  return <Editor inventories={inventories} columns={toGridColumns(profile.grid_columns)} userId={profile.id} handle={profile.handle} />;
 }

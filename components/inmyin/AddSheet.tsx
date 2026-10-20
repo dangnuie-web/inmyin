@@ -4,13 +4,17 @@ import Image from "next/image";
 import { GRADIENT_DEFAULT } from "@/lib/inmyin/palette";
 import { STICKERS, stickerLabel, stickerSrc } from "@/lib/inmyin/stickers";
 import type { CanvasBackground } from "@/lib/inmyin/canvas";
+import type { TemplateId } from "@/lib/inmyin/templates";
 import { ColorField } from "./ColorField";
 import { PhotoEditorSheet } from "./PhotoEditorSheet";
+import { TemplatePicker } from "./TemplatePicker";
 import { TextEditor, type TextStyle } from "./TextEditor";
 
-export type AddTab = "stickers" | "photo" | "text" | "background";
+export type AddTab = "templates" | "stickers" | "photo" | "text" | "background";
 
+// 틀이 맨 앞 (무늬 틀 설계서 v01 5절 — 헤더 아이콘은 늘리지 않는다)
 const TABS: { id: AddTab; label: string }[] = [
+  { id: "templates", label: "틀" },
   { id: "stickers", label: "스티커" },
   { id: "photo", label: "사진" },
   { id: "text", label: "텍스트" },
@@ -45,6 +49,9 @@ const ANGLES = [
 type AddSheetProps = {
   tab: AddTab;
   onTab: (tab: AddTab) => void;
+  // 틀 칩. 지금 고른 틀 (없으면 null)
+  template: TemplateId | null;
+  onTemplate: (id: TemplateId) => void;
   background: CanvasBackground;
   onBackground: (background: CanvasBackground) => void;
   onSticker: (code: string) => void;
@@ -61,7 +68,7 @@ type AddSheetProps = {
 
 // ＋ 를 누르면 아래에서 올라오는 판 (인스타 스토리처럼 하나로). 맨 위 칩으로 스티커 · 사진 · 텍스트 · 배경을 오간다 —
 // 헤더에 아이콘을 더 늘리지 않으려고. 배경은 고르는 즉시 캔버스에 보인다 (판 뒤가 살짝만 어두워서 미리 볼 수 있다)
-export function AddSheet({ tab, onTab, background, onBackground, onSticker, photoFile, onPickPhoto, onPhoto, textDraft, editingText, onText, onClose }: AddSheetProps) {
+export function AddSheet({ tab, onTab, template, onTemplate, background, onBackground, onSticker, photoFile, onPickPhoto, onPhoto, textDraft, editingText, onText, onClose }: AddSheetProps) {
   return (
     <div className="fixed inset-0 z-30 flex flex-col justify-end">
       <button type="button" aria-label="닫기" onClick={onClose} className="absolute inset-0 cursor-default bg-ink/20" />
@@ -82,6 +89,7 @@ export function AddSheet({ tab, onTab, background, onBackground, onSticker, phot
         </nav>
 
         <div className="mt-4 min-h-0 flex-1 overflow-y-auto px-5">
+          {tab === "templates" && <TemplatePicker current={template} onPick={onTemplate} />}
           {tab === "stickers" && <Stickers onPick={onSticker} />}
           {tab === "photo" && <PhotoEditorSheet file={photoFile} onPickFile={onPickPhoto} onSubmit={onPhoto} />}
           {tab === "text" && <TextEditor initial={textDraft} editing={editingText} onSubmit={onText} />}
