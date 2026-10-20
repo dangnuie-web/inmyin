@@ -30,7 +30,7 @@ export function SocialButtons({ next }: { next?: string | null }) {
             height={24}
             className="absolute left-4"
           />
-          <span className="text-ink-muted">{provider.label}</span>
+          <span>{provider.label}</span>
         </Button>
       ))}
     </form>
