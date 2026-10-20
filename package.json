@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "db:types": "supabase gen types typescript --linked > lib/supabase/database.types.ts",
-    "app-icon": "node scripts/app-icon.mjs"
+    "app-icon": "node scripts/app-icon.mjs",
+    "demo": "node scripts/demo/demo-data.mjs",
+    "test:demo": "node --test scripts/demo/demo-data.test.mjs"
   },
   "dependencies": {
     "@imgly/background-removal": "^1.7.0",

@@ -1,0 +1,87 @@
+{
+  "$comment": "예시 — 유저 2명, 아이템 몇 개. 이미지 경로는 가짜다(파일 이름은 생성기가 준 이름 그대로 적으면 된다). 형식 설명은 scripts/demo/README.md",
+  "imageDir": "~/Desktop/DangneeOffice/10_프로젝트/01_진행/inmyin/생성/데모",
+  "emailDomain": "demo.inmyin.invalid",
+  "users": [
+    {
+      "no": 1,
+      "handle": "momo_pouch",
+      "nickname": "모모",
+      "bio": "파우치 속이 곧 나의 하루. 뷰티 크리에이터",
+      "avatar": "1_모모/hf_20261020_000000_avatar-example.png",
+      "inventories": [
+        {
+          "key": "pouch",
+          "name": "모모의 파우치",
+          "category": "파우치",
+          "tags": ["베이스", "립", "케어"],
+          "slotCount": 25,
+          "image": "1_모모/hf_20261020_000001_pouch-example.png",
+          "items": [
+            {
+              "code": "1-01",
+              "name": "메이크업 파우치",
+              "description": "퀼팅 나일론이라 가볍고 오염이 잘 안 묻어요.",
+              "tag": "케어",
+              "image": "1_모모/hf_20261020_000001_pouch-example.png"
+            },
+            {
+              "code": "1-02",
+              "name": "쿠션 팩트",
+              "description": "수정 화장은 이거 하나로 끝.",
+              "tag": "베이스",
+              "image": "1_모모/hf_20261020_000002_cushion-example.png"
+            },
+            {
+              "code": "1-03",
+              "name": "립 틴트",
+              "description": "로지 핑크. 세 번째 공병 예정.",
+              "tag": "립",
+              "quantity": 2,
+              "acquiredNote": "26.09.22",
+              "image": "1_모모/hf_20261020_000003_tint-example.png"
+            }
+          ]
+        }
+      ],
+      "follows": [2],
+      "bookmarks": ["2-01"],
+      "hearts": ["2-01", "2-02"]
+    },
+    {
+      "no": 2,
+      "handle": "juno_desk",
+      "nickname": "주노",
+      "bio": "디자인과 3학년. 책상 위만큼은 정리됨",
+      "avatar": "2_주노/hf_20261020_000010_avatar-example.png",
+      "inventories": [
+        {
+          "key": "desk",
+          "name": "주노의 책상",
+          "category": "데스크",
+          "tags": ["입력", "조명", "문구"],
+          "items": [
+            {
+              "code": "2-01",
+              "name": "기계식 키보드",
+              "description": "크림 키캡에 세이지 포인트. 소리가 조용한 축.",
+              "tag": "입력",
+              "image": "2_주노/hf_20261020_000011_keyboard-example.png"
+            },
+            {
+              "code": "2-02",
+              "name": "버섯 램프",
+              "description": "밤샘 과제의 동반자.",
+              "tag": "조명",
+              "image": "2_주노/hf_20261020_000012_lamp-example.png",
+              "cutout": "2_주노/누끼/lamp-example.png"
+            }
+          ]
+        }
+      ],
+      "follows": ["momo_pouch"],
+      "bookmarks": ["1-03"],
+      "hearts": ["1-01"]
+    }
+  ]
+}
