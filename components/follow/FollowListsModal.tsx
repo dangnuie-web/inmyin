@@ -44,7 +44,7 @@ export function FollowListsModal({ handle, initialTab, onClose }: { handle: stri
       <div role="dialog" aria-label="팔로워 · 팔로잉" className="fixed top-1/2 left-1/2 z-50 flex h-[34.5rem] w-72 -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-lg bg-white">
         <div className="relative flex h-12 items-center justify-center">
           <button type="button" onClick={onClose} aria-label="닫기" className="absolute left-0 top-0 flex size-12 items-center justify-center active:opacity-60">
-            <Icon name="close" scale={0.5} />
+            <Icon name="close24" scale={0.75} />
           </button>
           <span className="text-label font-bold">{lists?.user.handle ?? handle}</span>
         </div>

@@ -64,7 +64,7 @@ export default async function OtherProfilePage(props: PageProps<"/u/[handle]">) 
 
         <Link href={otherInventoriesPath(person.handle)} className="mt-8.5 flex h-15.5 items-center border-y border-gray-3 px-5 active:opacity-60">
           <SectionTitle title="INVENTORY" note={`${inventories.length}`} />
-          <Icon name="back" className="-mr-1.25 ml-auto rotate-180" />
+          <Icon name="back24" className="-mr-1.75 ml-auto rotate-180" />
         </Link>
 
         <section className="border-b border-gray-3 pb-7">

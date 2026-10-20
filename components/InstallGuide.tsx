@@ -318,7 +318,7 @@ function InstallGuideSheet({
           onClick={() => close("dismissed")}
           className="absolute top-1.5 right-1.5 flex size-11 items-center justify-center text-ink active:opacity-60"
         >
-          <Icon name="close" scale={44 / 64} />
+          <Icon name="close24" />
         </button>
 
         {content.shelf && <Shelf />}
@@ -519,7 +519,7 @@ export function InstallGuideBand() {
           onClick={hideBand}
           className="flex size-11 flex-none items-center justify-center text-ink active:opacity-60"
         >
-          <Icon name="close" scale={44 / 64} />
+          <Icon name="close24" />
         </button>
       </div>
     </div>

@@ -184,7 +184,7 @@ export function ItemForm({ userId, inventoryId, categories, item }: ItemFormProp
                   aria-label="유통기한 없애기"
                   className="relative z-10 -my-2 text-gray-mid active:opacity-60"
                 >
-                  <Icon name="close" scale={0.5} />
+                  <Icon name="close24" scale={0.75} />
                 </button>
               )}
               <span className="text-caption font-bold text-white">까지</span>
