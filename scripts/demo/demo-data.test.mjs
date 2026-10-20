@@ -3,10 +3,10 @@
 
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
-import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { test } from "node:test";
+import { after, test } from "node:test";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 import { backgroundMask, whiteBackgroundCutout } from "./cutout.mjs";
@@ -485,8 +485,25 @@ test("지우기: 데모가 없으면 아무것도 안 한다", async () => {
 // 임시 폴더는 운영체제 임시 폴더(TMPDIR) 안에 만든다
 // ─────────────────────────────────────────────────────────────
 
+// 시험이 만든 임시 폴더는 시험이 다 끝나면 지운다
+const tempDirs = [];
+async function tempDir(prefix) {
+  const dir = await mkdtemp(path.join(tmpdir(), prefix));
+  tempDirs.push(dir);
+  return dir;
+}
+after(async () => {
+  for (const dir of tempDirs) {
+    try {
+      await rm(dir, { recursive: true, force: true });
+    } catch (e) {
+      console.warn(`경고  임시 폴더를 지우지 못했습니다: ${dir} (${e.message})`);
+    }
+  }
+});
+
 async function photoFolder(names) {
-  const root = await mkdtemp(path.join(tmpdir(), "inmyin-demo-test-"));
+  const root = await tempDir("inmyin-demo-test-");
   const dir = path.join(root, "1_모모");
   await mkdir(dir);
   const png = await sampleImage(90);
@@ -555,7 +572,7 @@ test("사진 찾기: 선택 아이템은 사진이 없으면 빠지고, 그 아�
 
 async function configWithPosts() {
   const config = await memoryConfig();
-  const dir = await mkdtemp(path.join(tmpdir(), "inmyin-posts-"));
+  const dir = await tempDir("inmyin-posts-");
   const jpg = await sharp({ create: { width: 1080, height: 1350, channels: 3, background: "#f2f2f2" } }).jpeg().toBuffer();
   const doc = {
     version: 1, width: 1080, height: 1350, background: { kind: "color", color: "#f2f2f2" },

@@ -9,7 +9,7 @@
 // DB 에는 붙지 않는다. 만든 파일 경로를 설정의 posts[].image · canvas 에 적고 seed 로 넣는다.
 
 import { spawn } from "node:child_process";
-import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import http from "node:http";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -81,11 +81,48 @@ const server = http.createServer(async (req, res) => {
 await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
 const base = `http://127.0.0.1:${server.address().port}`;
 
-const profile = await mkdtemp(path.join(tmpdir(), "inmyin-render-"));
-const chrome = spawn(CHROME, ["--headless=new", `--remote-debugging-port=${port}`, "--use-mock-keychain", "--password-store=basic", `--user-data-dir=${profile}`, "--no-first-run", "about:blank"], { stdio: "ignore" });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+// 크롬 임시 프로필(한 번에 100MB 넘게)은 끝날 때 — 성공 · 실패 · Ctrl+C 모두 — 크롬을 닫은 뒤 지운다. 지우기 실패는 경고만.
+let profile;
+let chrome;
 let ws;
+let closing;
+const shutdown = () =>
+  (closing ??= (async () => {
+    try {
+      ws?.close();
+    } catch {
+      /* 이미 닫힘 */
+    }
+    server.close();
+    if (chrome && chrome.exitCode === null && chrome.signalCode === null) {
+      const exited = new Promise((r) => chrome.once("exit", r));
+      chrome.kill();
+      // 3초 안에 안 꺼지면 강제로
+      if ((await Promise.race([exited.then(() => true), sleep(3000).then(() => false)])) === false) {
+        chrome.kill("SIGKILL");
+        await Promise.race([exited, sleep(2000)]);
+      }
+    }
+    if (profile) {
+      try {
+        await rm(profile, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+      } catch (e) {
+        console.warn(`경고  임시 크롬 프로필을 지우지 못했습니다: ${profile} (${e.message})`);
+      }
+    }
+  })());
+for (const signal of ["SIGINT", "SIGTERM"]) {
+  process.once(signal, async () => {
+    console.error(`\n${signal} — 크롬을 닫고 임시 폴더를 지웁니다`);
+    await shutdown();
+    process.exit(signal === "SIGINT" ? 130 : 143);
+  });
+}
 try {
+  profile = await mkdtemp(path.join(tmpdir(), "inmyin-render-"));
+  chrome = spawn(CHROME, ["--headless=new", `--remote-debugging-port=${port}`, "--use-mock-keychain", "--password-store=basic", `--user-data-dir=${profile}`, "--no-first-run", "about:blank"], { stdio: "ignore" });
+  chrome.on("error", (e) => console.error(`오류  크롬을 실행하지 못했습니다: ${e.message}`));
   let target;
   for (let i = 0; i < 60 && !target; i++) {
     await sleep(250);
@@ -175,7 +212,5 @@ try {
   }
   console.log(`게시물 ${jobs.length}개 → ${outDir}`);
 } finally {
-  ws?.close();
-  chrome.kill();
-  server.close();
+  await shutdown();
 }
