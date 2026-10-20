@@ -2,7 +2,7 @@ import Link from "next/link";
 
 type CategoryTagProps = {
   label: string;
-  // 피그마 `카테고리 태그`의 변형. 선택됨 = 회색 바탕 + 검은 글자, 기본 = 흰 바탕 + 회색 글자
+  // 피그마 `카테고리 태그`의 변형. 선택됨 = 회색 바탕 + 검은 글자, 기본 = 흰 바탕 + 진한 회색 글자(ink-muted — 연한 disabled 는 못 누르는 버튼처럼 보였다)
   selected?: boolean;
   // 필터처럼 눌러서 고르는 곳에서 준다. 주소로 고르면 href, 화면 안에서 고르면 onClick
   href?: string;
@@ -21,7 +21,7 @@ const SIZES = {
 export function CategoryTag({ label, selected = true, href, onClick, onRemove, size = "md" }: CategoryTagProps) {
   const sizes = SIZES[size];
   const className = `flex shrink-0 items-center justify-center whitespace-nowrap rounded-md border border-border font-semibold ${sizes.base} ${
-    selected ? "bg-gray-2 text-ink" : "bg-white text-disabled"
+    selected ? "bg-gray-2 text-ink" : "bg-white text-ink-muted"
   } ${onRemove ? sizes.removable : sizes.plain}`;
 
   if (onRemove) {

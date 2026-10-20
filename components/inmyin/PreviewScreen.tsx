@@ -19,7 +19,7 @@ export function PreviewScreen({ imageUrl, onClose, onPost, onSave }: PreviewScre
       <HeaderMini icon="close" onClick={onClose} title="INMYIN" />
       {/* 피그마 M-10: 흰 카드에 옅은 테두리, 둥근 모서리 */}
       <div className="mt-6 px-8">
-        <div className="relative aspect-[4/5] w-full overflow-hidden rounded-xl border border-gray-3 bg-white">
+        <div className="relative aspect-[4/5] w-full overflow-hidden rounded-xl border border-border bg-white">
           <Image src={imageUrl} alt="만든 INMYIN" fill sizes="(min-width: 448px) 380px, 90vw" unoptimized className="object-contain" />
         </div>
       </div>

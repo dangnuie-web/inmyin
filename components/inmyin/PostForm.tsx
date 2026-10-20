@@ -44,7 +44,7 @@ export function PostForm({ imageUrl, labels, pending, error, onClose, onSubmit }
         />
 
         <div className="px-7 py-7">
-          <div className="relative aspect-[4/5] w-full overflow-hidden rounded-xl border border-gray-3 bg-white">
+          <div className="relative aspect-[4/5] w-full overflow-hidden rounded-xl border border-border bg-white">
             <Image src={imageUrl} alt="" fill sizes="(min-width: 448px) 380px, 90vw" unoptimized className="object-contain" />
             {/* 아이템 이름 라벨 — 그 아이템의 가운데. 게시물을 보는 사람은 이 자리를 눌러 아이템으로 간다 (H-04) */}
             {labels.map((label) => (
