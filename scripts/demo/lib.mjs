@@ -4,7 +4,7 @@
 // 테이블 · 칸 이름은 supabase/migrations 를 따른다 (문서의 camelCase → DB 의 snake_case).
 
 import { createHash, randomBytes } from "node:crypto";
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import path from "node:path";
 import sharp from "sharp";
@@ -221,6 +221,8 @@ export function normalizeConfig(raw, configDir) {
           quantity,
           acquiredNote,
           isPublic: it?.isPublic !== false,
+          // 선택 아이템: 사진이 없으면 건너뛴다 (필수 아이템은 사진이 없으면 넣기를 멈춘다)
+          optional: it?.optional === true,
           image,
           // 누끼 파일 경로, 또는 false(--cutout 이어도 이 아이템은 배경 그대로 — 흰 물건처럼 자동 누끼가 먹는 것)
           cutout: it?.cutout === false ? false : file(it?.cutout),
@@ -228,9 +230,9 @@ export function normalizeConfig(raw, configDir) {
       }
 
       if (tags.length > MAX_CATEGORIES) fail(iwhere, `태그는 ${MAX_CATEGORIES}개까지`);
-      const image = file(inv?.image) ?? items[0]?.image ?? null;
-      if (!image) fail(iwhere, "image 가 없습니다 (인벤토리 사진은 앱에서 필수 — 없으면 첫 아이템 사진을 쓰는데 아이템도 없음)");
-      else if (!trimmed(inv?.image)) warnings.push(`${iwhere}: image 가 없어서 첫 아이템(${items[0].code}) 사진을 인벤토리 사진으로 씁니다`);
+      // 인벤토리 사진은 앱에서 필수. 없으면 사진을 찾은 뒤(resolveFiles) 첫 아이템 사진을 쓴다
+      const image = file(inv?.image);
+      if (!image && items.length === 0) fail(iwhere, "image 도 아이템도 없습니다 (인벤토리 사진은 앱에서 필수)");
 
       inventories.push({
         key,
@@ -294,15 +296,107 @@ export function normalizeConfig(raw, configDir) {
   return { errors, warnings, config: errors.length ? null : { imageDir, emailDomain, users } };
 }
 
+// 설정 읽기 → 검사 → 사진 파일 찾기. missing 은 사진이 없어 넣을 수 없는 것(마른 실행에서는 경고, 넣기에서는 멈춤)
 export async function loadConfig(configPath) {
   const text = await readFile(configPath, "utf8");
   let raw;
   try {
     raw = JSON.parse(text);
   } catch (error) {
-    return { errors: [`JSON 을 읽지 못했습니다: ${error.message}`], warnings: [], config: null };
+    return { errors: [`JSON 을 읽지 못했습니다: ${error.message}`], warnings: [], missing: [], config: null };
   }
-  return normalizeConfig(raw, path.dirname(path.resolve(configPath)));
+  const result = normalizeConfig(raw, path.dirname(path.resolve(configPath)));
+  if (!result.config) return { ...result, missing: [] };
+  const { missing, notes } = await resolveFiles(result.config);
+  return { ...result, warnings: [...result.warnings, ...notes], missing };
+}
+
+// ─────────────────────────────────────────────────────────────
+// 사진 파일 찾기
+//   "1_모모/1-01*"   → 1_모모 폴더에서 이름이 1-01 로 시작하는 사진 하나 (1-010 처럼 숫자가 이어지는 것은 아님)
+//   "1_모모/profile*" → profile 로 시작하는 사진 하나
+//   별표가 없으면 그 파일 그대로
+// 사진 확장자는 png · jpg · jpeg · webp. 둘 이상 맞으면 어느 것인지 몰라 "없음"으로 치고 알린다
+// ─────────────────────────────────────────────────────────────
+
+const IMAGE_FILE = /\.(png|jpe?g|webp)$/i;
+
+export async function findImage(pattern) {
+  if (typeof pattern !== "string") return { file: pattern ?? null };
+  if (!pattern.endsWith("*")) return { file: pattern };
+  const dir = path.dirname(pattern);
+  const prefix = path.basename(pattern).slice(0, -1).normalize("NFC");
+  let names;
+  try {
+    names = await readdir(dir);
+  } catch {
+    return { file: null, reason: `폴더 없음 (${dir})` };
+  }
+  const matches = names.filter((raw) => {
+    // macOS 는 한글 파일 이름을 자모로 풀어(NFD) 줄 수 있어서 맞춰 비교한다
+    const name = raw.normalize("NFC");
+    if (!IMAGE_FILE.test(name) || !name.startsWith(prefix)) return false;
+    return !(/\d$/.test(prefix) && /^\d/.test(name.slice(prefix.length)));
+  });
+  if (matches.length === 1) return { file: path.join(dir, matches[0]) };
+  if (matches.length === 0) return { file: null, reason: `${path.basename(dir)}/ 에 ${prefix}… 사진 없음` };
+  return { file: null, reason: `${path.basename(dir)}/ 에 ${prefix}… 사진이 ${matches.length}개 (${matches.join(", ")}) — 하나만 남기거나 파일 이름을 적어 주세요` };
+}
+
+// 패턴을 실제 파일로 바꾼다. 선택 아이템 · 프로필 사진은 없으면 빼고, 필수 아이템 · 인벤토리 사진이 없으면 missing 에 담는다.
+// 빠진 아이템을 가리키던 북마크 · 하트도 뺀다
+export async function resolveFiles(config) {
+  const missing = [];
+  const notes = [];
+  const dropped = new Set();
+  for (const u of config.users) {
+    if (u.avatar) {
+      const found = await findImage(u.avatar);
+      if (!found.file) notes.push(`@${u.handle}: 프로필 사진 ${found.reason} — 프로필 사진 없이 넣습니다`);
+      u.avatar = found.file;
+    }
+    for (const inv of u.inventories) {
+      const kept = [];
+      for (const it of inv.items) {
+        const found = await findImage(it.image);
+        if (found.file && typeof it.cutout === "string") {
+          const cut = await findImage(it.cutout);
+          if (!cut.file) notes.push(`${it.code}: 누끼 ${cut.reason} — 누끼 파일 없이`);
+          it.cutout = cut.file;
+        }
+        if (found.file) {
+          it.image = found.file;
+          kept.push(it);
+        } else if (it.optional) {
+          notes.push(`${it.code} ${it.name}: ${found.reason} — 선택 아이템이라 건너뜁니다`);
+          dropped.add(it.code);
+        } else {
+          it.image = null;
+          missing.push(`${it.code} ${it.name}: ${found.reason}`);
+          kept.push(it);
+        }
+      }
+      inv.items = kept;
+      if (inv.image) {
+        const found = await findImage(inv.image);
+        if (!found.file) notes.push(`인벤토리 ${inv.name}: 사진 ${found.reason} — 첫 아이템 사진으로`);
+        inv.image = found.file;
+      }
+      if (!inv.image) {
+        const first = inv.items.find((it) => it.image);
+        if (first) inv.image = first.image;
+        else missing.push(`인벤토리 ${inv.name}: 사진이 없습니다 (인벤토리 사진도, 사진 있는 아이템도 없음)`);
+      }
+    }
+  }
+  for (const u of config.users) {
+    for (const kind of ["bookmarks", "hearts"]) {
+      const gone = u[kind].filter((code) => dropped.has(code));
+      if (gone.length) notes.push(`@${u.handle}: ${kind} 의 ${gone.join(", ")} 는 건너뛴 아이템이라 뺍니다`);
+      u[kind] = u[kind].filter((code) => !dropped.has(code));
+    }
+  }
+  return { missing, notes };
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -417,17 +511,17 @@ export async function planSeed(config, { cutoutMode = false, processImages = tru
       lines.push(`  프로필 사진 ${label(u.avatar)}${avatar ? ` → avatars/<id>/${avatar.name} ${avatar.width}×${avatar.height} ${kb(avatar.buffer)}` : ""}`);
     } else lines.push("  프로필 사진 없음");
     for (const inv of u.inventories) {
-      const pair = processImages ? await check(`${u.handle}/${inv.name} 인벤토리 사진`, () => makePhotoPair({ image: inv.image })) : null;
+      const pair = processImages && inv.image ? await check(`${u.handle}/${inv.name} 인벤토리 사진`, () => makePhotoPair({ image: inv.image })) : null;
       lines.push(
         `  인벤토리 "${inv.name}" ${inv.slotCount}칸 · ${inv.isPublic ? "공개" : "비공개"} · 태그 [${inv.tags.join(", ")}]` +
           `${inv.category ? ` · 카테고리 ${inv.category}(DB 칸 없음 — 넣지 않음)` : ""} · id ${inv.id}` +
           `${pair ? ` · 사진 ${pair.thumbnail.width}×${pair.thumbnail.height} ${kb(pair.thumbnail.buffer)}` : ""}`,
       );
       for (const [index, it] of inv.items.entries()) {
-        const p = processImages ? await check(`${it.code} 사진`, () => makePhotoPair(it, { cutoutMode })) : null;
+        const p = processImages && it.image ? await check(`${it.code} 사진`, () => makePhotoPair(it, { cutoutMode })) : null;
         lines.push(
           `    ${String(index + 1).padStart(2)}칸 ${it.code} ${it.name}${it.tag ? ` #${it.tag}` : ""}${it.isPublic ? "" : " (비공개)"}` +
-            ` · ${label(it.image)}` +
+            `${it.optional ? " (선택)" : ""} · ${it.image ? label(it.image) : "사진 없음"}` +
             (p ? ` → 썸네일 ${p.thumbnail.width}×${p.thumbnail.height} ${kb(p.thumbnail.buffer)}(배경 ${p.background}) · 원본 ${p.raw.width}×${p.raw.height} ${kb(p.raw.buffer)}` : ""),
         );
       }
@@ -447,6 +541,7 @@ export async function planSeed(config, { cutoutMode = false, processImages = tru
 }
 
 function label(file) {
+  if (!file) return "없음";
   return typeof file === "string" ? path.basename(file) : "(메모리)";
 }
 
@@ -456,6 +551,13 @@ function kb(buffer) {
 
 // 실제로 넣는다. 다시 돌리면: 있는 계정 · 인벤토리 · 아이템은 글자만 갱신, 사진은 refreshImages 일 때만 다시 올림, 관계는 있으면 건너뜀
 export async function seed(supabase, config, { cutoutMode = false, refreshImages = false, log = console.log } = {}) {
+  // 사진이 없는 필수 아이템 · 인벤토리가 있으면 DB 에 붙기 전에 멈춘다
+  const noPhoto = config.users.flatMap((u) => u.inventories.flatMap((inv) => [
+    ...(inv.image ? [] : [`인벤토리 ${inv.name}`]),
+    ...inv.items.filter((it) => !it.image).map((it) => it.code),
+  ]));
+  if (noPhoto.length) throw new Error(`사진이 없어 넣을 수 없습니다: ${noPhoto.join(", ")}`);
+
   // ① 먼저 읽기만 해서 막힐 곳을 다 찾는다 — 중간에 멈춰 반쯤 들어가는 일을 줄이려고
   const authUsers = await listAllAuthUsers(supabase);
   const authByEmail = new Map(authUsers.map((u) => [String(u.email ?? "").toLowerCase(), u]));

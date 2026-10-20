@@ -3,6 +3,8 @@
 
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
+import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
@@ -14,6 +16,7 @@ import {
   DEMO_FLAG,
   demoEmail,
   describeCollection,
+  findImage,
   isDemoAuthUser,
   isDemoEmail,
   itemId,
@@ -21,6 +24,7 @@ import {
   makePhotoPair,
   normalizeConfig,
   planSeed,
+  resolveFiles,
   seed,
   stableUuid,
 } from "./lib.mjs";
@@ -470,5 +474,74 @@ test("지우기: 데모가 없으면 아무것도 안 한다", async () => {
   const c = await collectDemo(fake.client);
   assert.equal(c.ids.length, 0);
   await clean(fake.client, c, quiet);
+  assert.equal(fake.calls.length, 0);
+});
+
+// ─────────────────────────────────────────────────────────────
+// 사진 찾기 (폴더 + 번호로 시작하는 파일) · 선택 아이템
+// 임시 폴더는 운영체제 임시 폴더(TMPDIR) 안에 만든다
+// ─────────────────────────────────────────────────────────────
+
+async function photoFolder(names) {
+  const root = await mkdtemp(path.join(tmpdir(), "inmyin-demo-test-"));
+  const dir = path.join(root, "1_모모");
+  await mkdir(dir);
+  const png = await sampleImage(90);
+  // macOS 처럼 한글을 자모로 푼(NFD) 이름도 섞는다
+  for (const name of names) await writeFile(path.join(dir, name), name.match(/\.(png|jpe?g|webp)$/i) ? png : "x");
+  return { root, dir };
+}
+
+test("사진 찾기: 번호로 시작하는 사진 하나를 찾는다", async () => {
+  const { dir } = await photoFolder([
+    "1-01_퀼팅파우치.png", "1-010 다른 것.png", "1-02.JPG", "1-03 메모.txt",
+    "1-04_a.png", "1-04_b.webp", "profile_모모.webp".normalize("NFD"),
+  ]);
+  assert.equal((await findImage(path.join(dir, "1-01*"))).file, path.join(dir, "1-01_퀼팅파우치.png"), "1-010 은 1-01 이 아님");
+  assert.equal((await findImage(path.join(dir, "1-02*"))).file, path.join(dir, "1-02.JPG"), "대문자 확장자");
+  assert.equal((await findImage(path.join(dir, "1-03*"))).file, null, "사진이 아닌 파일은 무시");
+  const twice = await findImage(path.join(dir, "1-04*"));
+  assert.equal(twice.file, null);
+  assert.match(twice.reason, /2개/);
+  assert.ok((await findImage(path.join(dir, "profile*"))).file, "NFD 한글 이름도 찾음");
+  assert.match((await findImage(path.join(dir, "없는폴더", "1-01*"))).reason, /폴더 없음/);
+  assert.equal((await findImage("/정확한/경로.png")).file, "/정확한/경로.png", "별표 없으면 그대로");
+});
+
+test("사진 찾기: 선택 아이템은 사진이 없으면 빠지고, 그 아이템을 가리키던 북마크도 빠진다", async () => {
+  const { root } = await photoFolder(["1-01.png", "1-13.png"]);
+  const { errors, config } = normalizeConfig(
+    {
+      imageDir: root,
+      users: [
+        {
+          no: 1, handle: "momo_x", nickname: "모모", avatar: "1_모모/profile*",
+          inventories: [{ name: "파우치", items: [
+            { code: "1-01", name: "가", description: "설명", image: "1_모모/1-01*" },
+            { code: "1-02", name: "나", description: "설명", image: "1_모모/1-02*" },
+            { code: "1-13", name: "다", description: "설명", image: "1_모모/1-13*", optional: true },
+            { code: "1-14", name: "라", description: "설명", image: "1_모모/1-14*", optional: true },
+          ] }],
+        },
+        { no: 2, handle: "juno_x", nickname: "주노", inventories: [{ name: "책상", items: [{ code: "2-01", name: "가", description: "설명", image: "x.png" }] }], bookmarks: ["1-13", "1-14"] },
+      ],
+    },
+    "/",
+  );
+  assert.deepEqual(errors, []);
+  const { missing, notes } = await resolveFiles(config);
+  const [momo, juno] = config.users;
+  assert.equal(momo.avatar, null, "프로필 사진이 없으면 없이");
+  assert.deepEqual(momo.inventories[0].items.map((it) => it.code), ["1-01", "1-02", "1-13"], "1-14 만 빠짐");
+  assert.equal(momo.inventories[0].items[1].image, null);
+  assert.equal(momo.inventories[0].image, path.join(root, "1_모모", "1-01.png"), "인벤토리 사진은 첫 아이템 사진");
+  assert.deepEqual(juno.bookmarks, ["1-13"], "빠진 아이템 북마크는 뺌");
+  assert.equal(missing.length, 1);
+  assert.match(missing[0], /1-02/);
+  assert.ok(notes.some((n) => n.includes("1-14") && n.includes("건너뜁니다")));
+  assert.ok(notes.some((n) => n.includes("프로필 사진")));
+  // 필수 아이템 사진이 없으면 넣기는 DB 에 손대기 전에 멈춘다
+  const fake = fakeSupabase();
+  await assert.rejects(seed(fake.client, config, quiet), /사진이 없어 넣을 수 없습니다: 1-02/);
   assert.equal(fake.calls.length, 0);
 });

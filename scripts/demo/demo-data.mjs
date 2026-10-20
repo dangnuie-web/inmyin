@@ -47,23 +47,24 @@ function connect() {
 }
 
 async function readConfig(configPath) {
-  const { errors, warnings, config } = await loadConfig(configPath);
+  const { errors, warnings, missing, config } = await loadConfig(configPath);
   for (const w of warnings) console.log(`알림  ${w}`);
   if (errors.length) {
     for (const e of errors) console.error(`오류  ${e}`);
     console.error(`설정에 오류 ${errors.length}개 — 아무것도 하지 않았습니다.`);
     process.exit(1);
   }
-  return config;
+  return { config, missing };
 }
 
 if (command === "seed") {
   const configPath = positional[0];
   if (!configPath) usage("설정 파일 경로가 필요합니다.");
-  const config = await readConfig(configPath);
+  const { config, missing } = await readConfig(configPath);
   const cutoutMode = flag("--cutout");
 
   if (flag("--dry-run") || !flag("--yes")) {
+    for (const m of missing) console.log(`사진없음  ${m}`);
     const { lines, problems } = await planSeed(config, { cutoutMode });
     console.log(lines.join("\n"));
     if (problems.length) {
@@ -72,16 +73,22 @@ if (command === "seed") {
       console.error(`사진 문제 ${problems.length}개`);
     }
     console.log("");
+    if (missing.length) console.log(`사진 없는 필수 아이템 · 인벤토리 ${missing.length}개 — 이대로는 넣기(--yes)가 멈춥니다.`);
     console.log(flag("--dry-run") ? "마른 실행 — 아무것도 쓰지 않았습니다." : "미리보기만 했습니다. 실제로 넣으려면 --yes 를 붙이세요.");
     process.exit(problems.length ? 1 : 0);
   }
 
+  if (missing.length) {
+    for (const m of missing) console.error(`사진없음  ${m}`);
+    console.error(`사진 없는 필수 아이템 · 인벤토리 ${missing.length}개 — DB 에 붙지 않고 멈춥니다.`);
+    process.exit(1);
+  }
   const supabase = connect();
   await seed(supabase, config, { cutoutMode, refreshImages: flag("--refresh-images") });
   console.log("넣기 끝.");
 } else if (command === "clean") {
   const configPath = option("--config");
-  const emailDomain = option("--domain") ?? (configPath ? (await readConfig(configPath)).emailDomain : DEFAULT_EMAIL_DOMAIN);
+  const emailDomain = option("--domain") ?? (configPath ? (await readConfig(configPath)).config.emailDomain : DEFAULT_EMAIL_DOMAIN);
   const supabase = connect();
   const collection = await collectDemo(supabase, { emailDomain });
   console.log(describeCollection(collection).join("\n"));
