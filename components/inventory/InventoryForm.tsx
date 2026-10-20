@@ -4,6 +4,8 @@ import { useEffect, useRef, useState, useTransition, type FormEvent, type Keyboa
 import Image from "next/image";
 import { updateInventory } from "@/app/(flow)/my/inventories/[id]/actions";
 import { createInventory } from "@/app/(flow)/my/inventories/new/actions";
+import { usePhotoChange } from "@/components/item/usePhotoChange";
+import { SMALL_OUTLINE_CLASS } from "@/components/profile/ProfileParts";
 import { Button } from "@/components/ui/Button";
 import { CategoryTag } from "@/components/ui/CategoryTag";
 import { DarkDropdown, DarkDropdownOption, DarkInput } from "@/components/ui/DarkInput";
@@ -12,26 +14,53 @@ import { Icon } from "@/components/ui/Icon";
 import { PhotoPreview } from "@/components/ui/PhotoPreview";
 import { Switch } from "@/components/ui/Switch";
 import { MAX_CATEGORY_LENGTH, RECOMMENDED_INVENTORIES } from "@/lib/categories";
-import { getPendingPhoto, pickedPhoto, setPendingPhoto } from "@/lib/image/pending-photo";
+import {
+  clearPhotoChange,
+  getPendingPhoto,
+  peekEditedPhoto,
+  peekPhotoChangeDraft,
+  pickedPhoto,
+  savePhotoChangeDraft,
+  setPendingPhoto,
+  type PendingPhoto,
+} from "@/lib/image/pending-photo";
 import { uploadPhotoPair } from "@/lib/image/upload";
+import { inventoryPhotoCameraPath, inventoryPhotoEditPath } from "@/lib/inventory/paths";
 import { categoryError, INVENTORY_NAME_MAX } from "@/lib/inventory/rules";
 
 type OpenDropdown = "name" | "category" | null;
 
 type InventoryFormProps = {
   userId: string;
-  // 수정할 때만 준다. 그 값으로 채워서 열고, 사진은 보여주기만 한다 — 이름과 태그만 고친다
+  // 수정할 때만 준다. 그 값으로 채워서 연다. 사진을 누르거나 "사진 바꾸기"로 촬영 → 사진편집을 다시 거쳐 돌아온다
   inventory?: { id: string; name: string; categories: string[]; imageUrl: string; isPublic: boolean };
+};
+
+// 사진 바꾸러 떠날 때 맡겨 두는 수정 화면의 값 (lib/image/pending-photo.ts)
+type InventoryDraft = {
+  name: string;
+  tags: string[];
+  isPublic: boolean;
+  // 카테고리 입력칸에 쓰다 만 글자
+  draft: string;
+  // 이미 한 번 바꿔 둔 새 사진. 또 바꾸러 갔다가 닫고 오면 이것으로 돌아온다
+  photo: PendingPhoto | null;
 };
 
 // 인벤토리 정보 입력. 사진 · 이름 · 카테고리 태그를 받아 저장한다. 인벤토리 수정도 같은 폼이다.
 export function InventoryForm({ userId, inventory }: InventoryFormProps) {
-  // 목록에서 고르거나 촬영 화면에서 찍은 사진을 이어받는다. 사진은 필수다 — 새로고침해서 비어 있으면 여기서 다시 골라야 저장된다
-  const [photo, setPhoto] = useState(getPendingPhoto);
-  const [name, setName] = useState(inventory?.name ?? "");
-  const [tags, setTags] = useState<string[]>(inventory?.categories ?? []);
-  const [isPublic, setIsPublic] = useState(inventory?.isPublic ?? true);
-  const [draft, setDraft] = useState("");
+  const draftKey = inventory ? `inventory:${inventory.id}` : "";
+  // 수정 — 사진 바꾸기에서 돌아왔으면 떠나기 전 값. 새로 열었으면 null
+  const [restored] = useState(() => (inventory ? peekPhotoChangeDraft<InventoryDraft>(draftKey) : null));
+  // 새로 만들 때 — 목록에서 고르거나 촬영 화면에서 찍은 사진을 이어받는다. 사진은 필수다 — 새로고침해서 비어 있으면 여기서 다시 골라야 저장된다.
+  // 수정할 때 — 바꿀 새 사진 (null 이면 지금 사진 그대로). 사진편집에서 저장하기로 왔으면 그 사진, 닫고 왔으면 떠나기 전 그대로
+  const [photo, setPhoto] = useState(() =>
+    inventory ? (restored ? (peekEditedPhoto() ?? restored.photo) : null) : getPendingPhoto(),
+  );
+  const [name, setName] = useState(restored?.name ?? inventory?.name ?? "");
+  const [tags, setTags] = useState<string[]>(restored?.tags ?? inventory?.categories ?? []);
+  const [isPublic, setIsPublic] = useState(restored?.isPublic ?? inventory?.isPublic ?? true);
+  const [draft, setDraft] = useState(restored?.draft ?? "");
   // 마지막으로 고른 추천의 기본 태그. 지운 태그를 드롭다운에서 다시 달 수 있게 기억해 둔다
   const [recommendedTags, setRecommendedTags] = useState<readonly string[]>([]);
   const [open, setOpen] = useState<OpenDropdown>(null);
@@ -39,8 +68,20 @@ export function InventoryForm({ userId, inventory }: InventoryFormProps) {
   const [pending, startTransition] = useTransition();
   const photoRef = useRef<HTMLInputElement>(null);
 
-  // 화면을 떠나면 보관함을 비운다. 사진은 이미 위의 photo 가 들고 있다
-  useEffect(() => () => setPendingPhoto(null), []);
+  // 새로 만들 때 — 화면을 떠나면 보관함을 비운다. 사진은 이미 위의 photo 가 들고 있다.
+  // 수정할 때 — 열리자마자 맡긴 값 · 보관함을 비운다(위에서 다 읽었다). 떠날 때는 비우지 않는다 — 컴퓨터에서 사진을 고르면
+  // 보관함에 넣고 바로 사진편집으로 가는데, 그 뒤에 이 화면이 닫힌다
+  const editing = Boolean(inventory);
+  useEffect(() => {
+    if (editing) return clearPhotoChange();
+    return () => setPendingPhoto(null);
+  }, [editing]);
+
+  const photoChange = usePhotoChange({
+    cameraHref: inventory ? inventoryPhotoCameraPath(inventory.id) : "",
+    editHref: inventory ? inventoryPhotoEditPath(inventory.id) : "",
+    beforeLeave: () => savePhotoChangeDraft(draftKey, { name, tags, isPublic, draft, photo } satisfies InventoryDraft),
+  });
 
   const tagOptions = recommendedTags.filter((tag) => !tags.includes(tag));
 
@@ -97,7 +138,18 @@ export function InventoryForm({ userId, inventory }: InventoryFormProps) {
     startTransition(async () => {
       // 성공하면 서버가 보낸다 — 새 인벤토리는 그 인벤토리의 프로필 격자로, 수정은 인벤토리 관리로. 돌아온 값이 있으면 오류다
       if (inventory) {
-        const result = await updateInventory(inventory.id, { name, categories, isPublic });
+        // 사진을 바꿨으면 새 이름으로 먼저 올린다. 옛 사진은 지우지 않는다(저장소에 지우는 권한이 없다)
+        let newPhoto: Parameters<typeof updateInventory>[2];
+        if (photo) {
+          const photoId = crypto.randomUUID();
+          try {
+            newPhoto = { photoId, ...(await uploadPhotoPair("inventories", photo, userId, photoId)) };
+          } catch {
+            setError("사진을 올리지 못했습니다. 잠시 후 다시 시도해 주세요.");
+            return;
+          }
+        }
+        const result = await updateInventory(inventory.id, { name, categories, isPublic }, newPhoto);
         if (result?.error) setError(result.error);
         return;
       }
@@ -121,17 +173,16 @@ export function InventoryForm({ userId, inventory }: InventoryFormProps) {
     <form onSubmit={onSubmit} className="flex flex-1 flex-col px-5 pb-[max(3.5rem,env(safe-area-inset-bottom))]">
       <button
         type="button"
-        onClick={() => photoRef.current?.click()}
-        // 수정할 때는 사진을 보여주기만 한다 (사진 바꾸기는 나중에 할 일)
-        disabled={Boolean(inventory)}
-        aria-label={inventory ? "인벤토리 사진" : photo ? "사진 바꾸기" : "사진 추가"}
-        className="relative mt-10.5 flex aspect-357/341 w-full items-center justify-center overflow-hidden rounded-xl bg-field-dark text-placeholder-dark"
+        // 수정할 때는 촬영(폰) · 사진 고르기(컴퓨터) → 사진편집을 다시 거친다. 만들 때는 여기서 바로 고른다(새로고침으로 사진을 잃었을 때)
+        onClick={() => (inventory ? photoChange.start() : photoRef.current?.click())}
+        aria-label={photo || inventory ? "사진 바꾸기" : "사진 추가"}
+        className="relative mt-10.5 flex aspect-357/341 w-full items-center justify-center overflow-hidden rounded-xl bg-field-dark text-placeholder-dark active:opacity-80"
       >
-        {inventory ? (
+        {photo ? (
+          <PhotoPreview file={photo.photo} />
+        ) : inventory ? (
           // 올릴 때 이미 작게 줄여 둔 사진이라 Next 의 이미지 최적화를 거치지 않는다
           <Image src={inventory.imageUrl} alt="" fill sizes="(min-width: 448px) 400px, 90vw" unoptimized className="object-cover" />
-        ) : photo ? (
-          <PhotoPreview file={photo.photo} />
         ) : (
           <span className="flex flex-col items-center gap-3 text-caption">
             <Icon name="plus" />
@@ -149,6 +200,15 @@ export function InventoryForm({ userId, inventory }: InventoryFormProps) {
           if (file) setPhoto(pickedPhoto(file));
         }}
       />
+      {inventory && (
+        <div className="mt-3 flex flex-col items-center gap-3">
+          <button type="button" onClick={photoChange.start} className={SMALL_OUTLINE_CLASS}>
+            사진 바꾸기
+          </button>
+          {photo && <p className="text-caption text-placeholder-dark">수정하기를 누르면 새 사진으로 바뀌어요.</p>}
+          {photoChange.fileInput}
+        </div>
+      )}
 
       <div className="mt-10 flex flex-col gap-4">
         <DarkInput

@@ -233,7 +233,7 @@ export function PhotoEditor({ closeHref, nextHref }: PhotoEditorProps) {
         return setNotice("보정한 사진을 만들지 못했습니다. 다시 시도해 주세요.");
       }
     }
-    setPendingPhoto({ photo: thumbnail, raw: pending.raw });
+    setPendingPhoto({ photo: thumbnail, raw: pending.raw, edited: true });
     router.replace(nextHref);
   }
 

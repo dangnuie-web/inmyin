@@ -40,7 +40,7 @@ export function itemPath(itemId: string, options: ItemPathOptions = {}) {
   return `/items/${itemId}${query ? `?${query}` : ""}`;
 }
 
-// 아이템 수정의 주소. 글자 정보를 고친다 (사진을 다듬는 M-07 의 itemEditPath 와 다른 화면이다)
+// 아이템 수정의 주소. 글자 정보와 사진을 고친다 (사진을 다듬는 M-07 의 itemEditPath 와 다른 화면이다)
 export function itemUpdatePath(itemId: string) {
   return `/items/${itemId}/edit`;
 }
@@ -84,7 +84,7 @@ export function addItemPath(options: AddFlowOptions & { toEdit?: boolean } = {})
   return `/add${query ? `?${query}` : ""}`;
 }
 
-// 인벤토리 수정의 주소. 이름과 카테고리 태그를 고친다
+// 인벤토리 수정의 주소. 이름 · 카테고리 태그 · 공개 · 대표 사진을 고친다
 export function inventoryUpdatePath(inventoryId: string) {
   return `/my/inventories/${inventoryId}/edit`;
 }
@@ -103,3 +103,17 @@ export function itemEditPath(inventoryId: string, options?: AddFlowOptions) {
   return `/my/inventories/${inventoryId}/items/edit${addFlowQuery(options)}`;
 }
 export const NEW_INVENTORY_EDIT_PATH = `${NEW_INVENTORY_PATH}/edit`;
+
+// 수정 화면의 사진 바꾸기 — 촬영(M-06) · 사진편집(M-07)을 다시 거쳐 수정 화면으로 돌아온다. 아이템용 · 인벤토리용
+export function itemPhotoCameraPath(itemId: string) {
+  return `${itemUpdatePath(itemId)}/camera`;
+}
+export function itemPhotoEditPath(itemId: string) {
+  return `${itemUpdatePath(itemId)}/photo`;
+}
+export function inventoryPhotoCameraPath(inventoryId: string) {
+  return `${inventoryUpdatePath(inventoryId)}/camera`;
+}
+export function inventoryPhotoEditPath(inventoryId: string) {
+  return `${inventoryUpdatePath(inventoryId)}/photo`;
+}

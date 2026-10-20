@@ -7,16 +7,27 @@ import { useRouter } from "next/navigation";
 import { updateItem } from "@/app/(flow)/items/[itemId]/actions";
 import { createItem } from "@/app/(flow)/my/inventories/[id]/items/new/actions";
 import { InventoryTargetSheet } from "@/components/inventory/InventoryTargetSheet";
+import { usePhotoChange } from "@/components/item/usePhotoChange";
+import { SMALL_OUTLINE_CLASS } from "@/components/profile/ProfileParts";
 import { Button } from "@/components/ui/Button";
 import { CategoryTag } from "@/components/ui/CategoryTag";
 import { DarkInput, DarkTextarea } from "@/components/ui/DarkInput";
 import { FormError } from "@/components/ui/FormError";
 import { Icon } from "@/components/ui/Icon";
+import { PhotoPreview } from "@/components/ui/PhotoPreview";
 import { Switch } from "@/components/ui/Switch";
 import { MAX_CATEGORY_LENGTH } from "@/lib/categories";
-import { getPendingPhoto, setPendingPhoto } from "@/lib/image/pending-photo";
+import {
+  clearPhotoChange,
+  getPendingPhoto,
+  peekEditedPhoto,
+  peekPhotoChangeDraft,
+  savePhotoChangeDraft,
+  setPendingPhoto,
+  type PendingPhoto,
+} from "@/lib/image/pending-photo";
 import { uploadPhotoPair } from "@/lib/image/upload";
-import { inventoryPath } from "@/lib/inventory/paths";
+import { inventoryPath, itemPhotoCameraPath, itemPhotoEditPath } from "@/lib/inventory/paths";
 import type { InventoryChoice } from "@/lib/inventory/queries";
 import { hasRoom } from "@/lib/inventory/target";
 import type { ItemDetail } from "@/lib/item/queries";
@@ -34,7 +45,8 @@ type ItemFormProps = {
   inventoryId: string;
 } & (
   | {
-      // 수정 — 그 값으로 채워서 열고, 사진은 받지 않는다 — 글자 정보만 고친다. 넣을 곳 줄은 없다(옮기기는 짐싸기의 몫)
+      // 수정 — 그 값으로 채워서 연다. 맨 위 사진을 누르거나 "사진 바꾸기"로 촬영 → 사진편집을 다시 거쳐 돌아온다.
+      // 넣을 곳 줄은 없다(옮기기는 짐싸기의 몫)
       item: ItemDetail;
       // 이 인벤토리에 달린 태그. 칩으로 보여주고 하나를 고른다
       categories: string[];
@@ -50,12 +62,30 @@ type ItemFormProps = {
     }
 );
 
+// 사진 바꾸러 떠날 때 맡겨 두는 수정 화면의 값 (lib/image/pending-photo.ts)
+type ItemDraft = {
+  name: string;
+  description: string;
+  category: string;
+  quantity: number;
+  acquiredNote: string;
+  expiresAt: string;
+  isPublic: boolean;
+  // 이미 한 번 바꿔 둔 새 사진. 또 바꾸러 갔다가 닫고 오면 이것으로 돌아온다
+  photo: PendingPhoto | null;
+};
+
 // M-08 · 아이템 정보 입력. 사진은 앞 단계에서 이미 골랐고, 여기서는 넣을 곳과 글자 정보를 받는다.
 // 아이템 수정도 같은 폼이다.
 export function ItemForm(props: ItemFormProps) {
   const { userId, inventoryId, item } = props;
   const router = useRouter();
-  const [photo] = useState(getPendingPhoto);
+  const draftKey = item ? `item:${item.id}` : "";
+  // 수정 — 사진 바꾸기에서 돌아왔으면 떠나기 전 값. 새로 열었으면 null
+  const [restored] = useState(() => (item ? peekPhotoChangeDraft<ItemDraft>(draftKey) : null));
+  // 새로 넣을 때 = 앞 단계에서 고른 사진. 수정할 때 = 바꿀 새 사진 (null 이면 지금 사진 그대로).
+  // 사진편집에서 저장하기로 왔으면 그 사진, 촬영 · 사진편집을 닫고 왔으면 떠나기 전 그대로
+  const [photo] = useState(() => (item ? (restored ? (peekEditedPhoto() ?? restored.photo) : null) : getPendingPhoto()));
   // 넣을 곳 (새로 넣을 때만). 저장하려다 꽉 찼다고 돌아온 인벤토리는 판에서 꽉 찬 것으로 보인다
   const [targetId, setTargetId] = useState(props.item ? inventoryId : props.initialInventoryId);
   const [fullIds, setFullIds] = useState<string[]>([]);
@@ -68,13 +98,13 @@ export function ItemForm(props: ItemFormProps) {
   const categories = props.item ? props.categories : (target?.categories ?? []);
   const targetFull = target ? !hasRoom(target) : false;
 
-  const [name, setName] = useState(item?.name ?? "");
-  const [description, setDescription] = useState(item?.description ?? "");
-  const [category, setCategory] = useState(item?.category ?? (props.item ? "" : (props.initialCategory ?? "")));
-  const [quantity, setQuantity] = useState(item?.quantity ?? 1);
-  const [acquiredNote, setAcquiredNote] = useState(item?.acquiredNote ?? "");
-  const [expiresAt, setExpiresAt] = useState(item?.expiresAt ?? "");
-  const [isPublic, setIsPublic] = useState(item?.isPublic ?? true);
+  const [name, setName] = useState(restored?.name ?? item?.name ?? "");
+  const [description, setDescription] = useState(restored?.description ?? item?.description ?? "");
+  const [category, setCategory] = useState(restored?.category ?? item?.category ?? (props.item ? "" : (props.initialCategory ?? "")));
+  const [quantity, setQuantity] = useState(restored?.quantity ?? item?.quantity ?? 1);
+  const [acquiredNote, setAcquiredNote] = useState(restored?.acquiredNote ?? item?.acquiredNote ?? "");
+  const [expiresAt, setExpiresAt] = useState(restored?.expiresAt ?? item?.expiresAt ?? "");
+  const [isPublic, setIsPublic] = useState(restored?.isPublic ?? item?.isPublic ?? true);
   const [error, setError] = useState<string>();
   const [pending, startTransition] = useTransition();
 
@@ -83,8 +113,20 @@ export function ItemForm(props: ItemFormProps) {
     if (!item && !photo) router.replace(inventoryPath(inventoryId));
   }, [item, photo, router, inventoryId]);
 
-  // 화면을 떠나면 보관함을 비운다. 사진은 이미 위의 photo 가 들고 있다
-  useEffect(() => () => setPendingPhoto(null), []);
+  // 새로 넣을 때 — 화면을 떠나면 보관함을 비운다. 사진은 이미 위의 photo 가 들고 있다.
+  // 수정할 때 — 열리자마자 맡긴 값 · 보관함을 비운다(위에서 다 읽었다). 떠날 때는 비우지 않는다 — 컴퓨터에서 사진을 고르면
+  // 보관함에 넣고 바로 사진편집으로 가는데, 그 뒤에 이 화면이 닫힌다
+  const editing = Boolean(item);
+  useEffect(() => {
+    if (editing) return clearPhotoChange();
+    return () => setPendingPhoto(null);
+  }, [editing]);
+
+  const photoChange = usePhotoChange({
+    cameraHref: item ? itemPhotoCameraPath(item.id) : "",
+    editHref: item ? itemPhotoEditPath(item.id) : "",
+    beforeLeave: () => savePhotoChangeDraft(draftKey, { name, description, category, quantity, acquiredNote, expiresAt, isPublic, photo } satisfies ItemDraft),
+  });
 
   function changeQuantity(next: number) {
     if (Number.isNaN(next)) return;
@@ -101,7 +143,18 @@ export function ItemForm(props: ItemFormProps) {
     startTransition(async () => {
       // 성공하면 서버가 다음 화면으로 보낸다. 돌아온 값이 있으면 오류다
       if (item) {
-        const result = await updateItem(item.id, fields);
+        // 사진을 바꿨으면 새 이름으로 먼저 올린다. 옛 사진은 지우지 않는다 — 지난 INMYIN 이 그 주소를 쓰고 있을 수 있다
+        let newPhoto: Parameters<typeof updateItem>[2];
+        if (photo) {
+          const photoId = crypto.randomUUID();
+          try {
+            newPhoto = { photoId, ...(await uploadPhotoPair("items", photo, userId, photoId)) };
+          } catch {
+            setError("사진을 올리지 못했습니다. 잠시 후 다시 시도해 주세요.");
+            return;
+          }
+        }
+        const result = await updateItem(item.id, fields, newPhoto);
         if (result?.error) setError(result.error);
         return;
       }
@@ -130,6 +183,31 @@ export function ItemForm(props: ItemFormProps) {
   return (
     <form onSubmit={onSubmit} className="flex flex-1 flex-col px-5 pb-[max(3.5rem,env(safe-area-inset-bottom))]">
       <div className="mt-8 flex flex-col gap-4">
+        {/* 수정 — 맨 위 사진. 누르거나 "사진 바꾸기"로 촬영(폰) · 사진 고르기(컴퓨터) → 사진편집을 다시 거친다.
+            칸과 같은 옅은 회색 바탕 · 가운데 정사각형이라 격자에서 어떻게 보일지 그대로다 */}
+        {item && (
+          <div className="flex flex-col items-center gap-3">
+            <button
+              type="button"
+              onClick={photoChange.start}
+              aria-label="사진 바꾸기"
+              className="relative size-35 overflow-hidden rounded-xl bg-gray-1 active:opacity-80"
+            >
+              {photo ? (
+                <PhotoPreview file={photo.photo} />
+              ) : (
+                // 올릴 때 이미 작게 줄여 둔 사진이라 Next 의 이미지 최적화를 거치지 않는다
+                <Image src={item.imageUrl} alt="" fill sizes="140px" unoptimized draggable={false} className="object-cover" />
+              )}
+            </button>
+            <button type="button" onClick={photoChange.start} className={SMALL_OUTLINE_CLASS}>
+              사진 바꾸기
+            </button>
+            {photo && <p className="text-caption text-placeholder-dark">수정하기를 누르면 새 사진으로 바뀌어요.</p>}
+            {photoChange.fileInput}
+          </div>
+        )}
+
         {/* 넣을 곳 — 맨 위. 카테고리 칩이 인벤토리에 달려 있어서 넣을 곳이 먼저 정해져야 한다 (무늬 인벤토리고르기설계 v01 2-2) */}
         {target && (
           <div className="flex flex-col gap-2">

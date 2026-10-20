@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: "아이템 수정 · INMYIN" };
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
-// 아이템 수정. 정보 입력(M-08)과 같은 화면에 지금 값을 채워서 연다. 글자 정보만 고친다.
+// 아이템 수정. 정보 입력(M-08)과 같은 화면에 지금 값을 채워서 연다. 글자 정보와 사진(촬영 → 사진편집을 다시 거침)을 고친다.
 export default async function ItemUpdatePage(props: PageProps<"/items/[itemId]/edit">) {
   const profile = await requireProfile();
   const { itemId } = await props.params;

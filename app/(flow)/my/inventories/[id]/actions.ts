@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireProfile } from "@/lib/auth/profile";
+import { newPhotoPaths, type NewPhotoInput } from "@/lib/image/stored-photo";
 import type { FormState } from "@/lib/auth/rules";
 import { inventoryPath } from "@/lib/inventory/paths";
 import { cleanCategories, INVENTORY_NAME_MAX } from "@/lib/inventory/rules";
@@ -26,10 +27,17 @@ async function inventoryExists(supabase: Supabase, userId: string, inventoryId: 
   return data !== null;
 }
 
-// 인벤토리 수정. 이름 · 카테고리 태그 · 공개 여부를 고친다 — 사진은 여기서 바꾸지 않는다
-export async function updateInventory(inventoryId: string, input: { name: string; categories: string[]; isPublic: boolean }): Promise<FormState> {
+// 인벤토리 수정. 이름 · 카테고리 태그 · 공개 여부와, 바꿨으면 대표 사진을 고친다.
+// photo — 사진 바꾸기로 브라우저가 새 이름으로 먼저 올려 둔 사진. 옛 사진 파일은 지우지 않는다(저장소에 지우는 권한이 없다 — 규칙 6)
+export async function updateInventory(
+  inventoryId: string,
+  input: { name: string; categories: string[]; isPublic: boolean },
+  photo?: NewPhotoInput,
+): Promise<FormState> {
   const profile = await requireProfile();
   if (!UUID_PATTERN.test(inventoryId)) return BAD_REQUEST;
+  const paths = photo ? newPhotoPaths(profile.id, photo) : null;
+  if (photo && !paths) return BAD_REQUEST;
 
   const name = typeof input.name === "string" ? input.name.trim() : "";
   if (!name) return { error: "인벤토리 이름을 입력해 주세요." };
@@ -50,7 +58,16 @@ export async function updateInventory(inventoryId: string, input: { name: string
 
   const { error } = await supabase
     .from("inventories")
-    .update({ name, categories, is_public: input.isPublic !== false })
+    .update({
+      name,
+      categories,
+      is_public: input.isPublic !== false,
+      ...(paths && {
+        image_url: supabase.storage.from("inventories").getPublicUrl(paths.path).data.publicUrl,
+        // 원본은 비공개 저장소라 주소 대신 경로를 적어 둔다 (만들 때와 같다)
+        raw_image_url: paths.rawPath,
+      }),
+    })
     .eq("id", inventory.id)
     .eq("user_id", profile.id);
   if (error) return { error: "저장하지 못했습니다. 잠시 후 다시 시도해 주세요." };
@@ -63,6 +80,8 @@ export async function updateInventory(inventoryId: string, input: { name: string
   }
 
   revalidateInventory(inventory.id);
+  // 대표 사진은 프로필 띠 · 넣을 곳 줄 · 담긴 칸에도 보인다
+  if (paths) revalidatePath("/my", "layout");
   redirect("/my/inventories");
 }
 

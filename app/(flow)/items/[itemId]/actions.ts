@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireProfile } from "@/lib/auth/profile";
+import { newPhotoPaths, type NewPhotoInput } from "@/lib/image/stored-photo";
 import type { FormState } from "@/lib/auth/rules";
 import { inventoryPath, itemPath } from "@/lib/inventory/paths";
 import { cleanItemFields, type ItemFieldsInput } from "@/lib/item/rules";
@@ -25,10 +26,14 @@ async function itemExists(supabase: Awaited<ReturnType<typeof createClient>>, us
   return data !== null;
 }
 
-// 아이템 수정. 글자 정보만 고친다 — 사진과 들어 있는 인벤토리는 여기서 바꾸지 않는다
-export async function updateItem(itemId: string, input: ItemFieldsInput): Promise<FormState> {
+// 아이템 수정. 글자 정보와, 바꿨으면 사진 — 들어 있는 인벤토리는 여기서 바꾸지 않는다(짐싸기의 몫).
+// photo — 사진 바꾸기로 브라우저가 새 이름으로 먼저 올려 둔 사진. 옛 사진 파일은 지우지 않는다:
+// 저장소에 지우는 권한이 없고(삭제는 deleted_at 기록뿐 — 규칙 6), 지난 INMYIN 의 캔버스가 옛 주소를 쓰고 있을 수 있다
+export async function updateItem(itemId: string, input: ItemFieldsInput, photo?: NewPhotoInput): Promise<FormState> {
   const profile = await requireProfile();
   if (!UUID_PATTERN.test(itemId)) return BAD_REQUEST;
+  const paths = photo ? newPhotoPaths(profile.id, photo) : null;
+  if (photo && !paths) return BAD_REQUEST;
 
   const cleaned = cleanItemFields(input);
   if ("error" in cleaned) return { error: cleaned.error };
@@ -46,10 +51,23 @@ export async function updateItem(itemId: string, input: ItemFieldsInput): Promis
   const categoryMessage = await addCategoryToInventory(supabase, item.inventories, cleaned.fields.category);
   if (categoryMessage) return { error: categoryMessage };
 
-  const { error } = await supabase.from("items").update(cleaned.fields).eq("id", item.id).eq("user_id", profile.id);
+  const photoFields = paths
+    ? {
+        image_url: supabase.storage.from("items").getPublicUrl(paths.path).data.publicUrl,
+        // 원본은 비공개 저장소라 주소 대신 경로를 적어 둔다 (등록과 같다)
+        raw_image_url: paths.rawPath,
+      }
+    : {};
+  const { error } = await supabase
+    .from("items")
+    .update({ ...cleaned.fields, ...photoFields })
+    .eq("id", item.id)
+    .eq("user_id", profile.id);
   if (error) return { error: "저장하지 못했습니다. 잠시 후 다시 시도해 주세요." };
 
   revalidateItem(item.id, item.inventory_id);
+  // 사진은 프로필 격자 · 아이템 탭에도 보인다
+  if (paths) revalidatePath("/my", "layout");
   // 고친 결과를 바로 볼 수 있게 상세로 돌아간다
   redirect(itemPath(item.id));
 }
