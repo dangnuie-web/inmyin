@@ -6,11 +6,13 @@ import { Button } from "@/components/ui/Button";
 import { HeaderMini } from "@/components/ui/HeaderMini";
 import { Icon } from "@/components/ui/Icon";
 import { PhotoPreview } from "@/components/ui/PhotoPreview";
+import { CutoutLoading, cutoutStyle, type CutoutLoadingPhase } from "./CutoutLoading";
 import { CutoutRetouch } from "./CutoutRetouch";
 import { Toast } from "@/components/ui/Toast";
 import { removeBackground } from "@/lib/background-removal";
 import { analyze, autoAdjust, buildLuts, isIdentity, NO_AUTO, NO_MANUAL, type AutoAdjust, type ManualAdjust } from "@/lib/image/adjust";
 import { adjustedFile, drawAdjusted, loadPixels } from "@/lib/image/adjust-canvas";
+import { MODEL_READY_KEY, saveWaitMs, type CutoutProgress } from "@/lib/image/cutout-motion";
 import { getPendingPhoto, setPendingPhoto } from "@/lib/image/pending-photo";
 
 type PhotoEditorProps = {
@@ -27,6 +29,9 @@ const SLIDERS: { key: keyof ManualAdjust; label: string; low: string; high: stri
   { key: "temperature", label: "색온도", low: "파랗게", high: "노랗게" },
   { key: "tint", label: "색조", low: "녹색", high: "자주색" },
 ];
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const reducedMotion = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 // 배경 지우기의 진행 — idle 아직 안 함 · running 지우는 중 · done 지움 · failed 못 지움
 type CutoutStatus = "idle" | "running" | "done" | "failed";
@@ -58,6 +63,13 @@ export function PhotoEditor({ closeHref, nextHref }: PhotoEditorProps) {
   const removedRef = useRef(true);
   // 화면을 떠난 뒤 늦게 끝난 결과는 버린다
   const aliveRef = useRef(true);
+  // 지우는 동안의 연출(M-07, 무늬 누끼로딩설계 v01 B안) — 이번 지우기의 시작 때와 라이브러리가 준 진행률
+  const [run, setRun] = useState({ id: 0, startedAt: 0 });
+  const progressRef = useRef<CutoutProgress | null>(null);
+  // 다 지운 뒤 원래 사진 층을 걷히는 동안 누끼 위에 남겨 둔다 — 뚝 바뀌지 않게
+  const [revealing, setRevealing] = useState(false);
+  // 처음 모델을 받는 중인지 — 한 번 성공하면 다음부터는 "처음 한 번만…"을 안 쓴다
+  const [firstTime] = useState(() => typeof window !== "undefined" && window.localStorage.getItem(MODEL_READY_KEY) === null);
   const [notice, setNotice] = useState<string | null>(null);
   const hideNotice = useCallback(() => setNotice(null), []);
 
@@ -83,12 +95,21 @@ export function PhotoEditor({ closeHref, nextHref }: PhotoEditorProps) {
   const startRemoval = useCallback(() => {
     if (!pending || runningRef.current) return;
     setCutoutStatus("running");
-    runningRef.current = removeBackground(pending.photo)
+    progressRef.current = null;
+    setRun((current) => ({ id: current.id + 1, startedAt: performance.now() }));
+    runningRef.current = removeBackground(pending.photo, (progress) => {
+      progressRef.current = progress;
+    })
       .then((blob) => {
         const file = new File([blob], "cutout.png", { type: blob.type });
+        try {
+          window.localStorage.setItem(MODEL_READY_KEY, "1");
+        } catch {}
         if (aliveRef.current) {
           setCutout(file);
           setCutoutStatus("done");
+          // 켜져 있으면 테두리가 닫히고 배경이 걷힌다. 꺼 두었으면 다시 켤 때
+          if (removedRef.current) setRevealing(true);
         }
         return file;
       })
@@ -117,12 +138,20 @@ export function PhotoEditor({ closeHref, nextHref }: PhotoEditorProps) {
   // 순서: 배경 지우기 → 손질 → 보정(98번). 보정은 손질한 결과 위에 입힌다
   const source = pending ? (removed && cutout ? (retouched ?? cutout) : pending.photo) : null;
 
+  // 원래 사진의 픽셀 — 걷히는 층도 보정이 켜져 있으면 보정본이어야 색이 튀지 않는다
+  const [originalPixels, setOriginalPixels] = useState<ImageData | null>(null);
+  const revealCanvasRef = useRef<HTMLCanvasElement>(null);
+
   // 자동 보정 값 정하기 (사진마다 한 번)
   useEffect(() => {
     if (!pending) return;
     let alive = true;
     loadPixels(pending.photo)
-      .then((pixels) => alive && setAuto(autoAdjust(analyze(pixels.data))))
+      .then((pixels) => {
+        if (!alive) return;
+        setOriginalPixels(pixels);
+        setAuto(autoAdjust(analyze(pixels.data)));
+      })
       .catch(() => alive && setAuto(NO_AUTO));
     return () => {
       alive = false;
@@ -150,16 +179,25 @@ export function PhotoEditor({ closeHref, nextHref }: PhotoEditorProps) {
     if (ready && base && canvasRef.current) drawAdjusted(canvasRef.current, base.pixels, luts);
   }, [ready, base, luts]);
 
+  const revealAdjusted = adjusting && originalPixels !== null;
+  useEffect(() => {
+    if (revealAdjusted && originalPixels && revealCanvasRef.current) drawAdjusted(revealCanvasRef.current, originalPixels, luts);
+  }, [revealAdjusted, originalPixels, luts]);
+
   if (!pending || !source) return null;
   const photo = source;
+  const loadingPhase: CutoutLoadingPhase = removed && revealing ? "closing" : removing ? "waiting" : "hidden";
 
   function onToggleBackground() {
     if (removed) {
       // 저장을 기다리던 중이면, 기다리던 저장은 원래 사진으로 이어진다
       setRemovedBoth(false);
+      setRevealing(false);
       return;
     }
     setRemovedBoth(true);
+    // 이미 지워 두었으면 다시 켤 때마다 걷힘을 한 번 보여준다(당니님 결정 5) — 뚝 바뀌지 않게
+    if (cutoutStatus === "done") setRevealing(true);
     // 못 지웠던 사진은 다시 해 본다
     if (cutoutStatus === "failed" || cutoutStatus === "idle") startRemoval();
   }
@@ -174,9 +212,14 @@ export function PhotoEditor({ closeHref, nextHref }: PhotoEditorProps) {
       setSaveQueued(true);
       const file = await runningRef.current;
       if (!aliveRef.current) return;
-      setSaveQueued(false);
       // 못 지웠으면 화면에 알림을 띄운 채 머문다 — 원래 사진으로 저장하려면 저장하기를 한 번 더
-      if (!file) return;
+      if (!file) return setSaveQueued(false);
+      // 배경이 걷히는 것과 누끼를 한 번은 보고 넘어간다(당니님 결정 3) — 걷힘은 빠르게, 누끼는 잠깐 머묾
+      if (removedRef.current) {
+        await sleep(saveWaitMs(reducedMotion()));
+        if (!aliveRef.current) return;
+      }
+      setSaveQueued(false);
       thumbnail = removedRef.current ? file : pending.photo;
     }
     if (adjusting) {
@@ -214,15 +257,13 @@ export function PhotoEditor({ closeHref, nextHref }: PhotoEditorProps) {
               aria-pressed={removed}
               aria-busy={removing}
               className="flex items-center gap-2.5 text-label font-bold active:opacity-80 disabled:opacity-40"
+              style={cutoutStyle(saveQueued)}
             >
               배경제거
               {/* 꺼짐 = 회색 원 + 선 별, 켜짐 = 흰 원 + 채운 별 (보라 대신 — 무늬 아이콘 설계 v01 4절) */}
-              <span
-                className={`flex size-11.5 items-center justify-center rounded-full text-ink ${removed ? "bg-white" : "bg-gray-3"} ${
-                  removing ? "animate-pulse" : ""
-                }`}
-              >
-                <Icon name={removed ? "sparkleFilled" : "sparkle"} />
+              {/* 지우는 동안엔 작은 별만 반짝인다(당니님 결정 4 — 버튼 전체 깜빡임은 뺌) */}
+              <span className={`flex size-11.5 items-center justify-center rounded-full text-ink ${removed ? "bg-white" : "bg-gray-3"}`}>
+                <Icon name={removing ? "sparkleBusy" : removed ? "sparkleFilled" : "sparkle"} />
               </span>
             </button>
           }
@@ -230,20 +271,35 @@ export function PhotoEditor({ closeHref, nextHref }: PhotoEditorProps) {
 
         <div className="flex flex-1 items-center px-3 py-6">
           {/* 칸과 같은 옅은 회색 바탕 · 같은 자르기(가운데 정사각형)로 보여준다 — 격자에서 어떻게 보일지 그대로다 */}
-          <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-gray-1">
-            <PhotoPreview file={photo} className={removing || working ? "animate-pulse" : ""} />
+          <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-gray-1" style={cutoutStyle(saveQueued)}>
+            <PhotoPreview file={photo} className={working ? "animate-pulse" : ""} />
             {/* 보정한 모습. 저장되는 썸네일과 같은 계산 · 같은 크기(긴 변 640)다 */}
             <canvas
               ref={canvasRef}
               aria-hidden
-              className={`absolute inset-0 size-full object-cover ${ready ? "" : "hidden"} ${removing || working ? "animate-pulse" : ""}`}
+              className={`absolute inset-0 size-full object-cover ${ready ? "" : "hidden"} ${working ? "animate-pulse" : ""}`}
             />
-            {removing && (
-              <p role="status" className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-dropdown text-center text-label">
-                <span className="font-bold">배경을 지우는 중…</span>
-                <span className="text-caption">{saveQueued ? "다 지우면 바로 넘어가요." : "처음에는 시간이 조금 걸려요."}</span>
-              </p>
-            )}
+            {/* 걷히는 원래 사진 층 — 늘 붙여 두어(안 보이게) 걷힐 때 사진을 새로 읽느라 비는 틈이 없다.
+                다 걷히면(onAnimationEnd) 다시 안 보이게 */}
+            <div
+              aria-hidden
+              className={`absolute inset-0 ${revealing && removed ? "cutout-reveal" : "invisible"}`}
+              onAnimationEnd={(event) => {
+                if (event.target === event.currentTarget) setRevealing(false);
+              }}
+            >
+              <PhotoPreview file={pending.photo} />
+              <canvas ref={revealCanvasRef} className={`absolute inset-0 size-full object-cover ${revealAdjusted ? "" : "hidden"}`} />
+            </div>
+            <CutoutLoading
+              key={run.id}
+              phase={loadingPhase}
+              running={cutoutStatus === "running"}
+              startedAt={run.startedAt}
+              progressRef={progressRef}
+              firstTime={firstTime}
+              saveQueued={saveQueued}
+            />
             {/* 못 지웠으면 원래 사진 그대로 두고, 사진 아래쪽에 알린다. 배경제거를 다시 누르면 다시 해 본다 */}
             {cutoutStatus === "failed" && !removed && (
               <p role="status" className="absolute inset-x-0 bottom-3 mx-auto w-fit rounded-full bg-dropdown px-4 py-2 text-caption text-white">
@@ -267,12 +323,13 @@ export function PhotoEditor({ closeHref, nextHref }: PhotoEditorProps) {
               자동 보정
             </button>
             {/* 배경을 지운 사진이 보일 때만 — 덜 지운 곳 · 너무 지운 곳을 붓으로 손본다 */}
-            {removed && cutout && (
+            {removed && cutout && !revealing && (
               <button
                 type="button"
                 onClick={() => setRetouching(true)}
                 disabled={working || saveQueued}
-                className="ml-2 flex h-9 items-center gap-1 rounded-full border border-gray-4 px-3.5 text-label font-bold text-white active:opacity-80 disabled:opacity-40"
+                style={cutoutStyle(saveQueued)}
+                className="cutout-fade-in ml-2 flex h-9 items-center gap-1 rounded-full border border-gray-4 px-3.5 text-label font-bold text-white active:opacity-80 disabled:opacity-40"
               >
                 <Icon name="eraser" scale={0.75} />
                 손질

@@ -271,6 +271,16 @@ const ICONS = {
       </>
     ),
   },
+  // 배경을 지우는 동안 — 켜짐과 같고 작은 별만 반짝인다(globals.css .cutout-twinkle, 무늬 누끼로딩설계 v01 6절 5)
+  sparkleBusy: {
+    size: 24,
+    body: (
+      <>
+        <path d={SPARKLE_BIG} fill="currentColor" {...LINE} />
+        <path d={SPARKLE_SMALL} fill="currentColor" className="cutout-twinkle" />
+      </>
+    ),
+  },
   // 누끼 손질의 지우개 — 무늬 세트 v01 SVG 의 다른 안 "eraser"(지우개 + 바닥 선) 그대로
   eraser: {
     size: 24,

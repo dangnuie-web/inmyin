@@ -1,3 +1,4 @@
+import { newProgressTracker, trackProgress, type CutoutProgress } from "@/lib/image/cutout-motion";
 import { resizeImage, THUMBNAIL_MAX_SIDE } from "@/lib/image/resize";
 
 // 사진에서 물건만 남기고 배경을 지운다. 돌려주는 것은 배경이 투명한 PNG 다.
@@ -8,11 +9,16 @@ import { resizeImage, THUMBNAIL_MAX_SIDE } from "@/lib/image/resize";
 //
 // 이 라이브러리는 AGPL-3.0 이다. 그래서 INMYIN 의 소스코드도 AGPL 로 공개한다 (README.md).
 // 라이선스가 자유로운 다른 모델로 갈아타면 그때 다시 비공개로 돌릴 수 있다 (docs/roadmap.md "나중에 할 일")
-export async function removeBackground(file: File): Promise<Blob> {
+//
+// onProgress 는 진행률(0~1, 줄어들지 않음)을 받는다 — 내려받기 80% + 계산 네 단계 20%. 계산 중엔 한참 멈춘다(설계서 2절)
+export async function removeBackground(file: File, onProgress?: (progress: CutoutProgress) => void): Promise<Blob> {
   // 썸네일 크기로 먼저 줄인다 — 어차피 그 크기로 저장되고, 큰 사진은 폰에서 느리고 메모리가 모자란다
   const small = await resizeImage(file, THUMBNAIL_MAX_SIDE);
 
   // 쓸 때에야 불러온다. 라이브러리가 커서, 미리 불러오면 모든 화면이 느려진다
   const { removeBackground: run } = await import("@imgly/background-removal");
-  return run(small);
+  const tracker = newProgressTracker();
+  return run(small, {
+    progress: onProgress ? (key, current, total) => onProgress(trackProgress(tracker, key, current, total)) : undefined,
+  });
 }
