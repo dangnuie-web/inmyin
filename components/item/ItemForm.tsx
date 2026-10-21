@@ -275,7 +275,7 @@ export function ItemForm(props: ItemFormProps) {
                 const selected = tag === category.trim();
                 return (
                   <li key={tag}>
-                    <CategoryTag size="sm" label={tag} selected={selected} onClick={() => setCategory(selected ? "" : tag)} />
+                    <CategoryTag size="sm" tone="dark" label={tag} selected={selected} onClick={() => setCategory(selected ? "" : tag)} />
                   </li>
                 );
               })}

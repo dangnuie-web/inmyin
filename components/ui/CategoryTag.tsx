@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
 import { LinkPending } from "@/components/ui/LinkPending";
+import { CATEGORY_TAG_TEXT_TONES, type CategoryTagTone } from "@/lib/category-tag-tone";
 
 type CategoryTagProps = {
   label: string;
@@ -14,6 +15,9 @@ type CategoryTagProps = {
   onRemove?: () => void;
   // sm 은 정보 입력 화면용. 태그가 여러 줄로 쌓이는 곳이라 한 줄에 4~5개가 들어가게 작다
   size?: keyof typeof SIZES;
+  // 어두운 화면(bg-surface-dark — 정보 입력 · 수정)에 놓일 때. 글자 칩의 검정이 안 보여서 고름 = 흰 굵게, 기본 = 밝은 회색(placeholder-dark).
+  // 흑백 규칙 그대로 — 색이 아니라 밝기 · 굵기로 가른다. 상자 칩(편집 태그 · 표시)은 밝은 상자라 어두운 바탕에서도 읽혀서 그대로
+  tone?: CategoryTagTone;
 };
 
 const SIZES = {
@@ -21,13 +25,13 @@ const SIZES = {
   sm: { base: "gap-0.5 py-0.5 text-caption", plain: "px-3", removable: "pl-3 pr-1", remove: "px-1.5", x: 0.5 },
 };
 
-export function CategoryTag({ label, selected = true, href, onClick, onRemove, size = "md" }: CategoryTagProps) {
+export function CategoryTag({ label, selected = true, href, onClick, onRemove, size = "md", tone = "light" }: CategoryTagProps) {
   const sizes = SIZES[size];
   const base = `flex shrink-0 items-center justify-center whitespace-nowrap ${sizes.base}`;
   const boxClass = `${base} rounded-md border border-border font-semibold ${selected ? "bg-gray-2 text-ink" : "bg-white text-ink-muted"} ${
     onRemove ? sizes.removable : sizes.plain
   }`;
-  const textClass = `${base} ${selected ? "font-bold text-ink" : "font-medium text-ink-muted"}`;
+  const textClass = `${base} ${CATEGORY_TAG_TEXT_TONES[tone][selected ? "selected" : "plain"]}`;
   const className = href || onClick ? textClass : boxClass;
 
   if (onRemove) {
