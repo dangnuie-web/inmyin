@@ -170,10 +170,13 @@ export function CameraScreen({ closeHref, nextHref }: CameraScreenProps) {
             </p>
           )}
           {status === "blocked" && (
+            // 아이폰은 한 번 거절되면 한동안 묻지도 않고 거절한다 — 앱을 다시 열거나 사파리 카메라 설정을 바꾸게 안내 (2026-10-21 당니님)
             <p className="break-keep px-8 text-center text-label">
               카메라를 쓸 수 없어요.
               <br />
-              설정에서 카메라를 허용하거나, 아래 갤러리 버튼으로 사진을 골라 주세요.
+              {isIos()
+                ? "앱을 완전히 닫았다 다시 열거나, 아이폰 설정 › 앱 › Safari › 카메라를 “허용”으로 바꿔 주세요. 아래 갤러리로 골라도 돼요."
+                : "설정에서 카메라를 허용하거나, 아래 갤러리 버튼으로 사진을 골라 주세요."}
             </p>
           )}
         </div>
@@ -208,4 +211,10 @@ export function CameraScreen({ closeHref, nextHref }: CameraScreenProps) {
       <Toast message={notice} onDone={hideNotice} />
     </main>
   );
+}
+
+// 아이폰 · 아이패드인지 (아이패드는 데스크톱 사이트 모드라 맥처럼 보여서 터치로 가린다 — lib/install-guide.ts 와 같은 기준). 브라우저에서만 부른다
+function isIos() {
+  const ua = navigator.userAgent;
+  return /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
 }
