@@ -16,7 +16,7 @@ export default async function MyPostsPage() {
   return (
     <ProfileShell {...myShellProps(profile, stats)} tab="inmyin">
       <div className="flex flex-1 flex-col pt-1 lg:mx-5 lg:mt-4 lg:rounded-xl lg:bg-gray-1 lg:pt-2 lg:pb-4">
-        <PostGrid posts={posts} empty={{ text: "아직 INMYIN이 없어요.", action: { label: "INMYIN 만들기", href: "/my/inmyin/new" } }} note={`${posts.length}개`} />
+        <PostGrid posts={posts} empty={{ text: "아직 INMYIN이 없어요.", action: { label: "INMYIN 만들기", href: "/my/inmyin/new" } }} note={`${posts.length}개`} addHref="/my/inmyin/new" />
       </div>
     </ProfileShell>
   );
