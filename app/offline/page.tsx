@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import { STACKED_LOGO_LETTER, STACKED_LOGO_SRC, stackedLogoSize } from "@/lib/logo";
 
 export const metadata: Metadata = {
   title: "오프라인 · INMYIN",
   robots: { index: false },
 };
+
+// 세로 로고 크기 — 숫자는 lib/logo.ts 의 STACKED_LOGO_LETTER.offline
+const logo = stackedLogoSize(STACKED_LOGO_LETTER.offline);
 
 // 인터넷이 끊겨서 화면을 못 열 때 서비스워커(app/sw.ts)가 대신 보여주는 화면.
 // 빌드할 때 미리 저장되므로 (app/serwist/[path]/route.ts) 서버 없이 뜬다 — 그래서 로그인 정보도, 데이터도 안 쓴다.
@@ -12,7 +16,7 @@ export const metadata: Metadata = {
 export default function OfflinePage() {
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-8 px-5 pb-10 pt-20 text-center">
-      <Image src="/logo.svg" alt="INMYIN" width={132} height={44} priority />
+      <Image src={STACKED_LOGO_SRC} alt="INMYIN" width={Math.round(logo.width)} height={Math.round(logo.height)} priority />
       <div className="flex flex-col gap-2">
         <h1 className="text-title font-bold">인터넷이 연결되어 있지 않아요</h1>
         <p className="text-body text-ink-muted">연결되면 다시 시도해 주세요. 저장해 둔 내 물건은 그대로 있어요.</p>

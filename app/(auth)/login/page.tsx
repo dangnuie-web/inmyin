@@ -5,8 +5,12 @@ import { SocialButtons } from "@/components/auth/SocialButtons";
 import { FormError } from "@/components/ui/FormError";
 import { NEXT_PARAM, safeNext } from "@/lib/auth/paths";
 import { CONTACT_EMAIL } from "@/lib/contact";
+import { STACKED_LOGO_LETTER, STACKED_LOGO_SRC, stackedLogoSize } from "@/lib/logo";
 
 export const metadata: Metadata = { title: "로그인 · INMYIN" };
+
+// 세로 로고 크기 — 숫자는 lib/logo.ts 의 STACKED_LOGO_LETTER.login
+const logo = stackedLogoSize(STACKED_LOGO_LETTER.login);
 
 // A-01 · 로그인. ?next= 가 있으면 로그인한 뒤 그 화면으로 돌아간다 (구경하다 하트 · 팔로우 · 댓글을 눌러 온 경우)
 export default async function LoginPage({
@@ -21,7 +25,7 @@ export default async function LoginPage({
     <div className="flex flex-1 flex-col">
       <div className="my-auto flex flex-col gap-12 pb-24">
         <h1 className="flex justify-center">
-          <Image src="/logo.svg" alt="INMYIN" width={132} height={44} priority />
+          <Image src={STACKED_LOGO_SRC} alt="INMYIN" width={Math.round(logo.width)} height={Math.round(logo.height)} priority />
         </h1>
 
         <div className="flex flex-col gap-3">
