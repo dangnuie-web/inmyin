@@ -31,6 +31,8 @@ export type InventoryDetail = {
   id: string;
   name: string;
   categories: string[];
+  // 고정 카테고리(홈 · 발견 칩). 기존 인벤토리는 null — 한 번 골라 달라고 안내한다
+  category: string | null;
   slotCount: number;
   // 남에게 보이는가. 꺼져 있으면 안의 아이템까지 통째로 숨는다
   isPublic: boolean;
@@ -54,7 +56,7 @@ export async function getMyInventoryDetail(
   const [inventory, itemRows, children] = await Promise.all([
     supabase
       .from("inventories")
-      .select("id, name, categories, slot_count, is_public")
+      .select("id, name, categories, category, slot_count, is_public")
       .eq("id", inventoryId)
       .eq("user_id", userId)
       .is("deleted_at", null)
@@ -103,6 +105,7 @@ export async function getMyInventoryDetail(
     id: inventory.data.id,
     name: inventory.data.name,
     categories: inventory.data.categories,
+    category: inventory.data.category,
     isPublic: inventory.data.is_public,
     slotCount: inventory.data.slot_count,
     entries: entries.map(({ entry }) => entry),

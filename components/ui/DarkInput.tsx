@@ -1,4 +1,5 @@
 import { useId, type ComponentProps, type ReactNode } from "react";
+import { Icon } from "@/components/ui/Icon";
 
 // 어두운 화면(M-08 정보 입력) 위의 입력칸들. 밝은 화면에서는 Input 을 쓴다.
 
@@ -49,6 +50,38 @@ export function DarkInput({ label, layout, trailing, dropdown, id, className = "
   );
 }
 
+type DarkSelectProps = {
+  label: string;
+  // 고른 값. 없으면 placeholder 를 흐리게
+  value: string | null;
+  placeholder: string;
+  isOpen: boolean;
+  onToggle: () => void;
+  // 열렸을 때 아래에 띄울 목록 (DarkDropdown)
+  dropdown: ReactNode;
+};
+
+// 정해진 것 중에서 고르는 칸 (인벤토리의 고정 카테고리). DarkInput 과 같은 틀 · 같은 화살표, 칸 전체가 버튼
+export function DarkSelect({ label, value, placeholder, isOpen, onToggle, dropdown }: DarkSelectProps) {
+  const id = useId();
+  return (
+    <DarkField label={label} htmlFor={id}>
+      <button
+        id={id}
+        type="button"
+        onClick={onToggle}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        className="flex h-12.5 w-full items-center gap-2 rounded-md bg-field-dark pl-4 pr-3 text-left active:opacity-80"
+      >
+        <span className={`min-w-0 flex-1 truncate ${value ? "text-body text-white" : "text-caption text-placeholder-dark"}`}>{value ?? placeholder}</span>
+        <Icon name="dropdown" className={`shrink-0 ${isOpen ? "rotate-180" : ""}`} />
+      </button>
+      {isOpen && dropdown}
+    </DarkField>
+  );
+}
+
 type DarkTextareaProps = ComponentProps<"textarea"> & { label: string };
 
 export function DarkTextarea({ label, id, className = "", ...props }: DarkTextareaProps) {
@@ -78,11 +111,13 @@ export function DarkDropdown({ children }: { children: ReactNode }) {
   );
 }
 
-export function DarkDropdownOption({ children, onSelect }: { children: ReactNode; onSelect: () => void }) {
+// selected — 지금 고른 것(DarkSelect). 굵게 + 오른쪽 ✓ (흑백 규칙: 색 대신 굵기)
+export function DarkDropdownOption({ children, onSelect, selected = false }: { children: ReactNode; onSelect: () => void; selected?: boolean }) {
   return (
-    <li role="option" aria-selected={false}>
-      <button type="button" onClick={onSelect} className="w-full px-4 py-2 text-left active:opacity-60">
+    <li role="option" aria-selected={selected}>
+      <button type="button" onClick={onSelect} className={`flex w-full items-center justify-between px-4 py-2 text-left active:opacity-60 ${selected ? "font-bold" : ""}`}>
         {children}
+        {selected && <Icon name="check24" scale={0.75} />}
       </button>
     </li>
   );

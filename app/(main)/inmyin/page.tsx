@@ -6,9 +6,9 @@ import { CategoryTag } from "@/components/ui/CategoryTag";
 import { ChipRow } from "@/components/ui/ChipRow";
 import { EmptyBag, EmptyLine } from "@/components/ui/EmptyBag";
 import { getViewer } from "@/lib/auth/profile";
+import { FIXED_CATEGORIES, isFixedCategory } from "@/lib/categories";
 import { postFeedPath, type PostSort } from "@/lib/inmyin/paths";
 import { getPostFeed } from "@/lib/inmyin/queries";
-import { getPopularCategories } from "@/lib/item/queries";
 import { hasUnreadNotifications } from "@/lib/notification/queries";
 import { StickyTop } from "@/components/ui/StickyTop";
 
@@ -19,17 +19,16 @@ const SORTS: { id: PostSort; label: string }[] = [
   { id: "latest", label: "최신순" },
 ];
 
-// H-03 · 홈 › INMYIN 목록. 모든 사람의 게시물을 카드로. 카테고리(게시물에 든 아이템의 태그)와 정렬은 주소(?category=&sort=)에 실어 서버가 거른다.
-// 피그마 웹은 카테고리를 동그란 사진 칩으로 그렸지만, 폰의 H-01 과 같은 칩(CategoryTag)으로 맞췄다 — 태그마다 대표 사진이 없다
+// H-03 · 홈 › INMYIN 목록. 모든 사람의 게시물을 카드로. 카테고리(고정 8개 — 게시물에 든 아이템의 인벤토리 카테고리)와 정렬은 주소(?category=&sort=)에 실어 서버가 거른다.
+// 피그마 웹은 카테고리를 동그란 사진 칩으로 그렸지만, 폰의 H-01 과 같은 칩(CategoryTag)으로 맞췄다 — 카테고리마다 대표 사진이 없다
 // 로그인 없이도 열린다 (구경)
 export default async function InmyinFeedPage(props: PageProps<"/inmyin">) {
   const profile = await getViewer();
   const searchParams = await props.searchParams;
-  const category = typeof searchParams.category === "string" && searchParams.category ? searchParams.category : null;
+  const category = isFixedCategory(searchParams.category) ? searchParams.category : null;
   const sort: PostSort = searchParams.sort === "popular" ? "popular" : "latest";
 
-  const [posts, categories, unread] = await Promise.all([getPostFeed({ category, sort }), getPopularCategories(), profile ? hasUnreadNotifications() : false]);
-  const chips = category && !categories.includes(category) ? [category, ...categories] : categories;
+  const [posts, unread] = await Promise.all([getPostFeed({ category, sort }), profile ? hasUnreadNotifications() : false]);
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col lg:max-w-web">
@@ -40,7 +39,7 @@ export default async function InmyinFeedPage(props: PageProps<"/inmyin">) {
       <div className="mt-5 flex items-center gap-2.5 pl-5">
         <ChipRow>
           <CategoryTag label="전체" selected={category === null} href={postFeedPath({ sort })} />
-          {chips.map((tag) => (
+          {FIXED_CATEGORIES.map((tag) => (
             <CategoryTag key={tag} label={tag} selected={category === tag} href={postFeedPath({ category: tag, sort })} />
           ))}
         </ChipRow>
@@ -61,7 +60,7 @@ export default async function InmyinFeedPage(props: PageProps<"/inmyin">) {
       {posts.length === 0 ? (
         // 태그로 걸러서 0개면 비어 있는 게 아니라 거른 것 — 가방 없이 글 한 줄 (무늬 빈화면프로필설계 v01 4-1)
         category ? (
-          <EmptyLine>이 태그의 INMYIN이 아직 없어요.</EmptyLine>
+          <EmptyLine>이 카테고리의 INMYIN이 아직 없어요.</EmptyLine>
         ) : (
           <EmptyBag action={{ label: "INMYIN 만들기", href: "/my/inmyin/new" }}>아직 INMYIN이 없어요. 내 아이템으로 첫 INMYIN을 만들어 보세요.</EmptyBag>
         )

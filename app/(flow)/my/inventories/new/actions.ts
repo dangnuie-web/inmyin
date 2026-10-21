@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { inventoryPath } from "@/lib/inventory/paths";
 import { requireProfile } from "@/lib/auth/profile";
 import type { FormState } from "@/lib/auth/rules";
+import { isFixedCategory } from "@/lib/categories";
 import { cleanCategories, INVENTORY_NAME_MAX } from "@/lib/inventory/rules";
 import { planLimits } from "@/lib/plans";
 import { createClient } from "@/lib/supabase/server";
@@ -17,6 +18,9 @@ export type NewInventoryInput = {
   // 브라우저가 미리 정한 id. 사진을 먼저 올려야 해서 파일 이름에 이 id 를 쓴다
   id: string;
   name: string;
+  // 고정 카테고리(홈 · 발견 칩). 8개 중 하나, 꼭 고른다
+  category: string | null;
+  // 자유 태그
   categories: string[];
   // 남에게 보일지. 꺼져 있으면 안의 아이템까지 통째로 숨는다
   isPublic: boolean;
@@ -36,8 +40,9 @@ export async function createInventory(input: NewInventoryInput): Promise<FormSta
     return { error: `인벤토리 이름은 ${INVENTORY_NAME_MAX}자까지 쓸 수 있어요.` };
   }
 
+  if (!isFixedCategory(input.category)) return { error: "카테고리를 골라 주세요." };
   const categories = cleanCategories(input.categories);
-  if (!categories) return { error: "카테고리를 다시 확인해 주세요." };
+  if (!categories) return { error: "태그를 다시 확인해 주세요." };
 
   if (!UUID_PATTERN.test(input.id) || !IMAGE_EXTENSIONS.includes(input.imageExtension) || !IMAGE_EXTENSIONS.includes(input.rawImageExtension)) {
     return { error: "잘못된 요청입니다. 처음부터 다시 시도해 주세요." };
@@ -64,6 +69,7 @@ export async function createInventory(input: NewInventoryInput): Promise<FormSta
     id: input.id,
     user_id: profile.id,
     name,
+    category: input.category,
     categories,
     slot_count: slotCount,
     sort_order: count ?? 0,

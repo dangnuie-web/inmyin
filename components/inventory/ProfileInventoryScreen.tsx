@@ -98,6 +98,7 @@ export function ProfileInventoryScreen(props: ProfileInventoryScreenProps) {
                 inventoryId={inventory.id}
                 name={inventory.name}
                 isPublic={inventory.isPublic}
+                needsCategory={inventory.category === null}
                 controls={controls}
                 filtered={category !== null}
                 inventories={inventories}

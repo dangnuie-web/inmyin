@@ -38,7 +38,7 @@ export const RAW_MAX_SIDE = 1280;
 export const AVATAR_MAX_SIDE = 320;
 const WEBP_QUALITY = 85;
 
-// 오피스 로드맵 3단계 "카테고리 고정 8개". 아직 DB 칸이 없어서 설정에만 받아 두고 넣지는 않는다
+// lib/categories.ts FIXED_CATEGORIES · DB inventories_category_check — 인벤토리의 고정 카테고리 (inventories.category)
 export const FIXED_CATEGORIES = ["가방", "데스크", "파우치", "옷장", "굿즈·수집", "취미", "집·주방", "여행·아웃도어"];
 
 // ─────────────────────────────────────────────────────────────
@@ -158,8 +158,9 @@ export function normalizeConfig(raw, configDir) {
       else if (name.length > INVENTORY_NAME_MAX) fail(iwhere, `name 은 ${INVENTORY_NAME_MAX}자까지`);
 
       const category = trimmed(inv?.category) || null;
+      // DB 제약(inventories_category_check)에 막히므로 8개 밖의 값은 넣지 않는다
       if (category && !FIXED_CATEGORIES.includes(category)) {
-        warnings.push(`${iwhere}: category "${category}" 는 고정 8개(${FIXED_CATEGORIES.join(" · ")})에 없습니다`);
+        warnings.push(`${iwhere}: category "${category}" 는 고정 8개(${FIXED_CATEGORIES.join(" · ")})에 없어 비워 둡니다`);
       }
 
       const tags = [];
@@ -239,7 +240,7 @@ export function normalizeConfig(raw, configDir) {
         key,
         id: handle ? inventoryId(handle, key) : null,
         name,
-        category,
+        category: FIXED_CATEGORIES.includes(category) ? category : null,
         tags,
         slotCount,
         isPublic: inv?.isPublic !== false,
@@ -550,7 +551,7 @@ export async function planSeed(config, { cutoutMode = false, processImages = tru
       const pair = processImages && inv.image ? await check(`${u.handle}/${inv.name} 인벤토리 사진`, () => makePhotoPair({ image: inv.image })) : null;
       lines.push(
         `  인벤토리 "${inv.name}" ${inv.slotCount}칸 · ${inv.isPublic ? "공개" : "비공개"} · 태그 [${inv.tags.join(", ")}]` +
-          `${inv.category ? ` · 카테고리 ${inv.category}(DB 칸 없음 — 넣지 않음)` : ""} · id ${inv.id}` +
+          `${inv.category ? ` · 카테고리 ${inv.category}` : " · 카테고리 없음"} · id ${inv.id}` +
           `${pair ? ` · 사진 ${pair.thumbnail.width}×${pair.thumbnail.height} ${kb(pair.thumbnail.buffer)}` : ""}`,
       );
       for (const [index, it] of inv.items.entries()) {
@@ -660,7 +661,7 @@ export async function seed(supabase, config, { cutoutMode = false, refreshImages
     const userId = ids.get(u.handle);
     for (const inv of u.inventories) {
       const [existingInv] = await selectIn(supabase, "inventories", "id, deleted_at", "id", [inv.id]);
-      const invFields = { name: inv.name, categories: inv.tags, is_public: inv.isPublic, slot_count: inv.slotCount, sort_order: inv.sortOrder };
+      const invFields = { name: inv.name, category: inv.category, categories: inv.tags, is_public: inv.isPublic, slot_count: inv.slotCount, sort_order: inv.sortOrder };
       let invImages = {};
       if (!existingInv || refreshImages) {
         const pair = await makePhotoPair({ image: inv.image });

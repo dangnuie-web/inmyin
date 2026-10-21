@@ -363,6 +363,7 @@ test("마른 실행은 클라이언트 없이 돌고 합계를 낸다", async ()
 test("넣기: 계정 · 프로필 · 인벤토리 · 아이템(설정 순서대로 칸) · 관계 · 사진 경로", async () => {
   const fake = fakeSupabase();
   const config = await memoryConfig();
+  config.users[0].inventories[0].category = "파우치";
   const { userIds } = await seed(fake.client, config, quiet);
 
   assert.equal(fake.authUsers.length, 2);
@@ -371,6 +372,9 @@ test("넣기: 계정 · 프로필 · 인벤토리 · 아이템(설정 순서대�
   assert.equal(fake.db.users[0].provider, "email");
   assert.equal(fake.db.inventories.length, 2);
   const one = userIds.demo_one;
+  // 고정 카테고리(inventories.category) — 있으면 넣고, 없으면 비워 둔다
+  assert.equal(fake.db.inventories.find((inv) => inv.user_id === one).category, "파우치");
+  assert.equal(fake.db.inventories.find((inv) => inv.user_id !== one).category, null);
   const items = fake.db.items.filter((i) => i.user_id === one).sort((a, b) => a.slot_index - b.slot_index);
   assert.deepEqual(items.map((i) => i.name), ["1-01", "1-02", "1-03"]);
   assert.deepEqual(items.map((i) => i.slot_index), [0, 1, 2]);
@@ -679,4 +683,15 @@ test("설정 JSON 의 posts — 상대 경로를 이미지 폴더 기준으로, 
   assert.deepEqual(ok.errors, []);
   assert.equal(ok.config.users[0].posts[0].image, "/img/게시물/p.jpg");
   assert.deepEqual(ok.config.users[0].posts[0].bookmarkedBy, ["demo_two"]);
+});
+
+test("설정의 category — 고정 8개면 그대로, 8개 밖이면 경고하고 비워 둔다 (DB 제약에 막히므로)", () => {
+  const raw = (category) => ({
+    users: [{ no: 1, handle: "cat_one", nickname: "가", inventories: [{ name: "인벤", category, tags: [], slotCount: 25, image: "a.png", items: [] }] }],
+  });
+  const ok = normalizeConfig(raw("굿즈·수집"), "/tmp");
+  assert.equal(ok.config.users[0].inventories[0].category, "굿즈·수집");
+  const bad = normalizeConfig(raw("굿즈"), "/tmp");
+  assert.equal(bad.config.users[0].inventories[0].category, null);
+  assert.ok(bad.warnings.some((w) => w.includes("고정 8개")));
 });

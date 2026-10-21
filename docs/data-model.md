@@ -21,7 +21,7 @@ Announcement (주인이 쓰는 공지 — 유저와 연결 없음)
 | 테이블 | 주요 필드 | 메모 |
 | --- | --- | --- |
 | `User` | id, handle, nickname, avatarUrl, bio, plan, provider, gridColumns, notificationsSeenAt, createdAt, deletedAt | plan = `basic` \| `premium`. gridColumns = 격자 한 줄의 칸 수, 3 \| 4 (설정 M-02). notificationsSeenAt = 알림 화면을 마지막으로 본 시각 (종의 빨간 점 기준) |
-| `Inventory` | id, userId, name, categories, imageUrl, rawImageUrl, slotCount, isPublic, parentInventoryId, parentSlotIndex, order, createdAt, deletedAt | categories = 유저가 정한 태그 목록. 사진은 필수다 — 만들기가 항상 사진 고르기로 시작한다. isPublic 이 꺼지면 안의 아이템 · 담긴 인벤토리까지 남에게 숨는다 |
+| `Inventory` | id, userId, name, category, categories, imageUrl, rawImageUrl, slotCount, isPublic, parentInventoryId, parentSlotIndex, order, createdAt, deletedAt | category = 고정 카테고리 8개 중 하나(홈 · 발견 칩), 기존 것은 null. categories = 유저가 정한 태그 목록. 사진은 필수다 — 만들기가 항상 사진 고르기로 시작한다. isPublic 이 꺼지면 안의 아이템 · 담긴 인벤토리까지 남에게 숨는다 |
 | `Item` | id, userId, inventoryId, slotIndex, category, imageUrl, rawImageUrl, name, description, quantity, isPublic, acquiredNote, expiresAt, bookmarkCount, heartCount, commentCount, createdAt, deletedAt | rawImageUrl = 배경제거 전 원본. acquiredNote = 획득날짜 칸. 날짜가 아니라 글자다 ("20살 생일", "26.09.22") |
 | `InmyinPost` | id, userId, title, description, imageUrl, canvasJson, bookmarkCount, heartCount, commentCount, createdAt, deletedAt | title 40자 · description 500자. canvasJson 의 꼴은 `lib/inmyin/canvas.ts` (1080×1350 기준 좌표의 개체 목록 + 배경) |
 | `PostItem` | postId, itemId, x, y, w, h | 게시물 ↔ 아이템 탭 영역. 이미지에 대한 비율(0~1) — 어느 크기로 보여줘도 같은 자리 |
@@ -42,22 +42,31 @@ Announcement (주인이 쓰는 공지 — 유저와 연결 없음)
 5. **삭제는 `deletedAt` 기록.** 물리 삭제 금지 — 과거 INMYIN 게시물이 아이템을 참조한다
 6. **`bookmarkCount` · `heartCount` · `commentCount` 는 캐시.** DB 트리거가 센다. 북마크 수는 화면에 보여주지 않고 순위에만 쓴다 — 정확한 순위 집계는 `Bookmark.createdAt` 기준으로 따로 한다. 하트 수는 화면에 보이는 그 수다
 
-## 카테고리는 인벤토리에 저장한다
+## 카테고리 · 태그는 인벤토리에 저장한다
 
-카테고리는 인벤토리마다 유저가 정하는 자유 태그다. 따로 테이블을 두지 않고 `Inventory.categories` (글자 배열) 에 담는다. 인벤토리당 10개, 한 개에 10자까지, 중복 없음 — DB 제약으로도 막는다.
+**고정 카테고리** — `Inventory.category` (글자, null 가능). 8개 중 하나만 들어간다 — DB 제약 `inventories_category_check`, 앱은 `lib/categories.ts` 의 `FIXED_CATEGORIES` (순서 = 칩 순서). 홈 · 발견의 칩 전용이고, 아이템 · 게시물은 든 인벤토리의 이 칸으로 거른다(따로 칸을 두지 않는다 — 짐싸기로 옮기면 새 인벤토리의 카테고리를 따른다). 담긴 인벤토리도 각자 자기 값. null 은 칸이 생기기 전(2026-10-21) 만든 인벤토리 — 전체에서만 보인다. 만들 때는 꼭 고르고, 한 번 고른 뒤에는 비울 수 없다(바꾸기만).
+
+**자유 태그** — 인벤토리마다 유저가 정한다. 따로 테이블을 두지 않고 `Inventory.categories` (글자 배열) 에 담는다. 인벤토리당 10개, 한 개에 10자까지, 중복 없음 — DB 제약으로도 막는다. 내 인벤토리 안에서만 쓴다.
 
 `Item.category` 는 태그 하나를 담는 문자열이고, 없으면 `null`. 고를 때는 그 아이템이 든 인벤토리의 `categories` 를 칩으로 보여준다. 인벤토리에서 태그를 지우거나 짐싸기로 아이템을 옮겨도 `Item.category` 는 건드리지 않는다.
 
-`lib/categories.ts` 에는 추천 4종만 상수로 남는다. 인벤토리를 만들 때 이름과 기본 태그를 채워주는 지름길이고, 저장된 데이터와는 연결이 없다. 인벤토리에 "종류(kind)" 는 없다.
+`lib/categories.ts` 에는 고정 8개와 추천 프리셋 8개가 상수로 있다. 프리셋은 인벤토리를 만들 때 이름 · 카테고리 · 기본 태그를 채워주는 지름길이고, 저장된 데이터와는 연결이 없다. 인벤토리에 "종류(kind)" 는 없다.
 
 ```ts
+export const FIXED_CATEGORIES = ['가방', '데스크', '파우치', '옷장', '굿즈·수집', '취미', '집·주방', '여행·아웃도어'] as const
 export const RECOMMENDED_INVENTORIES = [
-  { name: '옷장',     categories: ['상의', '하의', '신발', '모자', '가방'] },
-  { name: '냉장고',   categories: ['육류', '야채', '반찬', '냉동', '조미료'] },
-  { name: '집',       categories: ['거실', '침실', '화장실'] },
-  { name: '생활용품', categories: ['청소', '세탁', '소모품'] },
-] as const
+  { name: '가방',     category: '가방',      categories: ['지갑', '전자기기', '화장품', '소지품'] },
+  { name: '데스크',   category: '데스크',    categories: ['문구', '전자기기', '책', '소품'] },
+  { name: '파우치',   category: '파우치',    categories: ['화장품', '약', '충전기', '위생용품'] },
+  { name: '옷장',     category: '옷장',      categories: ['상의', '하의', '신발', '모자', '가방'] },
+  { name: '굿즈',     category: '굿즈·수집', categories: ['피규어', '포토카드', '키링', '앨범'] },
+  { name: '냉장고',   category: '집·주방',   categories: ['육류', '야채', '반찬', '냉동', '조미료'] },
+  { name: '집',       category: '집·주방',   categories: ['거실', '침실', '화장실'] },
+  { name: '생활용품', category: '집·주방',   categories: ['청소', '세탁', '소모품'] },
+]
 ```
+
+DB 함수 `popular_item_categories`(전에 홈 칩이던 인기 태그 상위 12개)는 앱이 더는 부르지 않는다. DB 에는 남아 있다.
 
 ## 플랜 한도도 DB에 없다
 

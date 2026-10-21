@@ -6,6 +6,7 @@ import { requireProfile } from "@/lib/auth/profile";
 import { newPhotoPaths, type NewPhotoInput } from "@/lib/image/stored-photo";
 import type { FormState } from "@/lib/auth/rules";
 import { inventoryPath } from "@/lib/inventory/paths";
+import { isFixedCategory } from "@/lib/categories";
 import { cleanCategories, INVENTORY_NAME_MAX } from "@/lib/inventory/rules";
 import { planLimits } from "@/lib/plans";
 import { createClient } from "@/lib/supabase/server";
@@ -27,11 +28,11 @@ async function inventoryExists(supabase: Supabase, userId: string, inventoryId: 
   return data !== null;
 }
 
-// 인벤토리 수정. 이름 · 카테고리 태그 · 공개 여부와, 바꿨으면 대표 사진을 고친다.
+// 인벤토리 수정. 이름 · 고정 카테고리 · 태그 · 공개 여부와, 바꿨으면 대표 사진을 고친다.
 // photo — 사진 바꾸기로 브라우저가 새 이름으로 먼저 올려 둔 사진. 옛 사진 파일은 지우지 않는다(저장소에 지우는 권한이 없다 — 규칙 6)
 export async function updateInventory(
   inventoryId: string,
-  input: { name: string; categories: string[]; isPublic: boolean },
+  input: { name: string; category: string | null; categories: string[]; isPublic: boolean },
   photo?: NewPhotoInput,
 ): Promise<FormState> {
   const profile = await requireProfile();
@@ -43,8 +44,11 @@ export async function updateInventory(
   if (!name) return { error: "인벤토리 이름을 입력해 주세요." };
   if (name.length > INVENTORY_NAME_MAX) return { error: `인벤토리 이름은 ${INVENTORY_NAME_MAX}자까지 쓸 수 있어요.` };
 
+  // 고정 카테고리는 비워 둘 수 있다(기존 인벤토리 — 아직 안 고름). 비어 오면 칸을 건드리지 않는다
+  if (input.category !== null && !isFixedCategory(input.category)) return { error: "카테고리를 다시 골라 주세요." };
+  const category = input.category;
   const categories = cleanCategories(input.categories);
-  if (!categories) return { error: "카테고리를 다시 확인해 주세요." };
+  if (!categories) return { error: "태그를 다시 확인해 주세요." };
 
   const supabase = await createClient();
   const { data: inventory } = await supabase
@@ -60,6 +64,7 @@ export async function updateInventory(
     .from("inventories")
     .update({
       name,
+      ...(category && { category }),
       categories,
       is_public: input.isPublic !== false,
       ...(paths && {
@@ -80,8 +85,8 @@ export async function updateInventory(
   }
 
   revalidateInventory(inventory.id);
-  // 대표 사진은 프로필 띠 · 넣을 곳 줄 · 담긴 칸에도 보인다
-  if (paths) revalidatePath("/my", "layout");
+  // 대표 사진은 프로필 띠 · 넣을 곳 줄 · 담긴 칸에도 보인다. 카테고리를 고르면 프로필의 "골라 주세요" 안내가 사라진다
+  if (paths || category) revalidatePath("/my", "layout");
   redirect("/my/inventories");
 }
 

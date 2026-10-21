@@ -10,6 +10,7 @@ import { ChipRow } from "@/components/ui/ChipRow";
 import { EmptyBag, EmptyLine } from "@/components/ui/EmptyBag";
 import { Icon } from "@/components/ui/Icon";
 import { ListControls } from "@/components/ui/ListControls";
+import { FIXED_CATEGORIES } from "@/lib/categories";
 import { feedPath } from "@/lib/home/paths";
 import { itemPath, type InventoryView } from "@/lib/inventory/paths";
 import type { SlotEntry } from "@/lib/inventory/queries";
@@ -21,8 +22,6 @@ type ItemFeedProps = {
   // 주소에서 온 검색어와 카테고리 (서버가 이미 걸러서 items 를 보냈다)
   q: string;
   category: string | null;
-  // 칩에 보일 태그들. 많이 쓰인 순
-  categories: string[];
   columns: GridColumns;
 };
 
@@ -31,7 +30,7 @@ const SEARCH_DELAY_MS = 350;
 
 // H-01 · 홈 › 아이템 피드. 모아보기(M-13)와 같은 생김새지만, 남의 것이 계속 늘어나는 목록이라
 // 검색 · 카테고리는 주소에 실어 서버가 거르고, 아래로는 "더 보기"로 한 장씩 더 읽는다
-export function ItemFeed({ items, q, category, categories, columns }: ItemFeedProps) {
+export function ItemFeed({ items, q, category, columns }: ItemFeedProps) {
   const router = useRouter();
   const [view, setView] = useState<InventoryView>("grid");
   const [query, setQuery] = useState(q);
@@ -71,8 +70,6 @@ export function ItemFeed({ items, q, category, categories, columns }: ItemFeedPr
     }
   }
 
-  // 주소로 온 카테고리가 인기 칩에 없어도 칩으로 보인다 — 고른 것이 안 보이면 왜 걸러졌는지 모른다
-  const chips = category && !categories.includes(category) ? [category, ...categories] : categories;
   const isFiltered = Boolean(category || q.trim());
   const toEntry = (item: FeedItem): SlotEntry => ({ kind: "item", deleted: false, ...item });
 
@@ -101,7 +98,8 @@ export function ItemFeed({ items, q, category, categories, columns }: ItemFeedPr
           chips={
             <ChipRow className="pl-5 lg:pl-0">
               <CategoryTag label="전체" selected={!category} href={feedPath({ q })} />
-              {chips.map((tag) => (
+              {/* 고정 8개 (lib/categories.ts). 아이템이 든 인벤토리의 카테고리로 거른다 */}
+              {FIXED_CATEGORIES.map((tag) => (
                 <CategoryTag key={tag} label={tag} selected={tag === category} href={feedPath({ q, category: tag === category ? null : tag })} />
               ))}
             </ChipRow>

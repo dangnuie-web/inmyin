@@ -88,12 +88,12 @@ export async function getPublicItemFeed({ q, category, before, limit = FEED_PAGE
   const supabase = await createClient();
   let query = supabase
     .from("items")
-    .select("id, name, image_url, quantity, category, created_at, inventories!inner(name), users!inner(handle, nickname, avatar_url)")
+    .select("id, name, image_url, quantity, category, created_at, inventories!inner(name, category), users!inner(handle, nickname, avatar_url)")
     .is("deleted_at", null)
     .order("created_at", { ascending: false })
     .limit(limit);
-  // 태그가 없는 아이템은 전체에서만 보인다 (CLAUDE.md 규칙 4)
-  if (category) query = query.eq("category", category);
+  // 카테고리 = 아이템이 든 인벤토리의 고정 카테고리 (CLAUDE.md 규칙 4). 카테고리를 안 고른 인벤토리의 아이템은 전체에서만 보인다
+  if (category) query = query.eq("inventories.category", category);
   // %, _ 는 ilike 의 특수문자라 글자 그대로 찾게 앞에 \ 를 붙인다
   if (q?.trim()) query = query.ilike("name", `%${q.trim().replace(/[\\%_]/g, "\\$&")}%`);
   if (before) query = query.lt("created_at", before);
@@ -113,14 +113,6 @@ export async function getPublicItemFeed({ q, category, before, limit = FEED_PAGE
     ownerNickname: item.users.nickname,
     ownerAvatarUrl: item.users.avatar_url,
   }));
-}
-
-// 공개 아이템에서 많이 쓰인 태그 순 (H-01 의 칩). DB 함수 popular_item_categories
-export async function getPopularCategories(limit = 12): Promise<string[]> {
-  const supabase = await createClient();
-  const { data, error } = await supabase.rpc("popular_item_categories", { max_count: limit });
-  if (error) throw error;
-  return data.map((row) => row.category);
 }
 
 // 아이템 하나와 주인. 내 것이든 남의 공개 것이든 (M-14 · H-02). 없거나 못 보는 것이면 null

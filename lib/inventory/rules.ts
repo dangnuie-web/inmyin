@@ -3,12 +3,14 @@ import { MAX_CATEGORIES, MAX_CATEGORY_LENGTH } from "@/lib/categories";
 
 export const INVENTORY_NAME_MAX = 20;
 
-// 태그 하나를 더할 수 있는지 본다. 안 되면 이유를, 되면 null 을 돌려준다
-export function categoryError(tag: string, current: readonly string[]) {
-  if (!tag) return "카테고리를 입력해 주세요.";
-  if (tag.length > MAX_CATEGORY_LENGTH) return `카테고리는 ${MAX_CATEGORY_LENGTH}자까지 쓸 수 있어요.`;
-  if (current.includes(tag)) return "이미 있는 카테고리예요.";
-  if (current.length >= MAX_CATEGORIES) return `카테고리는 ${MAX_CATEGORIES}개까지 달 수 있어요.`;
+// 태그 하나를 더할 수 있는지 본다. 안 되면 이유를, 되면 null 을 돌려준다.
+// noun — 화면에서 부르는 이름. 인벤토리 폼은 고정 카테고리와 갈라 "태그", 아이템 폼은 그대로 "카테고리"
+export function categoryError(tag: string, current: readonly string[], noun: "카테고리" | "태그" = "카테고리") {
+  const subject = noun === "태그" ? "태그는" : "카테고리는";
+  if (!tag) return `${noun}를 입력해 주세요.`;
+  if (tag.length > MAX_CATEGORY_LENGTH) return `${subject} ${MAX_CATEGORY_LENGTH}자까지 쓸 수 있어요.`;
+  if (current.includes(tag)) return noun === "태그" ? "이미 있는 태그예요." : "이미 있는 카테고리예요.";
+  if (current.length >= MAX_CATEGORIES) return `${subject} ${MAX_CATEGORIES}개까지 달 수 있어요.`;
   return null;
 }
 

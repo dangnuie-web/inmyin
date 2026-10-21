@@ -13,15 +13,18 @@ export type FeedPost = {
 
 const FEED_LIMIT = 60;
 
-// 모든 사람의 INMYIN 게시물. 카테고리는 게시물에 든 아이템의 태그로 거른다 (게시물 자체엔 태그가 없다).
+// 모든 사람의 INMYIN 게시물. 카테고리는 게시물에 든 아이템의 인벤토리의 고정 카테고리로 거른다 (게시물 자체엔 카테고리가 없다).
 // 인기순은 최근 24시간에 받은 북마크 순 (DB 함수 popular_posts — lib/ranking.ts). 지워진 게시물 · 차단 사이의 게시물은 DB 규칙이 뺀다
 export async function getPostFeed({ category, sort }: { category?: string | null; sort?: PostSort } = {}): Promise<FeedPost[]> {
   const supabase = await createClient();
   let query = supabase.from("inmyin_posts").select("id, title, image_url, created_at, users!inner(handle, nickname, avatar_url)").is("deleted_at", null).limit(FEED_LIMIT);
 
-  // 카테고리: 그 태그의 아이템이 든 게시물의 id 를 먼저 모은다 (안 보이는 아이템은 DB 규칙이 뺀다)
+  // 카테고리: 그 카테고리 인벤토리에 든 아이템이 담긴 게시물의 id 를 먼저 모은다 (안 보이는 아이템 · 인벤토리는 DB 규칙이 뺀다)
   if (category) {
-    const { data: tagged, error: taggedError } = await supabase.from("post_items").select("post_id, items!inner(category)").eq("items.category", category);
+    const { data: tagged, error: taggedError } = await supabase
+      .from("post_items")
+      .select("post_id, items!inner(inventories!inner(category))")
+      .eq("items.inventories.category", category);
     if (taggedError) throw taggedError;
     const ids = Array.from(new Set(tagged.map((row) => row.post_id)));
     if (ids.length === 0) return [];

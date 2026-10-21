@@ -83,7 +83,7 @@ export async function getVisibleInventoryDetail(userId: string, inventoryId: str
   const [inventory, items, children] = await Promise.all([
     supabase
       .from("inventories")
-      .select("id, name, categories, slot_count, is_public")
+      .select("id, name, categories, category, slot_count, is_public")
       .eq("id", inventoryId)
       .eq("user_id", userId)
       .is("deleted_at", null)
@@ -111,6 +111,7 @@ export async function getVisibleInventoryDetail(userId: string, inventoryId: str
     id: inventory.data.id,
     name: inventory.data.name,
     categories: inventory.data.categories,
+    category: inventory.data.category,
     slotCount: inventory.data.slot_count,
     isPublic: inventory.data.is_public,
     entries: entries.map(({ entry }) => entry),

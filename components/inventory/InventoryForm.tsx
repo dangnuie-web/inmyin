@@ -8,12 +8,12 @@ import { usePhotoChange } from "@/components/item/usePhotoChange";
 import { SMALL_OUTLINE_CLASS } from "@/components/profile/ProfileParts";
 import { Button } from "@/components/ui/Button";
 import { CategoryTag } from "@/components/ui/CategoryTag";
-import { DarkDropdown, DarkDropdownOption, DarkInput } from "@/components/ui/DarkInput";
+import { DarkDropdown, DarkDropdownOption, DarkInput, DarkSelect } from "@/components/ui/DarkInput";
 import { FormError } from "@/components/ui/FormError";
 import { Icon } from "@/components/ui/Icon";
 import { PhotoPreview } from "@/components/ui/PhotoPreview";
 import { Switch } from "@/components/ui/Switch";
-import { MAX_CATEGORY_LENGTH, RECOMMENDED_INVENTORIES } from "@/lib/categories";
+import { FIXED_CATEGORIES, isFixedCategory, MAX_CATEGORY_LENGTH, RECOMMENDED_INVENTORIES, type FixedCategory } from "@/lib/categories";
 import {
   clearPhotoChange,
   getPendingPhoto,
@@ -28,17 +28,18 @@ import { uploadPhotoPair } from "@/lib/image/upload";
 import { inventoryPhotoCameraPath, inventoryPhotoEditPath } from "@/lib/inventory/paths";
 import { categoryError, INVENTORY_NAME_MAX } from "@/lib/inventory/rules";
 
-type OpenDropdown = "name" | "category" | null;
+type OpenDropdown = "name" | "fixed" | "category" | null;
 
 type InventoryFormProps = {
   userId: string;
   // 수정할 때만 준다. 그 값으로 채워서 연다. 사진을 누르거나 "사진 바꾸기"로 촬영 → 사진편집을 다시 거쳐 돌아온다
-  inventory?: { id: string; name: string; categories: string[]; imageUrl: string; isPublic: boolean };
+  inventory?: { id: string; name: string; category: string | null; categories: string[]; imageUrl: string; isPublic: boolean };
 };
 
 // 사진 바꾸러 떠날 때 맡겨 두는 수정 화면의 값 (lib/image/pending-photo.ts)
 type InventoryDraft = {
   name: string;
+  category: FixedCategory | null;
   tags: string[];
   isPublic: boolean;
   // 카테고리 입력칸에 쓰다 만 글자
@@ -47,7 +48,7 @@ type InventoryDraft = {
   photo: PendingPhoto | null;
 };
 
-// 인벤토리 정보 입력. 사진 · 이름 · 카테고리 태그를 받아 저장한다. 인벤토리 수정도 같은 폼이다.
+// 인벤토리 정보 입력. 사진 · 이름 · 카테고리(고정 8개 중 하나, 홈 · 발견 칩) · 태그(자유)를 받아 저장한다. 인벤토리 수정도 같은 폼이다.
 export function InventoryForm({ userId, inventory }: InventoryFormProps) {
   const draftKey = inventory ? `inventory:${inventory.id}` : "";
   // 수정 — 사진 바꾸기에서 돌아왔으면 떠나기 전 값. 새로 열었으면 null
@@ -58,6 +59,11 @@ export function InventoryForm({ userId, inventory }: InventoryFormProps) {
     inventory ? (restored ? (peekEditedPhoto() ?? restored.photo) : null) : getPendingPhoto(),
   );
   const [name, setName] = useState(restored?.name ?? inventory?.name ?? "");
+  // 고정 카테고리. 만들 때는 꼭 고른다. 기존 인벤토리는 비어 있을 수 있다 — 수정에서 고르게 안내한다
+  const [category, setCategory] = useState<FixedCategory | null>(() => {
+    const value = restored ? restored.category : inventory?.category;
+    return isFixedCategory(value) ? value : null;
+  });
   const [tags, setTags] = useState<string[]>(restored?.tags ?? inventory?.categories ?? []);
   const [isPublic, setIsPublic] = useState(restored?.isPublic ?? inventory?.isPublic ?? true);
   const [draft, setDraft] = useState(restored?.draft ?? "");
@@ -80,14 +86,15 @@ export function InventoryForm({ userId, inventory }: InventoryFormProps) {
   const photoChange = usePhotoChange({
     cameraHref: inventory ? inventoryPhotoCameraPath(inventory.id) : "",
     editHref: inventory ? inventoryPhotoEditPath(inventory.id) : "",
-    beforeLeave: () => savePhotoChangeDraft(draftKey, { name, tags, isPublic, draft, photo } satisfies InventoryDraft),
+    beforeLeave: () => savePhotoChangeDraft(draftKey, { name, category, tags, isPublic, draft, photo } satisfies InventoryDraft),
   });
 
   const tagOptions = recommendedTags.filter((tag) => !tags.includes(tag));
 
-  // 추천은 글자를 채워주는 지름길일 뿐이다. 고른 뒤에는 이름도 태그도 자유롭게 고친다
+  // 추천은 이름 · 카테고리 · 태그를 채워주는 지름길일 뿐이다. 고른 뒤에는 모두 자유롭게 고친다
   function pickRecommendation(recommendation: (typeof RECOMMENDED_INVENTORIES)[number]) {
     setName(recommendation.name);
+    setCategory(recommendation.category);
     setTags([...recommendation.categories]);
     setRecommendedTags(recommendation.categories);
     setOpen(null);
@@ -97,7 +104,7 @@ export function InventoryForm({ userId, inventory }: InventoryFormProps) {
   // 태그를 더한다. 못 더하면 이유를 보여주고 false
   function addTag(value: string, current = tags) {
     const tag = value.trim();
-    const message = categoryError(tag, current);
+    const message = categoryError(tag, current, "태그");
     if (message) {
       setError(message);
       return false;
@@ -127,6 +134,12 @@ export function InventoryForm({ userId, inventory }: InventoryFormProps) {
       setError("인벤토리 이름을 입력해 주세요.");
       return;
     }
+    // 만들 때만 꼭 고른다. 기존 인벤토리(비어 있음)는 수정에서 안 골라도 저장된다 — 이름만 고치러 온 걸 막지 않는다
+    if (!inventory && !category) {
+      setError("카테고리를 골라 주세요.");
+      setOpen("fixed");
+      return;
+    }
     // 입력칸에 쓰다 만 태그가 있으면 같이 저장한다 — 추가를 안 누르고 저장하는 일이 흔하다
     let categories = tags;
     if (draft.trim()) {
@@ -149,7 +162,7 @@ export function InventoryForm({ userId, inventory }: InventoryFormProps) {
             return;
           }
         }
-        const result = await updateInventory(inventory.id, { name, categories, isPublic }, newPhoto);
+        const result = await updateInventory(inventory.id, { name, category, categories, isPublic }, newPhoto);
         if (result?.error) setError(result.error);
         return;
       }
@@ -164,7 +177,7 @@ export function InventoryForm({ userId, inventory }: InventoryFormProps) {
         return;
       }
 
-      const result = await createInventory({ id, name, categories, isPublic, ...extensions });
+      const result = await createInventory({ id, name, category, categories, isPublic, ...extensions });
       if (result?.error) setError(result.error);
     });
   }
@@ -234,13 +247,39 @@ export function InventoryForm({ userId, inventory }: InventoryFormProps) {
           }
         />
 
-        <DarkInput
+        {/* 고정 카테고리 — 글자를 쓰는 칸이 아니라 고르는 칸. 같은 틀(DarkSelect) · 같은 목록(DarkDropdown) */}
+        <DarkSelect
           label="카테고리"
+          value={category}
+          placeholder={inventory ? "홈 · 발견에서 찾을 수 있게 골라 주세요." : "카테고리를 골라 주세요.*"}
+          isOpen={open === "fixed"}
+          onToggle={() => setOpen(open === "fixed" ? null : "fixed")}
+          dropdown={
+            <DarkDropdown>
+              {FIXED_CATEGORIES.map((option) => (
+                <DarkDropdownOption
+                  key={option}
+                  selected={option === category}
+                  onSelect={() => {
+                    setCategory(option);
+                    setOpen(null);
+                    setError(undefined);
+                  }}
+                >
+                  {option}
+                </DarkDropdownOption>
+              ))}
+            </DarkDropdown>
+          }
+        />
+
+        <DarkInput
+          label="태그"
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
           onKeyDown={onDraftKeyDown}
           maxLength={MAX_CATEGORY_LENGTH}
-          placeholder="카테고리를 추가 하시겠습니까?"
+          placeholder="태그를 추가 하시겠습니까?"
           autoComplete="off"
           enterKeyHint="done"
           trailing={
@@ -250,7 +289,7 @@ export function InventoryForm({ userId, inventory }: InventoryFormProps) {
               </button>
             ) : (
               <DropdownToggle
-                label="추천 카테고리"
+                label="추천 태그"
                 isOpen={open === "category"}
                 onClick={() => setOpen(open === "category" ? null : "category")}
               />

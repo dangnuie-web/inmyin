@@ -8,7 +8,7 @@ import { bringInventory, takeOutInventory } from "@/app/(flow)/my/inventories/[i
 import { DarkMenu } from "@/components/ui/DarkMenu";
 import { Toast } from "@/components/ui/Toast";
 import { useAddItem } from "@/components/item/useAddItem";
-import { itemUpdatePath, packingPath, type InventoryView } from "@/lib/inventory/paths";
+import { inventoryUpdatePath, itemUpdatePath, packingPath, type InventoryView } from "@/lib/inventory/paths";
 import { withSubjectParticle } from "@/lib/korean";
 import type { FormState } from "@/lib/auth/rules";
 import type { InventorySummary, SlotEntry } from "@/lib/inventory/queries";
@@ -51,6 +51,8 @@ type InventoryBoardProps = {
   // 이름 줄 "데스크 10/25 🔒 [관리] [짐싸기]" 에 쓴다
   name: string;
   isPublic: boolean;
+  // 고정 카테고리를 아직 안 골랐나(기존 인벤토리). 이름 줄 아래에 한 줄 안내 → 수정 화면
+  needsCategory: boolean;
   // 이름 줄 아래의 토글 · 칩 줄 (서버가 그려서 준다)
   controls: React.ReactNode;
   // 카테고리를 골라 거른 중인가. 거른 결과가 0개면 빈 가방 대신 글 한 줄
@@ -74,7 +76,7 @@ type InventoryBoardProps = {
 // 프로필 격자(M-04)의 이름 줄 · 토글 · 칩 아래 격자 · 리스트와 + 버튼. + 칸은 항상 마지막 아이템의 다음 칸에 하나만 있다.
 // 이름 줄의 숫자가 지우기 · 되돌리기 · 가져오기를 누른 즉시 바뀌어야 해서 이름 줄도 여기서 그린다.
 // 비었으면(칩 전체) 빈 가방 + "아이템 넣기" + "인벤토리 가져오기" — + 칸은 그리지 않는다 (무늬 빈화면프로필설계 v01 4-2)
-export function InventoryBoard({ inventoryId, name, isPublic, controls, filtered, inventories, addedId, deletedId, entries, usedSlots, slotCount, view, columns }: InventoryBoardProps) {
+export function InventoryBoard({ inventoryId, name, isPublic, needsCategory, controls, filtered, inventories, addedId, deletedId, entries, usedSlots, slotCount, view, columns }: InventoryBoardProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -305,6 +307,15 @@ export function InventoryBoard({ inventoryId, name, isPublic, controls, filtered
           짐싸기
         </Link>
       </InventoryTitleRow>
+      {/* 카테고리 고정 8개 전에 만든 인벤토리 — 한 번만 골라 달라고. 고르면 사라진다. 같은 회색 글씨 한 줄, 누르는 곳은 밑줄 */}
+      {needsCategory && (
+        <p className="px-5 text-caption text-ink-muted">
+          홈 · 발견에 보일 카테고리를 골라 주세요.{" "}
+          <Link href={inventoryUpdatePath(inventoryId)} className="font-bold text-ink underline underline-offset-4 active:opacity-60">
+            고르기
+          </Link>
+        </p>
+      )}
       {controls}
 
       {isEmpty ? (
