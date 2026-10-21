@@ -104,7 +104,7 @@ export function InventoryForm({ userId, inventory }: InventoryFormProps) {
   // 태그를 더한다. 못 더하면 이유를 보여주고 false
   function addTag(value: string, current = tags) {
     const tag = value.trim();
-    const message = categoryError(tag, current, "태그");
+    const message = categoryError(tag, current);
     if (message) {
       setError(message);
       return false;

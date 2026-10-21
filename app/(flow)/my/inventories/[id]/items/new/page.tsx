@@ -8,7 +8,7 @@ import { getMyInventories, getMyItemStamps } from "@/lib/inventory/queries";
 import { readLastInventoryId } from "@/lib/inventory/resolve-last-inventory";
 import { chooseTarget, hasRoom } from "@/lib/inventory/target";
 
-export const metadata: Metadata = { title: "아이템 등록 · INMYIN" };
+export const metadata: Metadata = { title: "아이템 넣기 · INMYIN" };
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 

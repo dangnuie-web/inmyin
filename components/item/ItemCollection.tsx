@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { AddSlotButton, AddSlotCell, type GridColumns, gridColumnsClass, SlotCell, SlotRow } from "@/components/inventory/Slot";
 import { ViewToggle } from "@/components/inventory/ViewToggle";
 import { CategoryTag } from "@/components/ui/CategoryTag";
@@ -35,7 +35,7 @@ type ItemCollectionProps = {
 // M-13 · 아이템 모아보기. 인벤토리 구분 없이 아이템 전체를 최신순으로 본다.
 // 검색과 카테고리는 서버를 거치지 않고 여기서 바로 거른다 — 글자를 칠 때마다, 칩을 누를 때마다 즉시 바뀐다.
 // 내 것(addable)이면 격자 맨 뒤에 + 칸(리스트는 + 줄) — 인벤토리 격자와 같은 칸. 누르면 넣을 인벤토리는 /add 가 골라 두고(칩을 골랐으면 그 카테고리가 많은 곳)
-// 정보 입력(M-08)에서 바꾼다. + 칸이 스크롤로 화면 밖이면 오른쪽 아래에 떠 있는 + . 검색 중에는 + 를 숨긴다 — 결과 끝의 + 는 "검색 결과에 넣는다"로 읽힌다
+// 정보 입력(M-08)에서 바꾼다. 떠 있는 + 는 없다 — 하단 탭 + 와 둘이 나란히 보여서(2026-10-21 당니님). 검색 중에는 + 를 숨긴다 — 결과 끝의 + 는 "검색 결과에 넣는다"로 읽힌다
 export function ItemCollection({ items, capacity, columns, empty, sortable = false, addable = false, canAdd = true }: ItemCollectionProps) {
   const [view, setView] = useState<InventoryView>("grid");
   const [oldestFirst, setOldestFirst] = useState(false);
@@ -57,15 +57,6 @@ export function ItemCollection({ items, capacity, columns, empty, sortable = fal
 
   const addItem = useAddItem({ category });
   const showAdd = addable && canAdd && !words && shown.length > 0;
-  const addSlotRef = useRef<HTMLLIElement>(null);
-  const [addSlotVisible, setAddSlotVisible] = useState(true);
-  useEffect(() => {
-    const target = addSlotRef.current;
-    if (!target) return;
-    const observer = new IntersectionObserver(([entry]) => setAddSlotVisible(entry.isIntersecting));
-    observer.observe(target);
-    return () => observer.disconnect();
-  }, [view, showAdd]);
 
   return (
     // 아래 여백 40 — 전에는 바닥 숫자 줄(76)이 이 자리를 잡아 줬다
@@ -132,7 +123,7 @@ export function ItemCollection({ items, capacity, columns, empty, sortable = fal
             </li>
           ))}
           {showAdd && (
-            <li ref={addSlotRef}>
+            <li>
               <AddSlotCell>
                 <AddSlotButton size="cell" onClick={addItem.start} />
               </AddSlotCell>
@@ -147,7 +138,7 @@ export function ItemCollection({ items, capacity, columns, empty, sortable = fal
             </li>
           ))}
           {showAdd && (
-            <li ref={addSlotRef}>
+            <li>
               <AddSlotButton size="row" onClick={addItem.start} />
             </li>
           )}
@@ -161,21 +152,6 @@ export function ItemCollection({ items, capacity, columns, empty, sortable = fal
         </Link>
       )}
 
-      {/* 떠 있는 + — + 칸이 화면 밖일 때만. 폰은 하단 탭(61 + 홈 막대) 바로 위에 뜬다 */}
-      {addable && (
-        <div className="pointer-events-none sticky bottom-[calc(3.8125rem+max(0px,env(safe-area-inset-bottom)-0.625rem))] mt-auto h-0 lg:bottom-0">
-          {showAdd && !addSlotVisible && (
-            <button
-              type="button"
-              onClick={addItem.start}
-              aria-label="아이템 넣기"
-              className="pointer-events-auto absolute bottom-4 right-5.5 flex size-10.5 items-center justify-center rounded-full bg-ink text-white shadow-lg active:opacity-80"
-            >
-              <Icon name="plusBold" />
-            </button>
-          )}
-        </div>
-      )}
       {addable && addItem.fileInput}
     </div>
   );

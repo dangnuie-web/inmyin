@@ -260,13 +260,13 @@ export function ItemForm(props: ItemFormProps) {
         />
 
         <div className="flex flex-col gap-2.5">
-          {/* 칩을 눌러 고르거나, 없는 카테고리는 직접 쓴다. 직접 쓴 것은 저장할 때 이 인벤토리의 태그에도 더해진다 */}
+          {/* 자유 태그 — 화면 이름은 "태그"("카테고리"는 인벤토리의 고정 8개). 칩을 눌러 고르거나, 없는 태그는 직접 쓴다. 직접 쓴 것은 저장할 때 이 인벤토리의 태그에도 더해진다 */}
           <DarkInput
-            label="카테고리"
+            label="태그"
             value={category}
             onChange={(event) => setCategory(event.target.value)}
             maxLength={MAX_CATEGORY_LENGTH}
-            placeholder="카테고리를 추가 하시겠습니까?"
+            placeholder="태그를 추가 하시겠습니까?"
             autoComplete="off"
           />
           {categories.length > 0 && (
@@ -365,7 +365,7 @@ export function ItemForm(props: ItemFormProps) {
           inventories={choices}
           selectedId={targetId}
           onPick={(inventory) => {
-            // 칩은 새 인벤토리의 태그로 바뀌고, 카테고리 입력칸의 글자는 그대로 둔다 — 저장하면 새 인벤토리 태그에 더해진다 (설계서 2-4)
+            // 칩은 새 인벤토리의 태그로 바뀌고, 태그 입력칸의 글자는 그대로 둔다 — 저장하면 새 인벤토리 태그에 더해진다 (설계서 2-4)
             setTargetId(inventory.id);
             setSheetOpen(false);
             targetButtonRef.current?.focus();
