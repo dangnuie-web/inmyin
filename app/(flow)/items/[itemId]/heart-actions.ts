@@ -6,6 +6,7 @@ import type { FormState } from "@/lib/auth/rules";
 import type { HeartTarget } from "@/lib/heart/queries";
 import { postPath } from "@/lib/inmyin/paths";
 import { itemPath } from "@/lib/inventory/paths";
+import { pushHeart } from "@/lib/push/notify";
 import { createClient } from "@/lib/supabase/server";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -23,6 +24,8 @@ export async function setHeart(targetType: HeartTarget, targetId: string, hearte
     : await supabase.from("hearts").delete().eq("user_id", profile.id).eq("target_type", targetType).eq("target_id", targetId);
   // 23505 = 이미 누른 것을 또 켰다 (두 번 눌렀거나 다른 기기에서). 그대로 켜진 것이니 괜찮다
   if (error && error.code !== "23505") return { error: "잠시 후 다시 시도해 주세요." };
+  // 새로 켜졌을 때만 게시물 주인의 폰을 울린다 (응답 뒤에, 실패해도 조용히 — lib/push/notify.ts)
+  if (hearted && !error) pushHeart(profile, { kind: targetType, id: targetId });
 
   revalidatePath(targetType === "item" ? itemPath(targetId) : postPath(targetId));
   return {};

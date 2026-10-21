@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getViewer, requireProfile } from "@/lib/auth/profile";
 import { HANDLE_PATTERN, type FormState } from "@/lib/auth/rules";
 import { getFollowLists, getMyFollowingIds } from "@/lib/follow/queries";
+import { pushFollow } from "@/lib/push/notify";
 import { createClient } from "@/lib/supabase/server";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -21,6 +22,8 @@ export async function setFollow(userId: string, following: boolean): Promise<For
     : await supabase.from("follows").delete().eq("follower_id", profile.id).eq("following_id", userId);
   // 23505 = 이미 팔로우한 사람을 또 걸었다 (두 번 눌렀거나 다른 기기에서). 그대로 걸린 것이니 괜찮다
   if (error && error.code !== "23505") return { error: "잠시 후 다시 시도해 주세요." };
+  // 새로 걸렸을 때만 받는 사람의 폰을 울린다 (응답 뒤에, 실패해도 조용히 — lib/push/notify.ts)
+  if (following && !error) pushFollow(profile, userId);
 
   // 내 프로필의 팔로잉 수, 목록들
   revalidatePath("/my");

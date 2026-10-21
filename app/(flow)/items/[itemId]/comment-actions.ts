@@ -7,6 +7,7 @@ import type { CommentTarget } from "@/lib/comment/queries";
 import { COMMENT_MAX } from "@/lib/comment/rules";
 import { postPath } from "@/lib/inmyin/paths";
 import { itemPath } from "@/lib/inventory/paths";
+import { pushComment } from "@/lib/push/notify";
 import { createClient } from "@/lib/supabase/server";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -27,6 +28,8 @@ export async function addComment(targetType: CommentTarget, targetId: string, bo
     .select("id, created_at")
     .single();
   if (error) return { error: "잠시 후 다시 시도해 주세요." };
+  // 게시물 주인의 폰을 울린다 (응답 뒤에, 실패해도 조용히 — lib/push/notify.ts)
+  pushComment(profile, { kind: targetType, id: targetId }, data.id, text);
 
   revalidatePath(targetType === "item" ? itemPath(targetId) : postPath(targetId));
   return { id: data.id, createdAt: data.created_at };

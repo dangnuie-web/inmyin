@@ -5,7 +5,6 @@ import { signOut } from "@/app/(auth)/actions";
 import { toGridColumns } from "@/components/inventory/Slot";
 import { InstallGuideSettingsRow } from "@/components/InstallGuide";
 import { GridColumnsSetting } from "@/components/profile/GridColumnsSetting";
-import { SoonButton } from "@/components/profile/SoonButton";
 import { HeaderMini } from "@/components/ui/HeaderMini";
 import { requireProfile } from "@/lib/auth/profile";
 import { formatShortDate } from "@/lib/item/rules";
@@ -51,10 +50,10 @@ export default async function SettingsPage() {
           <Link href="/my/settings/blocked" className={ROW_CLASS}>
             차단한 사용자
           </Link>
-          {/* 유통기한 임박 알림 · 푸시 알림은 4단계 */}
-          <SoonButton notice="알림 설정은 곧 만들어요." className={ROW_CLASS}>
+          {/* 푸시 알림 켜고 끄기 · 받을 종류 (팔로우 · 하트 · 댓글 · 유통기한 임박) */}
+          <Link href="/my/settings/notifications" className={ROW_CLASS}>
             알림
-          </SoonButton>
+          </Link>
         </Section>
 
         <Section title="정보" className="mt-9">

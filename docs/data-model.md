@@ -30,6 +30,7 @@ Announcement (주인이 쓰는 공지 — 유저와 연결 없음)
 | `Comment` | id, userId, targetType, targetId, body, createdAt, deletedAt | 댓글. 답글 없음(부모 없음). body 는 1~500자. 삭제는 `deletedAt` — 쓴 사람과 게시물 주인이 지울 수 있다 (DB 규칙) |
 | `Notification` | id, userId(받는 사람), kind, actorId(한 사람), targetType, targetId, commentId, createdAt | kind = `follow` \| `heart` \| `comment`. **앱이 쓰지 않는다** — follows · hearts · comments 의 트리거가 만들고 지운다. 하트 · 팔로우는 (받는 사람, 종류, 한 사람, 대상) 당 하나 |
 | `Announcement` | id, title, body, link, createdAt, deletedAt | 공지. 주인이 대시보드에서 넣는다 (앱에는 쓰는 권한이 없다). 모두에게 보인다 |
+| `PushSubscription` | id, userId, endpoint, p256dh, auth, kinds, expirySentOn, createdAt, updatedAt | 웹 푸시를 켠 기기 하나 = 한 줄 (endpoint 유일 — 같은 기기에서 다른 계정으로 켜면 넘어간다). kinds ⊂ `follow` · `heart` · `comment` · `expiry`. 본인 줄만 읽고 쓴다(RLS), 보내기는 서버가 서비스 키로. expirySentOn = 유통기한 알림을 마지막으로 살핀 한국 날짜. 2026-10-21 마이그레이션 작성, 운영 DB 적용 전 |
 | `Follow` | followerId, followingId, createdAt | |
 | `Block` | blockerId, blockedId, createdAt | 2단계 |
 

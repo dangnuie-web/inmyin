@@ -1,6 +1,7 @@
 /// <reference lib="webworker" />
 import { defaultCache } from "@serwist/turbopack/worker";
 import { NetworkOnly, Serwist, type PrecacheEntry, type RuntimeCaching, type SerwistGlobalConfig } from "serwist";
+import { readPushPayload, safeAppPath } from "../lib/push/messages";
 
 // 서비스워커 — 브라우저 뒤에서 도는 작은 프로그램. 빌드된 파일을 미리 저장해 두고(precache),
 // 화면과 그림은 "서버에 먼저 물어보고 실패하면 저장해 둔 것"으로 보여주며(NetworkFirst),
@@ -53,6 +54,48 @@ const serwist = new Serwist({
 // 일꾼이 "Missing worker bootstrap config" 로 바로 죽는다(배경제거 일꾼 lib/background-removal.ts 가 화면 스레드로 돌아가 화면이 멈춤)
 self.addEventListener("fetch", (event) => {
   if (event.request.destination === "worker") event.stopImmediatePropagation();
+});
+
+// 웹 푸시 — 서버(lib/push/send.ts)가 보낸 것을 받아 알림으로 띄운다. 앱이 꺼져 있어도 이 일꾼이 깨어나서 받는다.
+// 같은 tag 는 쌓이지 않고 바뀌어 끼워진다 (하트를 껐다 켰다 해도 하나)
+self.addEventListener("push", (event) => {
+  let raw: unknown = null;
+  try {
+    raw = event.data?.json() ?? null;
+  } catch {
+    raw = null;
+  }
+  const payload = readPushPayload(raw);
+  event.waitUntil(
+    self.registration.showNotification(payload.title, {
+      body: payload.body,
+      tag: payload.tag,
+      icon: "/icons/icon-192.png",
+      data: { url: payload.url },
+    }),
+  );
+});
+
+// 알림을 누르면 그 화면으로. 열려 있는 INMYIN 창이 있으면 그 창을 앞으로 가져와 옮기고, 없으면 새로 연다
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = safeAppPath((event.notification.data as { url?: unknown } | null)?.url) ?? "/notifications";
+  event.waitUntil(
+    (async () => {
+      const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+      const open = windows.find((client) => new URL(client.url).origin === self.location.origin);
+      if (open) {
+        const focused = await open.focus();
+        try {
+          await focused.navigate(url);
+          return;
+        } catch {
+          // 이 일꾼이 맡지 않은 창이면 옮길 수 없다 — 새 창으로
+        }
+      }
+      await self.clients.openWindow(url);
+    })(),
+  );
 });
 
 serwist.addEventListeners();
