@@ -146,9 +146,13 @@ export function pillText({
   return { text, percent: shown };
 }
 
-// 테두리 선 모양 — 사진 칸(한 변 size px) 안쪽 inset 만큼 들어온 둥근 네모. 시안처럼 왼쪽 위 모서리 끝에서 시작해 시계 방향
-export function borderPath(size: number, inset: number = CUTOUT_LOADING.inset, frameRadius = 12) {
-  const r = Math.max(0, frameRadius - inset / 2);
+// 테두리 선 모양 — 사진 칸(한 변 size px, 모서리 반지름 frameRadius px) 안쪽 inset 만큼 들어온 둥근 네모.
+// 칸과 같은 중심의 둥근 네모라 r = frameRadius - inset — 칸 테두리와 선 사이가 모서리에서도 inset 그대로다.
+// inset 은 선의 가운데까지 거리 — 선 바깥쪽 끝은 칸에서 inset - 두께/2 (6 - 2.5/2 = 4.75px) 들어와 있어 잘리지 않는다.
+// frameRadius 는 따로 적지 않고 화면에서 칸의 실제 border-radius(rounded-xl = --radius-xl)를 읽어 넘긴다(CutoutLoading).
+// 시안처럼 왼쪽 위 모서리 끝에서 시작해 시계 방향
+export function borderPath(size: number, inset: number, frameRadius: number) {
+  const r = Math.max(0, Math.min(frameRadius - inset, size / 2 - inset));
   const a = inset;
   const b = size - inset;
   return [

@@ -37,14 +37,19 @@ type CutoutLoadingProps = {
 export function CutoutLoading({ phase, running, startedAt, progressRef, firstTime, saveQueued }: CutoutLoadingProps) {
   const v = CUTOUT_LOADING;
   const svgRef = useRef<SVGSVGElement>(null);
-  const [size, setSize] = useState(0);
+  const [box, setBox] = useState({ size: 0, radius: 0 });
   const [state, setState] = useState({ shown: 0, elapsed: 0, known: false });
 
-  // 사진 칸 크기에 맞춰 테두리 모양을 다시 잡는다
+  // 사진 칸 크기 · 모서리 반지름에 맞춰 테두리 모양을 다시 잡는다.
+  // 반지름은 칸(부모)의 실제 border-radius 를 읽는다 — 칸의 rounded-* 만 바꾸면 선도 같이 따라간다(숫자를 두 곳에 두지 않는다)
   useEffect(() => {
     const svg = svgRef.current;
     if (!svg) return;
-    const observer = new ResizeObserver(([entry]) => setSize(Math.round(entry.contentRect.width)));
+    const frame = svg.parentElement;
+    const observer = new ResizeObserver(([entry]) => {
+      const radius = frame ? parseFloat(getComputedStyle(frame).borderTopLeftRadius) || 0 : 0;
+      setBox({ size: Math.round(entry.contentRect.width), radius });
+    });
     observer.observe(svg);
     return () => observer.disconnect();
   }, []);
@@ -71,7 +76,7 @@ export function CutoutLoading({ phase, running, startedAt, progressRef, firstTim
   const closing = phase === "closing";
   const shown = closing ? 1 : state.shown;
   const pill = phase === "waiting" ? pillText({ elapsedMs: state.elapsed, saveQueued, firstTime, percent: state.known ? state.shown : null }) : null;
-  const d = size > 0 ? borderPath(size, v.inset) : "";
+  const d = box.size > 0 ? borderPath(box.size, v.inset, box.radius) : "";
 
   return (
     <>
