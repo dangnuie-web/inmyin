@@ -1,4 +1,4 @@
-import { signOut } from "@/app/(auth)/actions";
+import { SignOutButton } from "@/components/ui/SignOutButton";
 import { WebNavAdd } from "@/components/ui/WebNavAdd";
 import { WebNavLoginLink } from "@/components/ui/WebNavLoginLink";
 import { isLoggedIn } from "@/lib/auth/profile";
@@ -13,11 +13,7 @@ export async function WebNavAccount() {
   return (
     <div className="flex items-center gap-6">
       <WebNavAdd />
-      <form action={signOut}>
-        <button type="submit" className={ACCOUNT_CLASS}>
-          로그아웃
-        </button>
-      </form>
+      <SignOutButton className={ACCOUNT_CLASS} />
     </div>
   );
 }

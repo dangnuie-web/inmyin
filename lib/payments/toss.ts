@@ -53,3 +53,8 @@ export function tossConfirm(input: { paymentKey: string; orderId: string; amount
 export function tossGetPayment(paymentKey: string) {
   return call(`/${encodeURIComponent(paymentKey)}`, { method: "GET" });
 }
+
+// 주문 번호로 결제 조회 — 결제 키를 모르는 멈춘 주문을 정리할 때 (lib/payments/settle.ts)
+export function tossGetPaymentByOrderId(orderId: string) {
+  return call(`/orders/${encodeURIComponent(orderId)}`, { method: "GET" });
+}

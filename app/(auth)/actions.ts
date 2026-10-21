@@ -233,8 +233,17 @@ export async function createProfile(_prev: FormState, formData: FormData): Promi
   redirect("/");
 }
 
-export async function signOut() {
+// 로그아웃. endpoint = 이 기기의 푸시 구독 주소(components/ui/SignOutButton.tsx 가 브라우저 구독을 풀고 넘긴다).
+// 로그인이 살아 있을 때 그 줄을 먼저 지운다 — 내 줄만 지워진다(RLS). 지우기가 실패해도 로그아웃은 한다
+export async function signOut(endpoint?: unknown) {
   const supabase = await createClient();
+  if (typeof endpoint === "string" && endpoint.length > 0 && endpoint.length <= 1000) {
+    try {
+      await supabase.from("push_subscriptions").delete().eq("endpoint", endpoint);
+    } catch {
+      // 표가 아직 없거나 네트워크 문제 — 로그아웃은 계속
+    }
+  }
   await supabase.auth.signOut();
   redirect("/login");
 }

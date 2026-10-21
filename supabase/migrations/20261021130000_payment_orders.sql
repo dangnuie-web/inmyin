@@ -28,7 +28,7 @@ create table public.payment_orders (
 
 create index payment_orders_user_idx on public.payment_orders (user_id, created_at desc);
 
--- 프리미엄 이용 기간. 한 사람에 한 줄. 자동 결제(빌링)는 없다 — 기간이 지나면 만료 처리(아직 없음, 오피스 로드맵 4단계 보고)가 베이직으로 돌린다
+-- 프리미엄 이용 기간. 한 사람에 한 줄. 자동 결제(빌링)는 없다 — 기간이 지나면 하루 한 번 예약 실행이 베이직으로 돌린다(20261021140000_expire_premium.sql)
 create table public.memberships (
   user_id        uuid primary key references public.users (id),
   premium_until  timestamptz not null,

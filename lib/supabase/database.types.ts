@@ -689,6 +689,7 @@ export type Database = {
         Args: { p_order_id: string; p_payment_key: string; p_slot_count: number }
         Returns: string
       }
+      expire_premium_memberships: { Args: never; Returns: number }
       discover_users: {
         Args: { p_limit?: number; p_mode: string; p_threshold: number }
         Returns: {

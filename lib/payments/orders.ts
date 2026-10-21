@@ -4,7 +4,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { PLANS, PREMIUM_PASS } from "@/lib/plans";
 import { newOrderId, type ConfirmDeps, type PaymentOrder } from "./confirm";
-import { tossConfirm, tossGetPayment } from "./toss";
+import type { SettleDeps } from "./settle";
+import { tossConfirm, tossGetPayment, tossGetPaymentByOrderId } from "./toss";
 
 // 결제 버튼을 누르면 먼저 주문을 만든다. 금액 · 기간은 서버의 상수에서만 온다
 export async function createPremiumOrder(userId: string) {
@@ -64,6 +65,32 @@ export function confirmDeps(): ConfirmDeps | null {
     },
     tossConfirm,
     tossGetPayment,
+  };
+}
+
+// 멈춘 주문 정리(lib/payments/settle.ts)에 넣어 줄 DB · 토스. 잡기 · 되돌리기 · 실패 · 마무리는 결제 승인과 같은 것을 쓴다
+export function settleDeps(): SettleDeps | null {
+  const base = confirmDeps();
+  const admin = createAdminClient();
+  if (!base || !admin) return null;
+  return {
+    async listStale(before, limit) {
+      const { data, error } = await admin
+        .from("payment_orders")
+        .select("order_id, amount, status")
+        .in("status", ["ready", "confirming"])
+        .lt("created_at", before.toISOString())
+        .order("created_at", { ascending: true })
+        .limit(limit);
+      // 표가 아직 없으면(운영 DB 적용 전) 이 일만 실패로 적히고 예약 실행의 다른 일은 계속 돈다
+      if (error) throw new Error(`payment_orders: ${error.code ?? "error"}`);
+      return data ?? [];
+    },
+    claim: base.claim,
+    release: base.release,
+    fail: base.fail,
+    complete: base.complete,
+    tossGetPaymentByOrderId,
   };
 }
 

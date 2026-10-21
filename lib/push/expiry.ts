@@ -3,7 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { EXPIRY_NOTICE_DAYS, expiryMessage, expiryWindow, seoulDate } from "./messages";
 import { sendToSubscriptions } from "./send";
 
-// 유통기한 임박 알림 — 하루 한 번 부른다(app/api/push/expiry/route.ts). 예약 실행은 아직 없다.
+// 유통기한 임박 알림 — 하루 한 번 예약 실행(app/api/cron/daily/route.ts)이 부른다.
 // 기기마다: 지난번에 살핀 날 다음 범위부터 오늘 + EXPIRY_NOTICE_DAYS 일까지 유통기한이 끝나는 내 아이템을 묶어 한 통.
 // 같은 날 두 번 불러도 두 번 안 간다(expiry_sent_on). 같은 물건은 한 번만 — 범위가 이어 붙기만 하고 겹치지 않는다.
 // 알릴 게 없어도 살핀 날은 적는다 — 그래야 내일 같은 물건을 또 알리지 않는다

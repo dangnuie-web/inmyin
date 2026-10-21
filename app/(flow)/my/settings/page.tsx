@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { signOut } from "@/app/(auth)/actions";
 import { toGridColumns } from "@/components/inventory/Slot";
 import { InstallGuideSettingsRow } from "@/components/InstallGuide";
 import { GridColumnsSetting } from "@/components/profile/GridColumnsSetting";
 import { HeaderMini } from "@/components/ui/HeaderMini";
+import { SignOutButton } from "@/components/ui/SignOutButton";
 import { requireProfile } from "@/lib/auth/profile";
 import { formatShortDate } from "@/lib/item/rules";
 import { withReturnTo } from "@/lib/nav/return-to";
@@ -31,7 +31,7 @@ export default async function SettingsPage() {
           <div className={`${ROW_CLASS} justify-between active:opacity-100`}>
             {isPremium ? "프리미엄 적용중" : "베이직 이용중"}
             <Link href={withReturnTo("/my/plan", "/my/settings")} className="flex h-7 items-center rounded-sm bg-ink px-3 text-caption font-bold text-white active:opacity-80">
-              {isPremium ? "구독 관리" : "프리미엄 보기"}
+              {isPremium ? "이용 기간" : "프리미엄 보기"}
             </Link>
           </div>
         </Section>
@@ -68,11 +68,7 @@ export default async function SettingsPage() {
           </Link>
         </Section>
 
-        <form action={signOut} className="mt-2">
-          <button type="submit" className={`${ROW_CLASS} text-ink-muted`}>
-            로그아웃
-          </button>
-        </form>
+        <SignOutButton formClassName="mt-2" className={`${ROW_CLASS} text-ink-muted`} />
         {/* 배포한 날짜. next.config.ts 가 빌드할 때 찍는다 */}
         <p className="flex h-12 items-center text-body">버전 {formatShortDate(process.env.NEXT_PUBLIC_BUILD_DATE ?? "")}</p>
       </div>

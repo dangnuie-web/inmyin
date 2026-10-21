@@ -6,8 +6,8 @@ import type { Database } from "./database.types";
 // 로그인 없이 볼 수 있는 주소.
 // PWA 몫: 매니페스트 · 서비스워커(/serwist/sw.js) · 오프라인 화면은 브라우저가 로그인과 상관없이 가져간다 —
 // 로그인 화면으로 돌려보내면 앱 설치가 안 되거나 서비스워커가 로그인 화면을 저장해 버린다.
-// /api/push/expiry 는 예약 실행이 부르는 길이라 로그인이 없다 — 대신 CRON_SECRET 암호로 막는다(route.ts)
-const PUBLIC_PATHS = ["/login", "/signup", "/reset-password", "/auth", "/design", "/manifest.webmanifest", "/serwist", "/offline", "/terms", "/privacy", "/welcome", "/api/push/expiry"];
+// /api/cron 은 예약 실행(Vercel Cron)이 부르는 길이라 로그인이 없다 — 대신 CRON_SECRET 암호로 막는다(lib/cron/auth.ts)
+const PUBLIC_PATHS = ["/login", "/signup", "/reset-password", "/auth", "/design", "/manifest.webmanifest", "/serwist", "/offline", "/terms", "/privacy", "/welcome", "/api/cron"];
 // 로그인 없이 구경할 수 있는 화면 — 발견 · INMYIN 목록 · INMYIN 상세 · 아이템 상세 · 타유저 프로필(인벤토리 · 아이템 · INMYIN · 팔로워).
 // 남의 공개된 것만 보이는 것은 DB 규칙(RLS)이 지킨다. 같은 묶음이라도 /items/[id]/edit 처럼 고치는 화면은 여기에 들지 않는다.
 // 프로필 · 북마크 · 알림 · 촬영 · 에디터는 그대로 로그인 필요

@@ -17,9 +17,10 @@
     "test:inventory": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/inventory/target.test.mjs lib/categories.test.mjs lib/category-tag-tone.test.mjs",
     "test:nav": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/nav/return-to.test.mjs",
     "test:history": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/history/layer.test.mjs",
-    "test:push": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/push/messages.test.mjs lib/push/support.test.mjs",
-    "test:payments": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/payments/confirm.test.mjs",
-    "test": "npm run test:demo && npm run test:image && npm run test:template && npm run test:inventory && npm run test:history && npm run test:nav && npm run test:push && npm run test:payments"
+    "test:push": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/push/messages.test.mjs lib/push/support.test.mjs lib/push/forget-device.test.mjs",
+    "test:payments": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/payments/confirm.test.mjs lib/payments/settle.test.mjs",
+    "test:cron": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/cron/run.test.mjs",
+    "test": "npm run test:demo && npm run test:image && npm run test:template && npm run test:inventory && npm run test:history && npm run test:nav && npm run test:push && npm run test:payments && npm run test:cron"
   },
   "dependencies": {
     "@imgly/background-removal": "^1.7.0",
