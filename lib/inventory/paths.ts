@@ -1,3 +1,5 @@
+import { withReturnTo } from "@/lib/nav/return-to";
+
 export type InventoryView = "grid" | "list";
 
 type InventoryPathOptions = {
@@ -85,8 +87,9 @@ export function addItemPath(options: AddFlowOptions & { toEdit?: boolean } = {})
 }
 
 // 인벤토리 수정의 주소. 이름 · 카테고리 태그 · 공개 · 대표 사진을 고친다
-export function inventoryUpdatePath(inventoryId: string) {
-  return `/my/inventories/${inventoryId}/edit`;
+// returnTo — 저장 · × 뒤에 돌아갈 곳(프로필 안내 줄 "고르기"에서 왔으면 그 인벤토리). 없으면 인벤토리 관리 (lib/nav/return-to.ts)
+export function inventoryUpdatePath(inventoryId: string, returnTo?: string | null) {
+  return withReturnTo(`/my/inventories/${inventoryId}/edit`, returnTo);
 }
 
 // 인벤토리 정보 입력의 주소
@@ -111,9 +114,9 @@ export function itemPhotoCameraPath(itemId: string) {
 export function itemPhotoEditPath(itemId: string) {
   return `${itemUpdatePath(itemId)}/photo`;
 }
-export function inventoryPhotoCameraPath(inventoryId: string) {
-  return `${inventoryUpdatePath(inventoryId)}/camera`;
+export function inventoryPhotoCameraPath(inventoryId: string, returnTo?: string | null) {
+  return withReturnTo(`${inventoryUpdatePath(inventoryId)}/camera`, returnTo);
 }
-export function inventoryPhotoEditPath(inventoryId: string) {
-  return `${inventoryUpdatePath(inventoryId)}/photo`;
+export function inventoryPhotoEditPath(inventoryId: string, returnTo?: string | null) {
+  return withReturnTo(`${inventoryUpdatePath(inventoryId)}/photo`, returnTo);
 }

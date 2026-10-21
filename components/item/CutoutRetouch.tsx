@@ -14,6 +14,8 @@ type CutoutRetouchProps = {
   autoCutout: File;
   onCancel: () => void;
   onDone: (file: File) => void;
+  // 폰 뒤로 가기로 닫힐 때 부를 "지금까지 칠한 것 남기기"를 여기에 걸어 둔다 (PhotoEditor → useHistoryLayer onBack)
+  keepRef?: React.RefObject<(() => void) | null>;
 };
 
 // 붓 크기 세 단계 — 화면에서 보이는 지름(px). 확대해도 화면에서의 크기는 같고, 사진 위에서는 그만큼 가늘어진다
@@ -60,7 +62,7 @@ async function pixelsOf(file: File, width?: number, height?: number) {
 // 한 손가락은 칠하기, 두 손가락은 확대 · 이동(칠하던 획은 취소). 컴퓨터는 마우스로 칠하고 휠로 확대.
 // 손가락에 가려도 보이게 붓 크기 원을 띄우고, 위쪽 구석에 붓 자리를 키운 돋보기를 띄운다.
 // 사진 크기는 배경제거 결과 그대로(긴 변 640 — 썸네일 크기)라 큰 사진에서도 한 번에 고치는 양이 작다
-export function CutoutRetouch({ original, cutout, autoCutout, onCancel, onDone }: CutoutRetouchProps) {
+export function CutoutRetouch({ original, cutout, autoCutout, onCancel, onDone, keepRef }: CutoutRetouchProps) {
   const boxRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const loupeRef = useRef<HTMLCanvasElement>(null);
@@ -386,6 +388,18 @@ export function CutoutRetouch({ original, cutout, autoCutout, onCancel, onDone }
     workRef.current.data.set(autoRef.current);
     redrawAll();
   }
+
+  // 폰 뒤로 가기 — × 가 아니라 완료처럼 칠한 것을 남긴다(가장자리를 쓸다 뒤로 가기가 되어도 잃지 않게, 묻지 않는다).
+  // 한 획도 안 칠했으면 남길 것이 없다. 화면은 바로 닫히고 파일은 뒤에서 만들어 onDone 으로 넘긴다
+  useEffect(() => {
+    if (!keepRef) return;
+    keepRef.current = () => {
+      if (undoRef.current.length > 0) void onFinish();
+    };
+    return () => {
+      keepRef.current = null;
+    };
+  });
 
   async function onFinish() {
     const work = workRef.current;

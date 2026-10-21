@@ -1,19 +1,22 @@
 import type { Metadata } from "next";
 import { HeaderMini } from "@/components/ui/HeaderMini";
 import { requireProfile } from "@/lib/auth/profile";
+import { returnToFrom } from "@/lib/nav/return-to";
 import { PLANS } from "@/lib/plans";
 import { StickyTop } from "@/components/ui/StickyTop";
 
 export const metadata: Metadata = { title: "프리미엄 · INMYIN" };
 
 // 임시 — 4단계에서 프리미엄 결제 화면으로 채운다
-export default async function PlanPage() {
+// 뒤로는 온 곳(?back= — 프로필 격자 · 아이템 탭 · 설정). 없으면 인벤토리 관리(관리의 "인벤토리 늘리기"에서 왔을 때)
+export default async function PlanPage(props: PageProps<"/my/plan">) {
   await requireProfile();
+  const back = returnToFrom(await props.searchParams);
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col">
       <StickyTop>
-        <HeaderMini icon="back" href="/my/inventories" title="프리미엄" />
+        <HeaderMini icon="back" href={back ?? "/my/inventories"} title="프리미엄" />
       </StickyTop>
       <div className="flex flex-1 flex-col items-center justify-center gap-2 px-5 text-center">
         <p className="text-title font-bold">프리미엄은 준비 중이에요</p>

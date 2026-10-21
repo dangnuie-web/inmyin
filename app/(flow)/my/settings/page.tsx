@@ -9,6 +9,7 @@ import { SoonButton } from "@/components/profile/SoonButton";
 import { HeaderMini } from "@/components/ui/HeaderMini";
 import { requireProfile } from "@/lib/auth/profile";
 import { formatShortDate } from "@/lib/item/rules";
+import { withReturnTo } from "@/lib/nav/return-to";
 import { StickyTop } from "@/components/ui/StickyTop";
 
 export const metadata: Metadata = { title: "설정 · INMYIN" };
@@ -30,7 +31,7 @@ export default async function SettingsPage() {
         <Section title="멤버십">
           <div className={`${ROW_CLASS} justify-between active:opacity-100`}>
             {isPremium ? "프리미엄 적용중" : "베이직 이용중"}
-            <Link href="/my/plan" className="flex h-7 items-center rounded-sm bg-ink px-3 text-caption font-bold text-white active:opacity-80">
+            <Link href={withReturnTo("/my/plan", "/my/settings")} className="flex h-7 items-center rounded-sm bg-ink px-3 text-caption font-bold text-white active:opacity-80">
               {isPremium ? "구독 관리" : "프리미엄 보기"}
             </Link>
           </div>

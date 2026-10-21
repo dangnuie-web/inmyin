@@ -9,6 +9,7 @@ import { PhotoPreview } from "@/components/ui/PhotoPreview";
 import { CutoutLoading, cutoutStyle, type CutoutLoadingPhase } from "./CutoutLoading";
 import { CutoutRetouch } from "./CutoutRetouch";
 import { Toast } from "@/components/ui/Toast";
+import { useHistoryLayer } from "@/components/ui/useHistoryLayer";
 import { removeBackground } from "@/lib/background-removal";
 import { analyze, autoAdjust, buildLuts, isIdentity, NO_AUTO, NO_MANUAL, type AutoAdjust, type ManualAdjust } from "@/lib/image/adjust";
 import { adjustedFile, drawAdjusted, loadPixels } from "@/lib/image/adjust-canvas";
@@ -49,7 +50,11 @@ export function PhotoEditor({ closeHref, nextHref }: PhotoEditorProps) {
   const [cutout, setCutout] = useState<File | null>(null);
   // 누끼 손질(지우개 · 되살리기 붓)한 결과. 배경제거를 껐다 켜도 남는다 — 배경은 사진마다 한 번만 지우므로 손질이 덮일 일이 없다
   const [retouched, setRetouched] = useState<File | null>(null);
-  const [retouching, setRetouching] = useState(false);
+  // 손질 화면. 열 때 이력을 한 칸 쌓아 폰 뒤로 가기는 손질만 닫는다(사진 편집은 그대로, 2026-10-21 당니님).
+  // 손질 화면의 × · 완료도 그 칸을 빼며 닫는다 — 닫은 뒤의 뒤로 가기가 헛돌거나 손질을 다시 열지 않게
+  // 뒤로 가기로 닫을 때는 × 와 달리 칠한 것을 남긴다 — 손질 화면이 걸어 둔 함수를 부른다
+  const keepRetouchRef = useRef<(() => void) | null>(null);
+  const retouch = useHistoryLayer("retouch", () => keepRetouchRef.current?.());
   const [cutoutStatus, setCutoutStatus] = useState<CutoutStatus>("idle");
   // 배경제거 버튼이 켜져 있는지. 기본은 켜짐 — 지우는 중에 꺼도 지우기는 뒤에서 끝까지 하고 결과는 기억해 둔다
   const [removed, setRemoved] = useState(true);
@@ -326,7 +331,7 @@ export function PhotoEditor({ closeHref, nextHref }: PhotoEditorProps) {
             {removed && cutout && !revealing && (
               <button
                 type="button"
-                onClick={() => setRetouching(true)}
+                onClick={retouch.show}
                 disabled={working || saveQueued}
                 style={cutoutStyle(saveQueued)}
                 className="cutout-fade-in ml-2 flex h-9 items-center gap-1 rounded-full border border-gray-4 px-3.5 text-label font-bold text-white active:opacity-80 disabled:opacity-40"
@@ -382,15 +387,16 @@ export function PhotoEditor({ closeHref, nextHref }: PhotoEditorProps) {
           저장하기
         </Button>
       </div>
-      {retouching && cutout && (
+      {retouch.open && cutout && (
         <CutoutRetouch
           original={pending.photo}
           cutout={retouched ?? cutout}
           autoCutout={cutout}
-          onCancel={() => setRetouching(false)}
+          onCancel={retouch.hide}
+          keepRef={keepRetouchRef}
           onDone={(file) => {
             setRetouched(file);
-            setRetouching(false);
+            retouch.hide();
           }}
         />
       )}

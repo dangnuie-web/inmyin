@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { safeReturnTo } from "@/lib/nav/return-to";
 import { requireProfile } from "@/lib/auth/profile";
 import { newPhotoPaths, type NewPhotoInput } from "@/lib/image/stored-photo";
 import type { FormState } from "@/lib/auth/rules";
@@ -34,6 +35,8 @@ export async function updateInventory(
   inventoryId: string,
   input: { name: string; category: string | null; categories: string[]; isPublic: boolean },
   photo?: NewPhotoInput,
+  // 저장 뒤 돌아갈 곳(프로필 안내 줄 "고르기"에서 왔으면 그 인벤토리). 브라우저가 보낸 값이라 이 사이트 안 경로만 받는다 — 아니면 인벤토리 관리
+  returnTo?: string | null,
 ): Promise<FormState> {
   const profile = await requireProfile();
   if (!UUID_PATTERN.test(inventoryId)) return BAD_REQUEST;
@@ -87,7 +90,7 @@ export async function updateInventory(
   revalidateInventory(inventory.id);
   // 대표 사진은 프로필 띠 · 넣을 곳 줄 · 담긴 칸에도 보인다. 카테고리를 고르면 프로필의 "골라 주세요" 안내가 사라진다
   if (paths || category) revalidatePath("/my", "layout");
-  redirect("/my/inventories");
+  redirect(safeReturnTo(returnTo) ?? "/my/inventories");
 }
 
 // 인벤토리 삭제. **비어 있을 때만** 된다 — 안에 든 것까지 말없이 사라지면 안 된다.

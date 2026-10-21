@@ -8,7 +8,8 @@ import { bringInventory, takeOutInventory } from "@/app/(flow)/my/inventories/[i
 import { DarkMenu } from "@/components/ui/DarkMenu";
 import { Toast } from "@/components/ui/Toast";
 import { useAddItem } from "@/components/item/useAddItem";
-import { inventoryUpdatePath, itemUpdatePath, packingPath, type InventoryView } from "@/lib/inventory/paths";
+import { inventoryPath, inventoryUpdatePath, itemUpdatePath, packingPath, type InventoryView } from "@/lib/inventory/paths";
+import { withReturnTo } from "@/lib/nav/return-to";
 import { withSubjectParticle } from "@/lib/korean";
 import type { FormState } from "@/lib/auth/rules";
 import type { InventorySummary, SlotEntry } from "@/lib/inventory/queries";
@@ -51,7 +52,7 @@ type InventoryBoardProps = {
   // 이름 줄 "데스크 10/25 🔒 [관리] [짐싸기]" 에 쓴다
   name: string;
   isPublic: boolean;
-  // 고정 카테고리를 아직 안 골랐나(기존 인벤토리). 이름 줄 아래에 한 줄 안내 → 수정 화면
+  // 고정 카테고리를 아직 안 골랐나(기존 인벤토리). 이름 줄 아래에 한 줄 안내 → 수정 화면(저장 · × 뒤에 이 인벤토리로 돌아온다)
   needsCategory: boolean;
   // 이름 줄 아래의 토글 · 칩 줄 (서버가 그려서 준다)
   controls: React.ReactNode;
@@ -311,7 +312,7 @@ export function InventoryBoard({ inventoryId, name, isPublic, needsCategory, con
       {needsCategory && (
         <p className="px-5 text-caption text-ink-muted">
           홈 · 발견에 보일 카테고리를 골라 주세요.{" "}
-          <Link href={inventoryUpdatePath(inventoryId)} className="font-bold text-ink underline underline-offset-4 active:opacity-60">
+          <Link href={inventoryUpdatePath(inventoryId, inventoryPath(inventoryId, { view }))} className="font-bold text-ink underline underline-offset-4 active:opacity-60">
             고르기
           </Link>
         </p>
@@ -390,7 +391,7 @@ export function InventoryBoard({ inventoryId, name, isPublic, needsCategory, con
 
       {isFull && !isEmpty && (
         // + 를 그냥 없애면 기능이 사라진 줄 안다
-        <Link href="/my/plan" className="mx-auto mt-6 text-label text-ink-muted underline underline-offset-4">
+        <Link href={withReturnTo("/my/plan", inventoryPath(inventoryId, { view }))} className="mx-auto mt-6 text-label text-ink-muted underline underline-offset-4">
           칸이 가득 찼어요 · 프리미엄으로 늘리기
         </Link>
       )}

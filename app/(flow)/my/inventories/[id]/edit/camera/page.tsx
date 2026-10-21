@@ -4,6 +4,7 @@ import { CameraScreen } from "@/components/item/CameraScreen";
 import { requireProfile } from "@/lib/auth/profile";
 import { inventoryPhotoEditPath, inventoryUpdatePath } from "@/lib/inventory/paths";
 import { getMyInventoryDetail } from "@/lib/inventory/queries";
+import { returnToFrom } from "@/lib/nav/return-to";
 
 export const metadata: Metadata = { title: "촬영모드 · INMYIN" };
 
@@ -15,6 +16,8 @@ export default async function InventoryPhotoCameraPage(props: PageProps<"/my/inv
   const { id } = await props.params;
   if (!UUID_PATTERN.test(id)) notFound();
   if (!(await getMyInventoryDetail(profile.id, id))) notFound();
+  // 수정 화면이 들고 있던 돌아갈 곳을 그대로 넘겨 준다
+  const back = returnToFrom(await props.searchParams);
 
-  return <CameraScreen closeHref={inventoryUpdatePath(id)} nextHref={inventoryPhotoEditPath(id)} />;
+  return <CameraScreen closeHref={inventoryUpdatePath(id, back)} nextHref={inventoryPhotoEditPath(id, back)} />;
 }

@@ -4,14 +4,17 @@ import { InventoryForm } from "@/components/inventory/InventoryForm";
 import { HeaderMini } from "@/components/ui/HeaderMini";
 import { requireProfile } from "@/lib/auth/profile";
 import { getMyInventories } from "@/lib/inventory/queries";
+import { returnToFrom } from "@/lib/nav/return-to";
 import { planLimits } from "@/lib/plans";
 
 export const metadata: Metadata = { title: "인벤토리 만들기 · INMYIN" };
 
 // 인벤토리 정보 입력 (피그마 M-08 · 인벤토리 정보 입력).
 // (flow) 묶음은 하단 탭 없이 화면 전체를 쓰는 흐름이다 — 촬영 · 편집 · 정보 입력
-export default async function NewInventoryPage() {
+// 프로필 띠 + 칸에서 왔으면 ?back=(그 프로필) — × 는 그리로. 저장하면 늘 새 인벤토리의 프로필 격자로
+export default async function NewInventoryPage(props: PageProps<"/my/inventories/new">) {
   const profile = await requireProfile();
+  const back = returnToFrom(await props.searchParams);
 
   // 한도에 닿았으면 목록으로 돌려보낸다. 거기에 "인벤토리 늘리기" 버튼이 있다
   const inventories = await getMyInventories(profile.id);
@@ -20,7 +23,7 @@ export default async function NewInventoryPage() {
   return (
     <main className="flex flex-1 flex-col bg-surface-dark">
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col">
-        <HeaderMini icon="close" href="/my/inventories" title="저장하기" tone="dark" />
+        <HeaderMini icon="close" href={back ?? "/my/inventories"} title="저장하기" tone="dark" />
         <InventoryForm userId={profile.id} />
       </div>
     </main>

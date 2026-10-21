@@ -34,6 +34,8 @@ type InventoryFormProps = {
   userId: string;
   // 수정할 때만 준다. 그 값으로 채워서 연다. 사진을 누르거나 "사진 바꾸기"로 촬영 → 사진편집을 다시 거쳐 돌아온다
   inventory?: { id: string; name: string; category: string | null; categories: string[]; imageUrl: string; isPublic: boolean };
+  // 수정 — 저장 뒤 돌아갈 곳(프로필 안내 줄 "고르기"에서 왔으면 그 인벤토리). 없으면 인벤토리 관리. 사진 바꾸기에도 실어 보낸다
+  returnTo?: string | null;
 };
 
 // 사진 바꾸러 떠날 때 맡겨 두는 수정 화면의 값 (lib/image/pending-photo.ts)
@@ -49,7 +51,7 @@ type InventoryDraft = {
 };
 
 // 인벤토리 정보 입력. 사진 · 이름 · 카테고리(고정 8개 중 하나, 홈 · 발견 칩) · 태그(자유)를 받아 저장한다. 인벤토리 수정도 같은 폼이다.
-export function InventoryForm({ userId, inventory }: InventoryFormProps) {
+export function InventoryForm({ userId, inventory, returnTo = null }: InventoryFormProps) {
   const draftKey = inventory ? `inventory:${inventory.id}` : "";
   // 수정 — 사진 바꾸기에서 돌아왔으면 떠나기 전 값. 새로 열었으면 null
   const [restored] = useState(() => (inventory ? peekPhotoChangeDraft<InventoryDraft>(draftKey) : null));
@@ -84,8 +86,8 @@ export function InventoryForm({ userId, inventory }: InventoryFormProps) {
   }, [editing]);
 
   const photoChange = usePhotoChange({
-    cameraHref: inventory ? inventoryPhotoCameraPath(inventory.id) : "",
-    editHref: inventory ? inventoryPhotoEditPath(inventory.id) : "",
+    cameraHref: inventory ? inventoryPhotoCameraPath(inventory.id, returnTo) : "",
+    editHref: inventory ? inventoryPhotoEditPath(inventory.id, returnTo) : "",
     beforeLeave: () => savePhotoChangeDraft(draftKey, { name, category, tags, isPublic, draft, photo } satisfies InventoryDraft),
   });
 
@@ -149,7 +151,7 @@ export function InventoryForm({ userId, inventory }: InventoryFormProps) {
 
     setError(undefined);
     startTransition(async () => {
-      // 성공하면 서버가 보낸다 — 새 인벤토리는 그 인벤토리의 프로필 격자로, 수정은 인벤토리 관리로. 돌아온 값이 있으면 오류다
+      // 성공하면 서버가 보낸다 — 새 인벤토리는 그 인벤토리의 프로필 격자로, 수정은 온 곳(returnTo) 또는 인벤토리 관리로. 돌아온 값이 있으면 오류다
       if (inventory) {
         // 사진을 바꿨으면 새 이름으로 먼저 올린다. 옛 사진은 지우지 않는다(저장소에 지우는 권한이 없다)
         let newPhoto: Parameters<typeof updateInventory>[2];
@@ -162,7 +164,7 @@ export function InventoryForm({ userId, inventory }: InventoryFormProps) {
             return;
           }
         }
-        const result = await updateInventory(inventory.id, { name, category, categories, isPublic }, newPhoto);
+        const result = await updateInventory(inventory.id, { name, category, categories, isPublic }, newPhoto, returnTo);
         if (result?.error) setError(result.error);
         return;
       }

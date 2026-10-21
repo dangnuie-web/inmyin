@@ -4,6 +4,7 @@ import { PhotoEditor } from "@/components/item/PhotoEditor";
 import { requireProfile } from "@/lib/auth/profile";
 import { inventoryUpdatePath } from "@/lib/inventory/paths";
 import { getMyInventoryDetail } from "@/lib/inventory/queries";
+import { returnToFrom } from "@/lib/nav/return-to";
 
 export const metadata: Metadata = { title: "사진편집 · INMYIN" };
 
@@ -15,6 +16,8 @@ export default async function InventoryPhotoEditPage(props: PageProps<"/my/inven
   const { id } = await props.params;
   if (!UUID_PATTERN.test(id)) notFound();
   if (!(await getMyInventoryDetail(profile.id, id))) notFound();
+  // 수정 화면이 들고 있던 돌아갈 곳을 그대로 넘겨 준다
+  const back = returnToFrom(await props.searchParams);
 
-  return <PhotoEditor closeHref={inventoryUpdatePath(id)} nextHref={inventoryUpdatePath(id)} />;
+  return <PhotoEditor closeHref={inventoryUpdatePath(id, back)} nextHref={inventoryUpdatePath(id, back)} />;
 }

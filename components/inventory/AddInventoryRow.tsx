@@ -24,7 +24,8 @@ export function AddInventoryRow() {
 // 프로필 띠 맨 끝의 + 칸 "만들기" (무늬 빈화면프로필설계 v01 3-1). 띠의 다른 칸과 같은 60 칸 · 이름 자리.
 // 띠는 옆으로 넘기는 상자(overflow)라 그 안에 메뉴를 띄우면 잘린다 — 메뉴는 누른 칸 바로 아래 화면 좌표(fixed)에 띄운다
 export function AddInventoryTile() {
-  const add = useAddInventory("left-0 top-0");
+  // × · 뒤로는 프로필로 (2026-10-21 당니님 — 전에는 관리 화면으로 갔다)
+  const add = useAddInventory("left-0 top-0", true);
   const [at, setAt] = useState<{ left: number; top: number } | null>(null);
   return (
     <li className="w-15 shrink-0">

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { AddSlotButton, AddSlotCell, type GridColumns, gridColumnsClass, SlotCell, SlotRow } from "@/components/inventory/Slot";
 import { ViewToggle } from "@/components/inventory/ViewToggle";
@@ -14,6 +15,7 @@ import type { SlotEntry } from "@/lib/inventory/queries";
 import type { CollectedItem } from "@/lib/item/queries";
 import { NumText } from "@/components/ui/NumText";
 import { useAddItem } from "./useAddItem";
+import { withReturnTo } from "@/lib/nav/return-to";
 
 type ItemCollectionProps = {
   // 최신순으로 온다
@@ -56,6 +58,8 @@ export function ItemCollection({ items, capacity, columns, empty, sortable = fal
   const toEntry = (item: CollectedItem): SlotEntry => ({ kind: "item", deleted: false, ...item });
 
   const addItem = useAddItem({ category });
+  // 프리미엄 화면의 뒤로가 여기(아이템 탭)로 오게
+  const pathname = usePathname();
   const showAdd = addable && canAdd && !words && shown.length > 0;
 
   return (
@@ -147,7 +151,7 @@ export function ItemCollection({ items, capacity, columns, empty, sortable = fal
 
       {addable && !canAdd && shown.length > 0 && (
         // + 를 그냥 없애면 기능이 사라진 줄 안다 (인벤토리 격자와 같은 줄). 여기는 사진을 들고 있지 않아서 떠나도 된다
-        <Link href="/my/plan" className="mx-auto mt-6 text-label text-ink-muted underline underline-offset-4">
+        <Link href={withReturnTo("/my/plan", pathname)} className="mx-auto mt-6 text-label text-ink-muted underline underline-offset-4">
           칸이 가득 찼어요 · 프리미엄으로 늘리기
         </Link>
       )}
