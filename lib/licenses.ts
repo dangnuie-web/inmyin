@@ -12,6 +12,7 @@ export const OPEN_SOURCE_LICENSES = [
   // AGPL — 그래서 INMYIN 의 소스코드도 공개한다 (SOURCE_URL). 다른 배경제거로 갈아타면 그때 다시 정한다
   { name: "@imgly/background-removal", license: "AGPL-3.0", url: "https://github.com/imgly/background-removal-js" },
   { name: "Serwist", license: "MIT", url: "https://github.com/serwist/serwist" },
+  { name: "web-push", license: "MPL-2.0", url: "https://github.com/web-push-libs/web-push" },
   { name: "sharp", license: "Apache-2.0", url: "https://github.com/lovell/sharp" },
   // INMYIN 에디터의 캔버스
   { name: "Konva · react-konva", license: "MIT", url: "https://github.com/konvajs/konva" },
