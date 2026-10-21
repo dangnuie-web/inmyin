@@ -12,7 +12,7 @@
     "demo": "node scripts/demo/demo-data.mjs",
     "demo:posts": "node scripts/demo/render-posts.mjs",
     "test:demo": "node --test scripts/demo/demo-data.test.mjs scripts/demo/posts.test.mjs",
-    "test:image": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/image/adjust.test.mjs lib/image/retouch.test.mjs lib/image/cutout-motion.test.mjs lib/image/photo-change.test.mjs",
+    "test:image": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/image/adjust.test.mjs lib/image/retouch.test.mjs lib/image/cutout-motion.test.mjs lib/image/photo-change.test.mjs lib/image/png8.test.mjs",
     "test:template": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/inmyin/templates.test.mjs",
     "test:inventory": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/inventory/target.test.mjs lib/categories.test.mjs lib/category-tag-tone.test.mjs",
     "test:nav": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/nav/return-to.test.mjs",

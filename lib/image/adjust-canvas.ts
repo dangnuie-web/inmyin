@@ -28,7 +28,7 @@ export function drawAdjusted(canvas: HTMLCanvasElement, base: ImageData, luts: L
 }
 
 // 보정한 사진을 파일로. 배경을 지운 사진(png)은 투명을 지키려고 png, 아니면 jpeg —
-// 올릴 때 한 번 더 줄이며 webp 로 다시 압축하므로 (resize.ts) 여기서는 화질을 높게 둔다
+// 올릴 때 한 번 더 줄이며 다시 압축하므로 (resize.ts — webp, 사파리는 jpeg · 팔레트 png) 여기서는 화질을 높게 둔다
 export function adjustedFile(base: ImageData, luts: Luts, transparent: boolean): Promise<File> {
   const canvas = document.createElement("canvas");
   drawAdjusted(canvas, base, luts);
