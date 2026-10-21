@@ -59,7 +59,7 @@ export function ProfileForm({ userId, avatarUrl, ...initial }: ProfileFormProps)
           ) : avatarUrl ? (
             <Image src={avatarUrl} alt="" fill sizes="120px" unoptimized className="object-cover" />
           ) : (
-            <PersonMark />
+            <PersonMark size={120} />
           )}
         </span>
         <span className="text-caption text-placeholder-dark">{photo || avatarUrl ? "사진 바꾸기" : "사진 추가"}</span>
