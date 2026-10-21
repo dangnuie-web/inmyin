@@ -8,7 +8,7 @@ import { addItemPath, itemCameraPath, itemEditPath } from "@/lib/inventory/paths
 type AddItemOptions = {
   // 인벤토리 상세의 + — 그 인벤토리가 1순위라 /add 를 거치지 않고 바로 간다
   inventoryId?: string;
-  // 아이템 모아보기(M-13)에서 칩을 고른 채 눌렀으면 그 카테고리. /add 가 그 카테고리 아이템이 많은 곳을 골라 두고 M-08 이 미리 채운다
+  // 아이템 모아보기(M-13)에서 칩을 고른 채 눌렀으면 그 태그. /add 가 그 태그 아이템이 많은 곳을 골라 두고 M-08 이 미리 채운다
   category?: string | null;
 };
 

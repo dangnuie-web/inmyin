@@ -132,7 +132,7 @@ function OtherBoard({ handle, inventory, entries, filtered, controls, view, colu
       <InventoryTitleRow name={inventory.name} note={`${inventory.entries.length}/${inventory.slotCount}`} />
       {controls}
       {entries.length === 0 ? (
-        filtered ? <EmptyLine>이 카테고리에는 아직 없어요.</EmptyLine> : <EmptyBag>공개된 아이템이 아직 없어요.</EmptyBag>
+        filtered ? <EmptyLine>이 태그에는 아직 없어요.</EmptyLine> : <EmptyBag>공개된 아이템이 아직 없어요.</EmptyBag>
       ) : view === "grid" ? (
         <ul className={`mt-6 grid gap-3.5 px-5 lg:grid-cols-7 xl:grid-cols-8 ${gridFor(inventory.slotCount, columns).className}`}>
           {entries.map((entry) => (

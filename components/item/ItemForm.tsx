@@ -57,7 +57,7 @@ type ItemFormProps = {
       inventories: InventoryChoice[];
       // 처음 골라 둘 곳 (page 가 정한다 — 무늬 인벤토리고르기설계 v01 3-2)
       initialInventoryId: string;
-      // 아이템 모아보기(M-13)에서 칩을 고른 채 왔으면 그 카테고리. 입력칸에 미리 채운다
+      // 아이템 모아보기(M-13)에서 칩을 고른 채 왔으면 그 태그. 입력칸에 미리 채운다
       initialCategory?: string | null;
     }
 );
@@ -208,7 +208,7 @@ export function ItemForm(props: ItemFormProps) {
           </div>
         )}
 
-        {/* 넣을 곳 — 맨 위. 카테고리 칩이 인벤토리에 달려 있어서 넣을 곳이 먼저 정해져야 한다 (무늬 인벤토리고르기설계 v01 2-2) */}
+        {/* 넣을 곳 — 맨 위. 태그 칩이 인벤토리에 달려 있어서 넣을 곳이 먼저 정해져야 한다 (무늬 인벤토리고르기설계 v01 2-2) */}
         {target && (
           <div className="flex flex-col gap-2">
             <p className="text-label font-bold text-white">넣을 곳</p>

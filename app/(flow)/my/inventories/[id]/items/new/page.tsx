@@ -33,7 +33,7 @@ export default async function NewItemPage(props: PageProps<"/my/inventories/[id]
   return (
     <main className="flex flex-1 flex-col bg-surface-dark">
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col">
-        <HeaderMini icon="close" href={inventoryPath(id)} title="저장하기" tone="dark" />
+        <HeaderMini icon="close" href={inventoryPath(id)} title="아이템 넣기" tone="dark" />
         <ItemForm
           userId={profile.id}
           inventoryId={id}

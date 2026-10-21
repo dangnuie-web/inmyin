@@ -56,7 +56,7 @@ type InventoryBoardProps = {
   needsCategory: boolean;
   // 이름 줄 아래의 토글 · 칩 줄 (서버가 그려서 준다)
   controls: React.ReactNode;
-  // 카테고리를 골라 거른 중인가. 거른 결과가 0개면 빈 가방 대신 글 한 줄
+  // 태그 칩을 골라 거른 중인가. 거른 결과가 0개면 빈 가방 대신 글 한 줄
   filtered: boolean;
   // 내 인벤토리 전부. "인벤토리 가져오기"에서 고를 목록이다
   inventories: InventorySummary[];
@@ -64,7 +64,7 @@ type InventoryBoardProps = {
   addedId: string | null;
   // 방금 지운 아이템의 id. entries 안에 deleted 로 표시되어 같이 온다 — 제자리에 "되돌리기" 칸으로 잠깐 남는다
   deletedId: string | null;
-  // 보여줄 것. 카테고리를 골랐으면 걸러진 목록이 온다
+  // 보여줄 것. 태그 칩을 골랐으면 걸러진 목록이 온다
   entries: SlotEntry[];
   // 걸러지기 전의 전체 개수. 16/25 와 꽉 찼는지는 이 숫자로 본다
   usedSlots: number;
@@ -321,7 +321,7 @@ export function InventoryBoard({ inventoryId, name, isPublic, needsCategory, con
 
       {isEmpty ? (
         filtered ? (
-          <EmptyLine>이 카테고리에는 아직 없어요.</EmptyLine>
+          <EmptyLine>이 태그에는 아직 없어요.</EmptyLine>
         ) : (
           <EmptyBag action={{ label: "아이템 넣기", onClick: menuItems[0].onSelect }} secondary={{ label: "인벤토리 가져오기", onClick: () => setPickerOpen(true) }}>
             {withSubjectParticle(name)} 비어 있어요. 물건을 찍어 넣어 보세요.

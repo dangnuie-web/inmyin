@@ -35,8 +35,8 @@ type ItemCollectionProps = {
 };
 
 // M-13 · 아이템 모아보기. 인벤토리 구분 없이 아이템 전체를 최신순으로 본다.
-// 검색과 카테고리는 서버를 거치지 않고 여기서 바로 거른다 — 글자를 칠 때마다, 칩을 누를 때마다 즉시 바뀐다.
-// 내 것(addable)이면 격자 맨 뒤에 + 칸(리스트는 + 줄) — 인벤토리 격자와 같은 칸. 누르면 넣을 인벤토리는 /add 가 골라 두고(칩을 골랐으면 그 카테고리가 많은 곳)
+// 검색과 태그는 서버를 거치지 않고 여기서 바로 거른다 — 글자를 칠 때마다, 칩을 누를 때마다 즉시 바뀐다.
+// 내 것(addable)이면 격자 맨 뒤에 + 칸(리스트는 + 줄) — 인벤토리 격자와 같은 칸. 누르면 넣을 인벤토리는 /add 가 골라 두고(칩을 골랐으면 그 태그가 많은 곳)
 // 정보 입력(M-08)에서 바꾼다. 떠 있는 + 는 없다 — 하단 탭 + 와 둘이 나란히 보여서(2026-10-21 당니님). 검색 중에는 + 를 숨긴다 — 결과 끝의 + 는 "검색 결과에 넣는다"로 읽힌다
 export function ItemCollection({ items, capacity, columns, empty, sortable = false, addable = false, canAdd = true }: ItemCollectionProps) {
   const [view, setView] = useState<InventoryView>("grid");
