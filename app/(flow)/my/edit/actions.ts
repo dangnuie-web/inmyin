@@ -12,9 +12,12 @@ const AVATAR_FILE_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0
 export type ProfileInput = {
   nickname: string;
   handle: string;
-  // 새로 올린 프로필 사진의 파일 이름. 사진을 바꾸지 않았으면 null
-  avatarFile: string | null;
+  // 프로필 사진을 어떻게 할지 — 그대로 둠(keep) · 새로 올린 파일로(file) · 기본 그림으로(clear, avatar_url 을 비운다)
+  // 예전에는 avatarFile: null 이 "안 바꿈"이라 지울 방법이 없었다(2026-10-21 당니님 — 기본 그림으로 되돌리기)
+  avatar: AvatarChange;
 };
+
+export type AvatarChange = { kind: "keep" } | { kind: "clear" } | { kind: "file"; name: string };
 
 // 프로필 관리. 닉네임 · 아이디 · 프로필 사진을 고친다. 규칙은 프로필을 처음 만들 때(A-03)와 같다
 export async function updateProfile(input: ProfileInput): Promise<FormState> {
@@ -26,9 +29,12 @@ export async function updateProfile(input: ProfileInput): Promise<FormState> {
   const handle = typeof input.handle === "string" ? input.handle.trim().toLowerCase() : "";
   if (!HANDLE_PATTERN.test(handle)) return { error: "아이디는 영소문자·숫자·밑줄(_)로 3~30자여야 합니다." };
 
-  if (input.avatarFile !== null && !AVATAR_FILE_PATTERN.test(input.avatarFile)) {
-    return { error: "잘못된 요청입니다. 처음부터 다시 시도해 주세요." };
-  }
+  const avatar = input.avatar;
+  const avatarOk =
+    avatar?.kind === "keep" ||
+    avatar?.kind === "clear" ||
+    (avatar?.kind === "file" && typeof avatar.name === "string" && AVATAR_FILE_PATTERN.test(avatar.name));
+  if (!avatarOk) return { error: "잘못된 요청입니다. 처음부터 다시 시도해 주세요." };
 
   const supabase = await createClient();
   const { error } = await supabase
@@ -37,9 +43,11 @@ export async function updateProfile(input: ProfileInput): Promise<FormState> {
       nickname,
       handle,
       // 주소는 브라우저가 보낸 값을 믿지 않고 여기서 만든다 — 항상 내 폴더 안의 파일만 가리킨다
-      ...(input.avatarFile && {
-        avatar_url: supabase.storage.from("avatars").getPublicUrl(`${profile.id}/${input.avatarFile}`).data.publicUrl,
+      ...(avatar.kind === "file" && {
+        avatar_url: supabase.storage.from("avatars").getPublicUrl(`${profile.id}/${avatar.name}`).data.publicUrl,
       }),
+      // 기본 그림으로 — 주소만 비운다. 어디서나 사람 그림(PersonMark)이 보인다. 올렸던 파일은 Storage 에 남는다(오피스 로드맵 "나중에 할 일")
+      ...(avatar.kind === "clear" && { avatar_url: null }),
     })
     .eq("id", profile.id);
   if (error) {
