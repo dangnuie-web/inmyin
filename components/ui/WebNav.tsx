@@ -18,11 +18,12 @@ const MENU = [
 
 // account — 오른쪽 끝의 "+ 추가" · 로그아웃(또는 로그인) 자리. 로그인 여부는 서버에서 읽어야 해서 레이아웃이 서버 컴포넌트(WebNavAccount)로 넣어 준다
 // 스크롤해도 맨 위에 붙어 있다(2026-10-20, 무늬 설계서 3-3). 갈래 줄은 흘러간다 — 폰의 StickyTop 은 웹에서 붙지 않는다
+// z-[25]: 이 바 안의 "+ 추가" 메뉴는 바 높이를 못 넘는다 → 화면 안 z-10 · z-20(갈래 줄 · 인벤토리 메뉴)보다 위, 시트 · 모달(30~)보다 아래 (2026-10-21 메뉴가 갈래 줄에 가려짐)
 export function WebNav({ account }: { account?: ReactNode }) {
   const current = activeTabHref(usePathname());
 
   return (
-    <header className="hidden border-b border-border bg-white lg:sticky lg:top-0 lg:z-10 lg:block">
+    <header className="hidden border-b border-border bg-white lg:sticky lg:top-0 lg:z-[25] lg:block">
       <nav aria-label="상단 메뉴" className="mx-auto flex h-19 max-w-web items-stretch gap-14 px-5">
         <Link href="/" aria-label="INMYIN 홈" className="flex items-center active:opacity-60">
           <Image src="/logo.svg" alt="INMYIN" width={84} height={28} priority />
