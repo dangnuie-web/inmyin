@@ -6,7 +6,7 @@ import { Icon } from "@/components/ui/Icon";
 import { clampView, pinchView, stamp, strokePoints, unionRect, type BrushMode, type Rect, type View } from "@/lib/image/retouch";
 
 type CutoutRetouchProps = {
-  // 배경을 지우기 전 원래 사진 — 되살리기 붓이 여기서 색을 가져온다
+  // 배경을 지우기 전 원래 사진 — 살리기 붓(지운 곳을 다시 채움)이 여기서 색을 가져온다
   original: File;
   // 손질을 시작할 사진 (배경을 지운 것, 전에 손질했으면 그 결과)
   cutout: File;
@@ -58,7 +58,7 @@ async function pixelsOf(file: File, width?: number, height?: number) {
   return context.getImageData(0, 0, canvas.width, canvas.height);
 }
 
-// M-07 누끼 손질 — 배경제거가 덜 지운 곳은 지우개로, 너무 지운 곳은 되살리기 붓으로.
+// M-07 누끼 손질 — 배경제거가 덜 지운 곳은 지우기 붓으로, 너무 지운 곳은 살리기 붓(원래 사진 색을 다시 채움)으로.
 // 한 손가락은 칠하기, 두 손가락은 확대 · 이동(칠하던 획은 취소). 컴퓨터는 마우스로 칠하고 휠로 확대.
 // 손가락에 가려도 보이게 붓 크기 원을 띄우고, 위쪽 구석에 붓 자리를 키운 돋보기를 띄운다.
 // 사진 크기는 배경제거 결과 그대로(긴 변 640 — 썸네일 크기)라 큰 사진에서도 한 번에 고치는 양이 작다
@@ -475,12 +475,12 @@ export function CutoutRetouch({ original, cutout, autoCutout, onCancel, onDone, 
 
         <div className="flex flex-col gap-4 px-5 pt-4">
           <div className="flex items-center justify-between">
-            {/* 지우개 · 되살리기 — 고른 쪽이 흰 채움 (흑백) */}
+            {/* 지우기 · 살리기 붓 — 고른 쪽이 흰 채움 (흑백). 이름은 2026-10-21 당니님 결정(지우개 → 지우기, 되살리기 → 살리기) */}
             <div role="radiogroup" aria-label="붓" className="flex gap-2">
               {(
                 [
-                  ["erase", "eraser", "지우개"],
-                  ["restore", "brush", "되살리기"],
+                  ["erase", "eraser", "지우기"],
+                  ["restore", "brush", "살리기"],
                 ] as const
               ).map(([value, icon, label]) => (
                 <button

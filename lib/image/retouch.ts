@@ -1,8 +1,8 @@
-// 누끼 손질 (M-07) — 지우개 · 되살리기 붓의 계산. DOM 을 쓰지 않아 node 에서 시험한다 (retouch.test.mjs).
+// 누끼 손질 (M-07) — 지우기 · 살리기 붓의 계산. DOM 을 쓰지 않아 node 에서 시험한다 (retouch.test.mjs).
 //
 // 작업 사진(work)은 배경을 지운 사진의 RGBA 픽셀이다. 손질은 이 배열을 그 자리에서 고친다.
-// - 지우개: 붓 자리의 투명도(알파)를 낮춘다
-// - 되살리기: 붓 자리에 배경을 지우기 전 원래 사진(original)의 색을 다시 가져오고 알파를 올린다
+// - 지우기: 붓 자리의 투명도(알파)를 낮춘다
+// - 살리기: 붓 자리에 배경을 지우기 전 원래 사진(original)의 색을 다시 가져오고 알파를 올린다
 // 붓 가장자리는 부드럽게(안쪽 60% 는 꽉, 바깥 40% 는 점점 옅게) — 딱 잘린 테두리가 생기지 않게.
 
 export type Pixels = Uint8ClampedArray | Uint8Array;
@@ -46,7 +46,7 @@ export function stamp(
       if (mode === "erase") {
         work[i + 3] = Math.min(alpha, 255 - amount);
       } else if (amount > alpha) {
-        // 되살리기 — 원래 사진의 색으로. 지운 자리의 색은 라이브러리가 아무 값(대개 0)으로 둬서 믿을 수 없다
+        // 살리기 — 원래 사진의 색으로. 지운 자리의 색은 라이브러리가 아무 값(대개 0)으로 둬서 믿을 수 없다
         work[i] = original[i];
         work[i + 1] = original[i + 1];
         work[i + 2] = original[i + 2];

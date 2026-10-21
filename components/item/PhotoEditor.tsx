@@ -48,7 +48,7 @@ export function PhotoEditor({ closeHref, nextHref }: PhotoEditorProps) {
   const [pending] = useState(getPendingPhoto);
   // 배경을 지운 사진. 한 번 만들어 두면 껐다 켜도 다시 만들지 않는다
   const [cutout, setCutout] = useState<File | null>(null);
-  // 누끼 손질(지우개 · 되살리기 붓)한 결과. 배경제거를 껐다 켜도 남는다 — 배경은 사진마다 한 번만 지우므로 손질이 덮일 일이 없다
+  // 누끼 손질(지우기 · 살리기 붓)한 결과. 배경제거를 껐다 켜도 남는다 — 배경은 사진마다 한 번만 지우므로 손질이 덮일 일이 없다
   const [retouched, setRetouched] = useState<File | null>(null);
   // 손질 화면. 열 때 이력을 한 칸 쌓아 폰 뒤로 가기는 손질만 닫는다(사진 편집은 그대로, 2026-10-21 당니님).
   // 손질 화면의 × · 완료도 그 칸을 빼며 닫는다 — 닫은 뒤의 뒤로 가기가 헛돌거나 손질을 다시 열지 않게
