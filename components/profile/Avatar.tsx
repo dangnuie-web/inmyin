@@ -1,9 +1,9 @@
 import Image from "next/image";
 
 // 사진이 없을 때의 사람 그림 — 무늬 빈 프로필 1안 "떠 있는 사람"(2026-10-21 당니님 결정). 원 안에 머리와 반원 몸이 떠 있다.
-// 선 1.75 둥근 끝(하단 탭 아이콘 세트와 같은 결). 작은 크기(24 미만)는 선만으로는 안 보여서 채운다. 색은 currentColor
+// 선 1.75 둥근 끝(하단 탭 아이콘 세트와 같은 결). 2026-10-21 당니님: 선은 옅어 보여서 모든 크기를 채운 그림으로. 색은 currentColor
 // 시안: 오피스 디자인/아이콘/20261021_inmyin_빈프로필시안_v01.svg #person-float
-export function PersonMark({ size, filled = false }: { size: number; filled?: boolean }) {
+export function PersonMark({ size, filled = true }: { size: number; filled?: boolean }) {
   return (
     <svg
       width={size}
@@ -33,7 +33,7 @@ export function Avatar({ url, size, className = "" }: { url: string | null; size
         // 올릴 때 이미 작게 줄여 둔 사진이라 Next 의 이미지 최적화를 거치지 않는다
         <Image src={url} alt="" fill sizes={`${size}px`} unoptimized className="object-cover" />
       ) : (
-        <PersonMark size={size} filled={size < 24} />
+        <PersonMark size={size} />
       )}
     </span>
   );
