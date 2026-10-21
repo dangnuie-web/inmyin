@@ -33,6 +33,8 @@ Announcement (주인이 쓰는 공지 — 유저와 연결 없음)
 | `PushSubscription` | id, userId, endpoint, p256dh, auth, kinds, expirySentOn, createdAt, updatedAt | 웹 푸시를 켠 기기 하나 = 한 줄 (endpoint 유일 — 같은 기기에서 다른 계정으로 켜면 넘어간다). kinds ⊂ `follow` · `heart` · `comment` · `expiry`. 본인 줄만 읽고 쓴다(RLS), 보내기는 서버가 서비스 키로. expirySentOn = 유통기한 알림을 마지막으로 살핀 한국 날짜. 2026-10-21 마이그레이션 작성, 운영 DB 적용 전 |
 | `Follow` | followerId, followingId, createdAt | |
 | `Block` | blockerId, blockedId, createdAt | 2단계 |
+| `PaymentOrder` (payment_orders) | orderId, userId, plan, amount, months, status, paymentKey, failCode, createdAt, approvedAt | 4단계 결제. 서버(서비스 키)만 읽고 쓴다. status = ready → confirming → done \| failed. 금액 · 기간은 `lib/plans.ts` PREMIUM_PASS |
+| `Membership` (memberships) | userId, premiumUntil, updatedAt | 프리미엄이 언제까지인지. 자기 것만 읽기, 쓰기는 `complete_premium_order` 만 |
 
 ## 불변 규칙
 
@@ -88,6 +90,7 @@ export const PLANS = {
 | --- | --- | --- |
 | `discover_users(mode, threshold, limit)` | 발견 탭(H-05) | `popular` — 최근 24시간에 받은 북마크. `recommend` — 누적 북마크가 threshold 미만인 사람 중 최근 1시간. 나와 차단 사이는 뺀다. 같으면 최근에 올린 사람 먼저 |
 | `popular_posts(limit)` | INMYIN 목록(H-03) 인기순 | 게시물별 최근 24시간 북마크. 같으면 최신순 |
+| `complete_premium_order(order_id, payment_key, slot_count)` | 결제 승인 뒤 서버만 | confirming 주문을 done 으로 + 기간 늘리기(남았으면 그 끝에서) + plan premium + 내 인벤토리 칸을 slot_count 로 (줄이지 않음). 같은 주문 두 번 안 됨 |
 
 `RECOMMEND_THRESHOLD = 100` 은 `lib/ranking.ts` 의 상수이고 함수에 넘긴다 (규칙 8). `bookmarkCount` 캐시는 순위에 쓰지 않는다 — 시간 창이 없어서.
 

@@ -1,29 +1,18 @@
 import type { Metadata } from "next";
-import { HeaderMini } from "@/components/ui/HeaderMini";
+import { PlanView } from "@/components/plan/PlanScreens";
 import { requireProfile } from "@/lib/auth/profile";
 import { returnToFrom } from "@/lib/nav/return-to";
-import { PLANS } from "@/lib/plans";
-import { StickyTop } from "@/components/ui/StickyTop";
+import { readPremiumUntil } from "@/lib/payments/orders";
 
 export const metadata: Metadata = { title: "프리미엄 · INMYIN" };
 
-// 임시 — 4단계에서 프리미엄 결제 화면으로 채운다
-// 뒤로는 온 곳(?back= — 프로필 격자 · 아이템 탭 · 설정). 없으면 인벤토리 관리(관리의 "인벤토리 늘리기"에서 왔을 때)
+// 프리미엄(플랜) 화면. 설정의 "프리미엄 보기 · 구독 관리", 한도에 닿았을 때의 "늘리기"에서 온다.
+// 베이직: 한도 비교 + 월 2,900원 한 달 이용권 결제(토스 결제창, 4단계는 테스트 모드). 프리미엄: 언제까지인지.
+// 자동 결제 · 해지는 아직 없다(한 번 결제 = 한 달). 뒤로는 온 곳(?back=), 없으면 인벤토리 관리
 export default async function PlanPage(props: PageProps<"/my/plan">) {
-  await requireProfile();
+  const profile = await requireProfile();
   const back = returnToFrom(await props.searchParams);
-
-  return (
-    <div className="mx-auto flex w-full max-w-md flex-1 flex-col">
-      <StickyTop>
-        <HeaderMini icon="back" href={back ?? "/my/inventories"} title="프리미엄" />
-      </StickyTop>
-      <div className="flex flex-1 flex-col items-center justify-center gap-2 px-5 text-center">
-        <p className="text-title font-bold">프리미엄은 준비 중이에요</p>
-        <p className="text-body text-ink-muted">
-          인벤토리 {PLANS.premium.maxInventories}개, 판마다 {PLANS.premium.slotCount}칸, 북마크 {PLANS.premium.maxBookmarks.toLocaleString("ko-KR")}개까지 늘릴 수 있게 됩니다.
-        </p>
-      </div>
-    </div>
-  );
+  const isPremium = profile.plan === "premium";
+  const until = isPremium ? await readPremiumUntil(profile.id) : null;
+  return <PlanView isPremium={isPremium} until={until} back={back ?? "/my/inventories"} />;
 }

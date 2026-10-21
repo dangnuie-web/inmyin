@@ -519,6 +519,79 @@ export type Database = {
           },
         ]
       }
+      memberships: {
+        Row: {
+          premium_until: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          premium_until: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          premium_until?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memberships_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_orders: {
+        Row: {
+          amount: number
+          approved_at: string | null
+          created_at: string
+          fail_code: string | null
+          months: number
+          order_id: string
+          payment_key: string | null
+          plan: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          approved_at?: string | null
+          created_at?: string
+          fail_code?: string | null
+          months: number
+          order_id: string
+          payment_key?: string | null
+          plan: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          approved_at?: string | null
+          created_at?: string
+          fail_code?: string | null
+          months?: number
+          order_id?: string
+          payment_key?: string | null
+          plan?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       push_subscriptions: {
         Row: {
           auth: string
@@ -612,6 +685,10 @@ export type Database = {
     Functions: {
       block_user: { Args: { target_id: string }; Returns: undefined }
       blocked_between: { Args: { other_id: string }; Returns: boolean }
+      complete_premium_order: {
+        Args: { p_order_id: string; p_payment_key: string; p_slot_count: number }
+        Returns: string
+      }
       discover_users: {
         Args: { p_limit?: number; p_mode: string; p_threshold: number }
         Returns: {

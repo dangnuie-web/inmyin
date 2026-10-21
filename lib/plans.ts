@@ -12,3 +12,13 @@ export type Plan = keyof typeof PLANS;
 export function planLimits(plan: string) {
   return plan in PLANS ? PLANS[plan as Plan] : PLANS.basic;
 }
+
+// 프리미엄 한 달 이용권 (2026-10-21 당니님: 월 2,900원). 자동 결제가 아니라 한 번 결제하면 months 달.
+// 4단계는 토스페이먼츠 테스트 모드라 실제 돈은 안 나간다. 결제 흐름은 lib/payments/
+export const PREMIUM_PASS = {
+  plan: "premium",
+  price: 2900,
+  months: 1,
+  // 결제창 · 카드 내역에 찍히는 이름 (토스 규칙 100자까지)
+  orderName: "INMYIN 프리미엄 한 달",
+} as const;
