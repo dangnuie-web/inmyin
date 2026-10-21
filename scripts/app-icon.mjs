@@ -1,7 +1,7 @@
 // 정해진 앱 아이콘 SVG 하나로 PWA 에 필요한 아이콘 파일들을 만든다.
 //
-//   npm run app-icon -- "<오피스>/10_프로젝트/01_진행/inmyin/디자인/아이콘/20261021_inmyin_앱아이콘시안_A_흰바탕in_v01.svg"
-//   (2026-10-21 당니님이 고른 지금 아이콘 — 무늬 시안 A, 흰 바탕 · 검정 "in". 원본은 오피스 디자인 폴더에만 두고 경로로 쓴다)
+//   npm run app-icon -- "<오피스>/10_프로젝트/01_진행/inmyin/디자인/앱아이콘시안/20260922_inmyin_logo_2_v01.svg"
+//   (지금 아이콘 — 당니님 가방 시안. 2026-10-21 흰 바탕 "in" 에서 되돌림. 원본은 오피스 디자인 폴더에만 두고 경로로 쓴다)
 //
 // 만드는 것:
 //   public/icons/icon-192.png, icon-512.png   — 매니페스트용. 그린 그대로 (모서리가 투명한 둥근 네모)
@@ -24,7 +24,7 @@ if (!svgPath) {
 }
 const ICONS_DIR = path.resolve("public/icons");
 const FAVICON = path.resolve("app/favicon.ico");
-// 안드로이드 마스크의 안전 영역은 가운데 원(지름 80%). 그림을 이만큼 줄이면 그림 전체가 안에 들어온다 (시안 A 의 "in" 은 줄이기 전에도 안전 원 안이다)
+// 안드로이드 마스크의 안전 영역은 가운데 원(지름 80%). 그림을 이만큼 줄이면 가방 몸통은 안에 들어온다
 const MASKABLE_SCALE = 0.8;
 
 const svg = await readFile(svgPath, "utf8");
