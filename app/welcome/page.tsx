@@ -15,27 +15,28 @@ export const metadata: Metadata = {
 export default function WelcomePage() {
   return (
     <main className="flex flex-1 flex-col">
+      {/* 폰은 여백 · 로고 · 가방 연출 크기를 화면 높이(dvh)에 맞춰 줄여, 버튼이 첫 화면 안에 보이게 한다 (2026-11-03, 버튼이 안 보여 로딩 중으로 오해) */}
       {/* 웹 기둥(max-w-web)이 930 → 1200 으로 넓어졌지만(2026-10-20) 랜딩은 그 결정의 범위가 아니라 전의 930 그대로 둔다 — 가방 연출의 칸 크기가 바뀌지 않게 */}
-      <div className="mx-auto flex w-full max-w-md flex-1 flex-col items-center px-5 pt-16 pb-10 lg:max-w-[930px] lg:pt-24 lg:pb-16">
+      <div className="mx-auto flex w-full max-w-md flex-1 flex-col items-center px-5 pt-[clamp(2.5rem,7dvh,4rem)] pb-[clamp(1.25rem,2.5dvh,2.5rem)] lg:max-w-[930px] lg:pt-24 lg:pb-16">
         <h1 className="flex flex-col items-center gap-3 lg:gap-5">
-          <Image src="/logo.svg" alt="INMYIN" width={193} height={64} priority className="h-16 w-auto lg:h-28" />
+          <Image src="/logo.svg" alt="INMYIN" width={193} height={64} priority className="h-[clamp(2.75rem,7dvh,4rem)] w-auto lg:h-28" />
           {/* 22px · 웹 38px, 자간 −0.01em — 본문 폰트 Wanted Sans 에서 로고 폭과 맞춘 값 (2026-10-19 비교판 1안). 줄 높이는 전과 같게 */}
           <span className="text-[22px]/[1.3] tracking-[-0.01em] lg:text-[38px]/10">In my inventory</span>
         </h1>
 
         {/* 가방에서 아이템이 튀어나와 칸에 꽂히는 연출 (그림 · 움직임 값은 lib/landing/scene.ts) */}
-        <div className="mt-4 w-full lg:mt-6">
+        <div className="w-full lg:mt-6">
           <BagScene />
         </div>
 
-        <Bubble className="mt-5 lg:mt-6">
+        <Bubble className="mt-4 lg:mt-6">
           내 아이템을 올리고
           <br />
           내 취향을 표현해 보자!
         </Bubble>
 
         {/* 버튼 위계: 주 버튼(가입 · 로그인)만 검정으로 채우고, 구경하기는 외곽선 */}
-        <div className="mt-auto flex w-full flex-col gap-3 pt-12 lg:mt-14 lg:w-auto lg:flex-row-reverse lg:gap-4 lg:pt-0">
+        <div className="mt-auto flex w-full flex-col gap-3 pt-[clamp(1.25rem,3dvh,3rem)] lg:mt-14 lg:w-auto lg:flex-row-reverse lg:gap-4 lg:pt-0">
           <Link href={loginPath()} className="flex h-14 items-center justify-center rounded-full bg-ink text-body font-bold text-white active:opacity-80 lg:w-60">
             가입 · 로그인
           </Link>
